@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Task Splitting – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1200px;height:640px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Ribbon ─────────────────────────────── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:28px;font-size:13px}
+.menubar span{padding:5px 12px;cursor:default}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:1px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:46px;padding:3px 5px;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;gap:2px}
+.rbtn-icon{font-size:16px;line-height:1.2}
+.rbtn.active{background:#cce0f8;border-color:#7bacd8}
+.rgroup-lbl{font-size:9.5px;color:#667;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:2px}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:6px 3px;align-self:stretch}
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 16px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+/* ── Gantt splitter ── */
+.gantt-area{display:flex;flex:1;overflow:hidden;position:relative}
+.task-pane{width:310px;flex-shrink:0;display:flex;flex-direction:column;border-right:2px solid #B8CBE4}
+.pane-hdr{background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);display:flex;border-bottom:2px solid #2B579A;height:52px}
+.ph-cell{border-right:1px solid #B0C8E0;padding:4px 6px;font-size:12px;font-weight:700;color:#1A3F7A;display:flex;align-items:center}
+.task-rows{flex:1;overflow:hidden}
+.t-row{display:flex;height:30px;align-items:center;border-bottom:1px solid #D0DDF0}
+.t-row.even{background:#fff}.t-row.odd{background:#F0F5FF}
+.t-row.sel{background:#BDD7EE}
+.t-row.split-row{background:#FFF8E8}
+.t-cell{overflow:hidden;white-space:nowrap;font-size:12px;padding:0 5px;display:flex;align-items:center}
+.tri{font-size:9px;color:#555;margin-right:2px}
+.split-icon{font-size:11px;color:#e07b1a;margin-right:3px}
+
+/* ── Chart pane ── */
+.chart-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.cal-hdr{flex-shrink:0;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A}
+.month-row{display:flex;height:26px;border-bottom:1px solid #B0C8E0}
+.month-cell{border-right:1px solid #B0C8E0;font-size:11px;font-weight:700;color:#1A3F7A;padding:5px 6px;overflow:hidden;white-space:nowrap}
+.day-row{display:flex;height:26px}
+.day-cell{border-right:1px solid #D0DDF0;font-size:10px;color:#4a5570;display:flex;align-items:center;justify-content:center;width:36px;flex-shrink:0}
+.day-cell.sat{background:#EAEAEA;color:#888}
+.day-cell.sun{background:#E8EEFF;color:#7090c8}
+.day-cell.today-hdr{background:#d4f0d4;color:#145214;font-weight:700}
+.chart-rows{flex:1;overflow:hidden;position:relative}
+.c-row{height:30px;display:flex;align-items:center;position:relative;border-bottom:1px solid #D0DDF0}
+.c-row.even{background:#fff}.c-row.odd{background:#F0F5FF}
+.c-row.split-row{background:#FFF8E8}
+
+/* Task bars */
+.bar{position:absolute;height:18px;top:50%;transform:translateY(-50%);border-radius:3px;overflow:hidden;display:flex;align-items:center}
+.bar.normal{background:#4682C8}
+.bar.crit{background:#c0392b}
+.bar.split-seg{background:#4682C8}
+.bar-fill{position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,.3);border-radius:3px 0 0 3px}
+.bar-lbl{color:#fff;font-size:10px;font-weight:600;padding:0 5px;position:relative;z-index:1;white-space:nowrap;overflow:hidden}
+
+/* Split gap dashed connector */
+.split-gap{position:absolute;height:2px;top:50%;transform:translateY(-50%);border-top:2px dashed #4682C8;opacity:.7}
+
+/* Vacation overlay */
+.vacation{position:absolute;top:2px;bottom:2px;background:rgba(224,123,26,.22);border:1px solid rgba(224,123,26,.55);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vacation-lbl{font-size:9px;color:#7a4000;font-weight:600;white-space:nowrap;padding:0 3px}
+
+/* Context menu */
+.ctx-menu{position:absolute;background:#fff;border:1px solid #999;border-radius:3px;box-shadow:0 4px 14px rgba(0,0,0,.22);padding:2px 0;z-index:50;width:190px;font-size:12px}
+.ctx-item{padding:6px 22px;cursor:default;display:flex;align-items:center;gap:8px}
+.ctx-item:hover,.ctx-item.active{background:#BDD7EE}
+.ctx-item .ctx-icon{font-size:13px;width:16px;text-align:center}
+.ctx-sep{height:1px;background:#ddd;margin:3px 0}
+
+/* Today line */
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:10}
+
+/* status bar */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 8px;display:flex;gap:16px;height:22px;align-items:center}
+.zoom-box{position:absolute;bottom:24px;right:4px;background:rgba(255,255,255,.92);border:1px solid #c0cfe0;border-radius:5px;padding:4px 8px;font-size:11px;color:#2B579A;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+
+  <!-- Ribbon TASK tab -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab active">TASK</button>
+      <button class="rtab">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📋</div><div>Task<br>Sheet</div></div>
+        </div>
+        <div class="rgroup-lbl">Sheet</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn active"><div class="rbtn-icon">⊟</div><div>Gantt<br>Chart</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⤢</div><div>Depend-<br>encies</div></div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📋</div><div>Paste</div></div>
+          <div class="rbtn"><div class="rbtn-icon">✂</div><div>Cut</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⎘</div><div>Copy</div></div>
+        </div>
+        <div class="rgroup-lbl">Clipboard</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">🔗</div><div>Jira Sync<br>Config</div></div>
+          <div class="rbtn"><div class="rbtn-icon">🔄</div><div>Sync from<br>Jira</div></div>
+        </div>
+        <div class="rgroup-lbl">Jira</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+  </div>
+
+  <div class="gantt-area">
+
+    <!-- Left pane -->
+    <div class="task-pane">
+      <div class="pane-hdr">
+        <div class="ph-cell" style="width:20px"></div>
+        <div class="ph-cell" style="width:24px">#</div>
+        <div class="ph-cell" style="flex:1">Task Name</div>
+        <div class="ph-cell" style="width:55px">Duration</div>
+      </div>
+      <div class="task-rows">
+        <div class="t-row even"><div class="t-cell" style="width:20px"></div><div class="t-cell" style="width:24px">1</div><div class="t-cell" style="flex:1">Architecture review</div><div class="t-cell" style="width:55px">3d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:20px"></div><div class="t-cell" style="width:24px">2</div><div class="t-cell" style="flex:1">Component design</div><div class="t-cell" style="width:55px">5d</div></div>
+        <div class="t-row split-row"><div class="t-cell" style="width:20px"><span class="split-icon">✂</span></div><div class="t-cell" style="width:24px">3</div><div class="t-cell" style="flex:1">Backend coding</div><div class="t-cell" style="width:55px">8d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:20px"></div><div class="t-cell" style="width:24px">4</div><div class="t-cell" style="flex:1">Frontend coding</div><div class="t-cell" style="width:55px">6d</div></div>
+        <div class="t-row sel"><div class="t-cell" style="width:20px"><span class="split-icon">✂</span></div><div class="t-cell" style="width:24px">5</div><div class="t-cell" style="flex:1">Integration testing</div><div class="t-cell" style="width:55px">5d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:20px"></div><div class="t-cell" style="width:24px">6</div><div class="t-cell" style="flex:1">User acceptance test</div><div class="t-cell" style="width:55px">3d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:20px"></div><div class="t-cell" style="width:24px">7</div><div class="t-cell" style="flex:1">Sign-off ◆</div><div class="t-cell" style="width:55px">0d</div></div>
+      </div>
+    </div>
+
+    <!-- Chart pane: 24 days from May 4 (Mon) at 36px/day -->
+    <div class="chart-pane">
+      <div class="cal-hdr">
+        <div class="month-row">
+          <div class="month-cell" style="width:648px">May 2026</div>
+          <div class="month-cell" style="width:216px">June 2026</div>
+        </div>
+        <div class="day-row">
+          <!-- May 4–8 -->
+          <div class="day-cell today-hdr">4</div><div class="day-cell">5</div><div class="day-cell">6</div><div class="day-cell">7</div><div class="day-cell">8</div>
+          <!-- May 9 Sat, 10 Sun -->
+          <div class="day-cell sat">9</div><div class="day-cell sun">10</div>
+          <!-- May 11–15 -->
+          <div class="day-cell">11</div><div class="day-cell">12</div><div class="day-cell">13</div><div class="day-cell">14</div><div class="day-cell">15</div>
+          <!-- May 16 Sat, 17 Sun -->
+          <div class="day-cell sat">16</div><div class="day-cell sun">17</div>
+          <!-- May 18–22 -->
+          <div class="day-cell">18</div><div class="day-cell">19</div><div class="day-cell">20</div><div class="day-cell">21</div><div class="day-cell">22</div>
+          <!-- May 23 Sat, 24 Sun -->
+          <div class="day-cell sat">23</div><div class="day-cell sun">24</div>
+          <!-- June 1-5 -->
+          <div class="day-cell">1</div><div class="day-cell">2</div><div class="day-cell">3</div><div class="day-cell">4</div><div class="day-cell">5</div>
+        </div>
+      </div>
+
+      <!-- Chart rows — each 30px tall, day-cell 36px wide -->
+      <div class="chart-rows">
+        <!-- today line at x=0 (May 4) -->
+        <div class="today-line" style="left:2px"></div>
+
+        <!-- Row 1: Architecture review — May 4–6 (3d) -->
+        <div class="c-row even" style="height:30px">
+          <div class="bar normal" style="left:2px;width:106px">
+            <div class="bar-fill" style="width:60%"></div>
+            <span class="bar-lbl">Arch review</span>
+          </div>
+        </div>
+
+        <!-- Row 2: Component design — May 7–13 (5d) -->
+        <div class="c-row odd" style="height:30px">
+          <div class="bar normal" style="left:110px;width:178px">
+            <span class="bar-lbl">Component design</span>
+          </div>
+        </div>
+
+        <!-- Row 3: Backend coding SPLIT — seg1 May 12–16, gap May 19-24 (vacation+weekend), seg2 Jun 1–3 -->
+        <div class="c-row split-row" style="height:30px;position:relative">
+          <!-- Seg 1: May 12–16 = 5 days -->
+          <div class="bar split-seg" style="left:290px;width:178px">
+            <div class="bar-fill" style="width:40%"></div>
+            <span class="bar-lbl">Backend seg 1</span>
+          </div>
+          <!-- dashed gap connector May 19 → Jun 1 -->
+          <div class="split-gap" style="left:468px;width:180px"></div>
+          <!-- Vacation block May 19–22 sits inside the gap -->
+          <div class="vacation" style="left:476px;width:144px">
+            <span class="vacation-lbl">🏖 Vacation</span>
+          </div>
+          <!-- Seg 2: Jun 1–3 = 3 days -->
+          <div class="bar split-seg" style="left:648px;width:108px">
+            <span class="bar-lbl">seg 2</span>
+          </div>
+        </div>
+
+        <!-- Row 4: Frontend coding — May 18–22 -->
+        <div class="c-row even" style="height:30px">
+          <div class="bar normal" style="left:290px;width:178px">
+            <span class="bar-lbl">Frontend coding</span>
+          </div>
+        </div>
+
+        <!-- Row 5: Integration testing SPLIT (selected) — seg1 May 25–27, seg2 Jun 1–3 -->
+        <div class="c-row sel" style="height:30px;position:relative">
+          <!-- Seg 1: May 18–19 = 2 days -->
+          <div class="bar split-seg" style="left:468px;width:72px">
+            <span class="bar-lbl">Integration seg 1</span>
+          </div>
+          <!-- dashed gap -->
+          <div class="split-gap" style="left:540px;width:108px"></div>
+          <!-- Seg 2: Jun 1–3 = 3 days -->
+          <div class="bar split-seg" style="left:648px;width:108px">
+            <span class="bar-lbl">seg 2</span>
+          </div>
+        </div>
+
+        <!-- Row 6: UAT — Jun 1–3 -->
+        <div class="c-row even" style="height:30px">
+          <div class="bar normal" style="left:648px;width:108px">
+            <span class="bar-lbl">UAT</span>
+          </div>
+        </div>
+
+        <!-- Row 7: Milestone -->
+        <div class="c-row odd" style="height:30px;position:relative">
+          <div style="position:absolute;width:14px;height:14px;background:#7b4bbf;transform:rotate(45deg);top:50%;margin-top:-7px;left:754px"></div>
+        </div>
+      </div>
+
+      <!-- Context menu over row 5 "Merge Segments" -->
+      <div class="ctx-menu" style="top:200px;left:500px">
+        <div class="ctx-item"><span class="ctx-icon">✂️</span> Split Task…</div>
+        <div class="ctx-item active"><span class="ctx-icon">⊕</span> Merge Task Segments</div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-item"><span class="ctx-icon">📝</span> Task Information…</div>
+        <div class="ctx-item"><span class="ctx-icon">🗓</span> Add to Timeline</div>
+      </div>
+
+      <div class="zoom-box">Zoom 36 px/day</div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>Tasks: 7</span>
+    <span>Resources: 3</span>
+    <span>Split tasks: 2</span>
+  </div>
+</div>
+</body>
+</html>

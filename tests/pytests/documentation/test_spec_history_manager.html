@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: History Manager &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; History Manager</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#history_manager">history manager</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">32</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">32</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="history_manager">
+  <div class="module-header"><h2>history_manager.py</h2><span class="badge">32 tests</span></div>
+  <div class="module-desc">Undo/redo history stack: push, truncation of redo branch, multi-view isolation, restoring flag, can-undo/redo predicates, depth reporting.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestInitialState — Initial State</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-01</span>
+          <span class="test-name">All stacks start empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for view in HistoryManager.VIEWS:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[view][&#x27;snaps&#x27;]</code> equals <code>[]</code>. <code>hm._stacks[view][&#x27;idx&#x27;]</code> equals <code>-1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[view][&#x27;snaps&#x27;] == []</code><br><code>assert hm._stacks[view][&#x27;idx&#x27;] == -1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-02</span>
+          <span class="test-name">Can undo false on empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for view in HistoryManager.VIEWS:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_undo(view)</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hm.can_undo(view)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-03</span>
+          <span class="test-name">Can redo false on empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for view in HistoryManager.VIEWS:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_redo(view)</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hm.can_redo(view)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-04</span>
+          <span class="test-name">Views constant contains all five views</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>set(HistoryManager.VIEWS)</code> equals <code>{&#x27;tasks&#x27;, &#x27;resources&#x27;, &#x27;dependencies&#x27;, &#x27;baseline&#x27;, &#x27;team_planner&#x27;}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert set(HistoryManager.VIEWS) == {&#x27;tasks&#x27;, &#x27;resources&#x27;, &#x27;dependencies&#x27;, &#x27;baseline&#x27;, &#x27;team_planner&#x27;}</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPush — Push</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-05</span>
+          <span class="test-name">Push adds snapshot to empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm = HistoryManager(logic)</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=_S0):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;]</code> equals <code>[_S0]</code>. <code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;] == [_S0]</code><br><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-06</span>
+          <span class="test-name">Push increments idx</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm = HistoryManager(logic)</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, side_effect=[_S0, _S1]):</code><br><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-07</span>
+          <span class="test-name">Push truncates redo branch</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=1)</code><br><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm._logic = logic</code><br><code>new_snap = b&#x27;&lt;xml&gt;new&lt;/xml&gt;&#x27;</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=new_snap):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;]</code> equals <code>[_S0, _S1, new_snap]</code>. <code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;] == [_S0, _S1, new_snap]</code><br><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-08</span>
+          <span class="test-name">Push no op when serialize returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = HistoryManager(ProjectLogic())</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;]</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;] == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-09</span>
+          <span class="test-name">Push no op while restoring</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm = HistoryManager(logic)</code><br><code>hm._restoring = True</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=_S0) as mock_ser:</code><br><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_ser.assert_not_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;]</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;] == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-10</span>
+          <span class="test-name">Push does not affect other views</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm = HistoryManager(logic)</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=_S0):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;resources&#x27;][&#x27;snaps&#x27;]</code> equals <code>[]</code>. <code>hm._stacks[&#x27;dependencies&#x27;][&#x27;snaps&#x27;]</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;resources&#x27;][&#x27;snaps&#x27;] == []</code><br><code>assert hm._stacks[&#x27;dependencies&#x27;][&#x27;snaps&#x27;] == []</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPushAll — Push All</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-11</span>
+          <span class="test-name">Push all resets all stacks to single entry</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm = HistoryManager(logic)</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=_S0):</code><br><code>hm.push_all()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for view in HistoryManager.VIEWS:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[view][&#x27;snaps&#x27;]</code> equals <code>[_S0]</code>. <code>hm._stacks[view][&#x27;idx&#x27;]</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[view][&#x27;snaps&#x27;] == [_S0]</code><br><code>assert hm._stacks[view][&#x27;idx&#x27;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-12</span>
+          <span class="test-name">Push all clears previous history</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>hm._stacks[&#x27;resources&#x27;][&#x27;snaps&#x27;] = [_S0]</code><br><code>hm._stacks[&#x27;resources&#x27;][&#x27;idx&#x27;] = 0</code><br><code>logic = ProjectLogic()</code><br><code>logic.load_data(MagicMock())</code><br><code>hm._logic = logic</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=_S2):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.push_all()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;]</code> equals <code>[_S2]</code>. <code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;snaps&#x27;] == [_S2]</code><br><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-13</span>
+          <span class="test-name">Push all clears all stacks when no project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>hm._logic = ProjectLogic()   # no project loaded</code><br><code>with patch.object(hm, &#x27;_serialize&#x27;, return_value=None):</code><br><code>hm.push_all()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for view in HistoryManager.VIEWS:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[view][&#x27;snaps&#x27;]</code> equals <code>[]</code>. <code>hm._stacks[view][&#x27;idx&#x27;]</code> equals <code>-1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[view][&#x27;snaps&#x27;] == []</code><br><code>assert hm._stacks[view][&#x27;idx&#x27;] == -1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestUndo — Undo</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-14</span>
+          <span class="test-name">Undo returns true and steps back</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;) as mock_restore:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. <code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>0</code>. mock_restore.assert_called_once_with(_S0)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 0</code><br><code>mock_restore.assert_called_once_with(_S0)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-15</span>
+          <span class="test-name">Undo returns false at initial state</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0], idx=0)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;) as mock_restore:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>. mock_restore.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code><br><code>mock_restore.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-16</span>
+          <span class="test-name">Undo returns false on empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.undo(&#x27;tasks&#x27;)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.undo(&#x27;tasks&#x27;) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-17</span>
+          <span class="test-name">Undo sets restoring flag during restore</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>flags_seen = []</code><br><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>def fake_restore(data):</code><br><code>flags_seen.append(hm._restoring)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;, side_effect=fake_restore):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags_seen</code> equals <code>[True]</code>. <code>hm._restoring</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags_seen == [True]</code><br><code>assert not hm._restoring</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-18</span>
+          <span class="test-name">Undo clears restoring flag even on error</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;, side_effect=RuntimeError(&quot;boom&quot;)):</code><br><code>with pytest.raises(RuntimeError):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._restoring</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hm._restoring</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-19</span>
+          <span class="test-name">Multiple undos</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=2)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;):</code><br><code>hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-20</span>
+          <span class="test-name">Undo does not affect other views</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>hm._stacks[&#x27;resources&#x27;][&#x27;snaps&#x27;] = [_S0, _S1]</code><br><code>hm._stacks[&#x27;resources&#x27;][&#x27;idx&#x27;]   = 1</code><br><code>with patch.object(hm, &#x27;_restore&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.undo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;resources&#x27;][&#x27;idx&#x27;]</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;resources&#x27;][&#x27;idx&#x27;] == 1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRedo — Redo</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-21</span>
+          <span class="test-name">Redo returns true and steps forward</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=0)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;) as mock_restore:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = hm.redo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. <code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>1</code>. mock_restore.assert_called_once_with(_S1)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 1</code><br><code>mock_restore.assert_called_once_with(_S1)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-22</span>
+          <span class="test-name">Redo returns false at latest state</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;) as mock_restore:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = hm.redo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>. mock_restore.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code><br><code>mock_restore.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-23</span>
+          <span class="test-name">Redo returns false on empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.redo(&#x27;tasks&#x27;)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.redo(&#x27;tasks&#x27;) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-24</span>
+          <span class="test-name">Undo then redo returns to latest</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=2)</code><br><code>with patch.object(hm, &#x27;_restore&#x27;):</code><br><code>hm.undo(&#x27;tasks&#x27;)</code><br><code>hm.undo(&#x27;tasks&#x27;)</code><br><code>hm.redo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hm.redo(&#x27;tasks&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;]</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm._stacks[&#x27;tasks&#x27;][&#x27;idx&#x27;] == 2</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestCanUndoRedo — Can Undo Redo</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-25</span>
+          <span class="test-name">Can undo false at idx 0</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0], idx=0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_undo(&#x27;tasks&#x27;)</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hm.can_undo(&#x27;tasks&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-26</span>
+          <span class="test-name">Can undo true when idx gt 0</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_undo(&#x27;tasks&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.can_undo(&#x27;tasks&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-27</span>
+          <span class="test-name">Can redo false at latest</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_redo(&#x27;tasks&#x27;)</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hm.can_redo(&#x27;tasks&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-28</span>
+          <span class="test-name">Can redo true when redo branch exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1], idx=0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.can_redo(&#x27;tasks&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.can_redo(&#x27;tasks&#x27;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDepth — Depth</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-29</span>
+          <span class="test-name">Depth at latest</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=2)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.depth(&#x27;tasks&#x27;)</code> equals <code>(2, 0)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.depth(&#x27;tasks&#x27;) == (2, 0)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-30</span>
+          <span class="test-name">Depth at initial</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.depth(&#x27;tasks&#x27;)</code> equals <code>(0, 2)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.depth(&#x27;tasks&#x27;) == (0, 2)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-31</span>
+          <span class="test-name">Depth in middle</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = _hm_with_snaps(&#x27;tasks&#x27;, [_S0, _S1, _S2], idx=1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.depth(&#x27;tasks&#x27;)</code> equals <code>(1, 1)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.depth(&#x27;tasks&#x27;) == (1, 1)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HM-32</span>
+          <span class="test-name">Depth empty stack</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>hm = HistoryManager(ProjectLogic())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hm.depth(&#x27;tasks&#x27;)</code> equals <code>(-1, 0)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hm.depth(&#x27;tasks&#x27;) == (-1, 0)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

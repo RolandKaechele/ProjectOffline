@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CPM Engine Test Report</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f5f7fa; color: #1f2d3d; }
+  .header { background: #2b579a; color: #fff; padding: 20px 32px; }
+  .header h1 { margin: 0 0 4px; font-size: 22px; }
+  .header p  { margin: 0; font-size: 13px; opacity: .8; }
+  .summary { display: flex; gap: 12px; padding: 18px 32px; background: #fff;
+              border-bottom: 1px solid #d0ddf0; flex-wrap: wrap; }
+  .pill { padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; }
+  .pill.pass  { background: #d1fae5; color: #065f46; }
+  .pill.fail  { background: #fee2e2; color: #7f1d1d; }
+  .pill.error { background: #fef3c7; color: #92400e; }
+  .pill.skip  { background: #e0e7ff; color: #3730a3; }
+  .env { padding: 12px 32px; background: #f0f4ff; border-bottom: 1px solid #d0ddf0;
+          display: flex; gap: 24px; font-size: 12px; flex-wrap: wrap; }
+  .env .ei { display: flex; gap: 6px; }
+  .env .ek { color: #6b7280; }
+  .content { padding: 20px 32px; max-width: 1200px; }
+  .category { background: #fff; border: 1px solid #d0ddf0; border-radius: 8px;
+               margin-bottom: 12px; overflow: hidden; }
+  .cat-header { padding: 10px 16px; background: #eef2fb; display: flex;
+                 justify-content: space-between; align-items: center; font-weight: 600;
+                 font-size: 14px; cursor: pointer; }
+  .cat-body { padding: 0 8px 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 6px 8px; border-bottom: 2px solid #d0ddf0;
+       background: #f8fafc; font-size: 12px; text-transform: uppercase; color: #6b7280; }
+  td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;
+            margin-left: 4px; }
+  .badge.PASS  { background: #d1fae5; color: #065f46; }
+  .badge.FAIL  { background: #fee2e2; color: #7f1d1d; }
+  .badge.ERROR { background: #fef3c7; color: #92400e; }
+  .badge.SKIP  { background: #e0e7ff; color: #3730a3; }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px;
+                   font-size: 11px; font-weight: 700; }
+  .status-badge.PASS  { background: #d1fae5; color: #065f46; }
+  .status-badge.FAIL  { background: #fee2e2; color: #7f1d1d; }
+  .status-badge.ERROR { background: #fef3c7; color: #92400e; }
+  .status-badge.SKIP  { background: #e0e7ff; color: #3730a3; }
+  .msg.fail  { color: #b91c1c; font-size: 12px; }
+  .msg.error { color: #d97706; font-size: 12px; }
+  .msg.skip  { color: #4338ca; font-size: 12px; }
+  pre.output { background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px;
+               font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin-top: 6px; }
+  .dur { font-size: 11px; color: #6b7280; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>CPM Engine Test Report</h1>
+  <p>Generated 2026-05-16 11:47:48 &nbsp;|&nbsp; Project: (none)</p>
+</div>
+<div class="summary">
+  <span class="pill pass">82 PASS</span>
+  <span class="pill fail">0 FAIL</span>
+  <span class="pill error">0 ERROR</span>
+  <span class="pill skip">0 SKIP</span>
+  <span style="margin-left:auto;font-size:12px;color:#6b7280;align-self:center">
+    82 tests &nbsp;|&nbsp; 1447 ms total
+  </span>
+</div>
+<div class="env">
+  <div class="ei"><span class="ek">Python</span><span>3.12.6</span></div>
+  <div class="ei"><span class="ek">Platform</span><span>win32</span></div>
+  <div class="ei"><span class="ek">MPXJ loaded</span><span>yes</span></div>
+  <div class="ei"><span class="ek">Tasks loaded</span><span>7</span></div>
+</div>
+<div class="content">
+
+<div class="category">
+  <div class="cat-header">
+    <span>A – _lag_to_timedelta</span>
+    <span><span class="badge PASS">10 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>none</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>positive_days</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>negative_hours_lead</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>weeks</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>elapsed_days</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>elapsed_hours</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>minutes</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>months</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>unknown_unit_defaults_to_days</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>zero_magnitude</td><td><span class="dur">0 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>B – _lag_to_working_hours</span>
+    <span><span class="badge PASS">11 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>none</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>1_day_8h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>1_day_7h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>2_hours</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>30_minutes</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>1_week_8h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>1_month_8h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>elapsed_day_is_24h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>elapsed_hours</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>negative_lead</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>zero</td><td><span class="dur">0 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>C – synthetic schedule: basic engine</span>
+    <span><span class="badge PASS">13 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>linear_all_critical</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>linear_returns_set_without_flag</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>parallel_A_critical_B_not</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>parallel_float_data_keys</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>completed_task_never_critical</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>empty_task_list</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>empty_task_list_with_float_data</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>slack_threshold_0_strict</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>slack_threshold_large_catches_near_critical</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>dep_types_fs_only</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>dep_types_all_includes_ss</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>dep_types_ff</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>summary_task_propagation</td><td><span class="dur">0 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>D – float_data value correctness</span>
+    <span><span class="badge PASS">8 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>linear_total_float_is_zero</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>parallel_B_has_positive_float</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>float_data_critical_flag_matches_id_set</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>ef_not_before_es</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>lf_not_before_ls</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>total_float_wh_non_negative_for_critical</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>free_float_wh_non_negative</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>work_day_hours_default_8</td><td><span class="dur">0 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>E – MPXJ integration: bundled schedule results</span>
+    <span><span class="badge PASS">12 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>returns_set</td><td><span class="dur">4 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>returns_tuple_with_flag</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>float_data_not_empty</td><td><span class="dur">212 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>known_critical_path</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>completed_excluded_from_float_data</td><td><span class="dur">78 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>float_data_structure</td><td><span class="dur">77 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>ef_ge_es_all_tasks</td><td><span class="dur">74 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>lf_ge_ls_all_tasks</td><td><span class="dur">74 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>critical_flag_consistent</td><td><span class="dur">75 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>non_negative_free_float</td><td><span class="dur">75 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>critical_tasks_zero_total_float</td><td><span class="dur">75 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>non_critical_tasks_have_positive_float</td><td><span class="dur">74 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>F – MPXJ integration: parameter variants</span>
+    <span><span class="badge PASS">7 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>project_none_vs_with_project</td><td><span class="dur">74 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>slack_0_vs_slack_3</td><td><span class="dur">147 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>slack_large_catches_all_non_critical</td><td><span class="dur">74 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>fs_only_keeps_critical_path</td><td><span class="dur">74 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>legacy_zero_float_critical_bool</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>legacy_bool_false</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>slack_days_wins_over_bool</td><td><span class="dur">1 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>G – calendar helpers</span>
+    <span><span class="badge PASS">9 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_wdh_default_calendar</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_wdh_standard_is_8h</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_wdh_fallback_on_none</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>get_task_calendar_returns_something</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>get_task_calendar_no_project</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>working_hours_between_same_time</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>working_hours_between_one_workday</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_add_working_hours_roundtrip</td><td><span class="dur">1 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_add_negative_hours_goes_back</td><td><span class="dur">1 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>H – calendar-aware vs wall-clock CPM</span>
+    <span><span class="badge PASS">4 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>both_modes_return_valid_sets</td><td><span class="dur">97 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>critical_path_same_in_both_modes</td><td><span class="dur">82 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>calendar_aware_wdh_8h</td><td><span class="dur">72 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>float_wh_equals_wall_clock_hours_in_no_cal_mode</td><td><span class="dur">1 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span>I – edge cases</span>
+    <span><span class="badge PASS">8 PASS</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Status</th><th>Test</th><th style="width:90px">Duration</th>
+      </tr></thead>
+      <tbody><tr><td><span class="status-badge PASS">PASS</span></td><td>single_task_no_preds</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>all_completed_tasks</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>task_with_invalid_dates_skipped</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>zero_duration_task</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>lag_positive_shifts_successor</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>lag_negative_lead_overlaps</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>sf_dependency_handled</td><td><span class="dur">0 ms</span></td></tr><tr><td><span class="status-badge PASS">PASS</span></td><td>return_float_data_false_backward_compat</td><td><span class="dur">0 ms</span></td></tr></tbody>
+    </table>
+  </div>
+</div>
+</div>
+</body>
+</html>

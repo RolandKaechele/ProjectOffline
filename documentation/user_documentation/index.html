@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Offline – User Documentation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="22_critical_path_method.html">Critical Path Method</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<!-- ── Content ── -->
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Project Offline – User Documentation</h1>
+    <p>Step-by-step guides for every feature of the Project Offline application. 
+       Select a topic from the sidebar or the cards below.</p>
+  </div>
+
+  <div class="content">
+
+    <h2>What is Project Offline?</h2>
+    <p>Project Offline is a desktop project-scheduling application that reads and writes 
+       <strong>Microsoft Project (.mpp / .xml)</strong> files via the MPXJ library. 
+       Its interface closely mirrors Microsoft Project, providing a Gantt chart, resource 
+       management, baseline tracking, dependency management, and team planning tools – 
+       all in a single window.</p>
+
+    <div class="callout note">
+      <strong>Note</strong>
+      Files are saved as <strong>.mpp</strong> (Microsoft Project binary) or 
+      <strong>.xml</strong> (MSPDI format). Both formats are fully interoperable with 
+      Microsoft Project.
+    </div>
+
+    <h2>Quick-Start Topics</h2>
+
+    <div class="card-grid">
+
+      <a class="card" href="01_getting_started.html">
+        <div class="card-icon">🗂️</div>
+        <h3>Overview &amp; Interface</h3>
+        <p>Learn the ribbon, views, and navigation. First steps with a new project.</p>
+      </a>
+
+      <a class="card" href="02_task_creation.html">
+        <div class="card-icon">✅</div>
+        <h3>Task Creation &amp; Editing</h3>
+        <p>Add tasks, set durations, assign resources, and track progress.</p>
+      </a>
+
+      <a class="card" href="03_gantt_chart.html">
+        <div class="card-icon">📊</div>
+        <h3>Gantt Chart</h3>
+        <p>Navigate the timeline, zoom, drag tasks, and read the critical path.</p>
+      </a>
+
+      <a class="card" href="04_dependencies.html">
+        <div class="card-icon">🔗</div>
+        <h3>Dependencies</h3>
+        <p>Create Finish-to-Start, Start-to-Start, and other link types with optional lag.</p>
+      </a>
+
+      <a class="card" href="05_resource_creation.html">
+        <div class="card-icon">👤</div>
+        <h3>Resource Creation &amp; Editing</h3>
+        <p>Manage team members, costs, and availability in the Resource Sheet.</p>
+      </a>
+
+      <a class="card" href="06_team_planner.html">
+        <div class="card-icon">🗓️</div>
+        <h3>Team Planner</h3>
+        <p>Drag tasks across resources and time on the interactive team timeline.</p>
+      </a>
+
+      <a class="card" href="07_resource_usage.html">
+        <div class="card-icon">📈</div>
+        <h3>Resource Usage Graph</h3>
+        <p>Analyse workload allocation across monthly, weekly, daily and hourly views.</p>
+      </a>
+
+      <a class="card" href="20_resource_usage_histogram.html">
+        <div class="card-icon">📊</div>
+        <h3>Resource Usage Histogram</h3>
+        <p>See total team workload per day at a glance &mdash; bars turn red when the team is over-allocated.</p>
+      </a>
+
+      <a class="card" href="08_baseline.html">
+        <div class="card-icon">📌</div>
+        <h3>Baseline Tracking</h3>
+        <p>Capture a baseline snapshot and compare plan vs. actual schedule.</p>
+      </a>
+
+      <a class="card" href="09_calendar_sync.html">
+        <div class="card-icon">🔄</div>
+        <h3>Confluence Calendar Sync</h3>
+        <p>Automatically import public holidays and leave from Confluence Team Calendars.</p>
+      </a>
+
+      <a class="card" href="18_calendar_management.html">
+        <div class="card-icon">📅</div>
+        <h3>Holiday Calendar Management</h3>
+        <p>Auto-populate project calendars with German national and state holidays or international public holidays. Import ICS feeds and add country calendars at any time.</p>
+      </a>
+
+      <a class="card" href="22_critical_path_method.html">
+        <div class="card-icon">📊</div>
+        <h3>Critical Path Method (CPM)</h3>
+        <p>Automatically identify critical tasks, analyse total and free float per task, and send the CPM report by email. Configure the critical slack threshold and dependency mode.</p>
+      </a>
+
+      <a class="card" href="10_file_operations.html">
+        <div class="card-icon">💾</div>
+        <h3>Open, Save &amp; Export</h3>
+        <p>Open .mpp/.xml files, save, and export Gantt charts as SVG or PlantUML.</p>
+      </a>
+
+      <a class="card" href="11_timeline.html">
+        <div class="card-icon">🗓️</div>
+        <h3>Timeline Strip</h3>
+        <p>Pin tasks and milestones to the executive Timeline strip above the views.</p>
+      </a>
+
+      <a class="card" href="12_task_splitting.html">
+        <div class="card-icon">✂️</div>
+        <h3>Task Splitting &amp; Merging</h3>
+        <p>Split tasks into non-contiguous segments and merge them back with full undo support.</p>
+      </a>
+      <a class="card" href="13_keepass.html">
+        <div class="card-icon">&#128272;</div>
+        <h3>KeePass Credentials</h3>
+        <p>Open or create a KeePass database, configure Confluence SSO auto-fill, and use entries as Jira server credentials.</p>
+      </a>
+      <a class="card" href="14_ad_integration.html">
+        <div class="card-icon">&#128101;</div>
+        <h3>Active Directory Sync</h3>
+        <p>Look up employees by name, email, or username via PowerShell Get-ADUser and sync details into the resource sheet. Add new resources directly from AD with duplicate prevention and immediate ID assignment.</p>
+      </a>
+      <a class="card" href="15_email_integration.html">
+        <div class="card-icon">&#9993;</div>
+        <h3>Email Integration</h3>
+        <p>Configure SMTP email delivery with KeePass credential storage to send project reports and Gantt chart exports.</p>
+      </a>
+      <a class="card" href="16_jira_integration.html">
+        <div class="card-icon">&#128279;</div>
+        <h3>Jira Integration</h3>
+        <p>Connect to Jira Cloud or Server/Data Center with API Token, Password, or Personal Access Token authentication.</p>
+      </a>
+      <a class="card" href="17_jira_sync.html">
+        <div class="card-icon">&#128260;</div>
+        <h3>Jira Sync</h3>
+        <p>Two-way sync between Jira and your project: <strong>import</strong> issues as tasks (Jira&rarr;Project) with epic hierarchy and undo support, and <strong>push</strong> tasks back to Jira (Project&rarr;Jira) with dry-run preview, conflict detection, and an audit trail.</p>
+      </a>
+      <a class="card" href="19_version_control.html">
+        <div class="card-icon">&#128268;</div>
+        <h3>Git &amp; SVN Integration</h3>
+        <p>Auto-commit on save, view history, restore revisions, manage branches, and sync with remote repositories using KeePass credentials.</p>
+      </a>
+      <a class="card" href="21_progress_dialogs.html">
+        <div class="card-icon">&#9203;</div>
+        <h3>Progress Dialogs</h3>
+        <p>Long-running operations (file open, Jira sync, exports) run in background threads and display a modal progress dialog so the application stays responsive.</p>
+      </a>
+    </div>
+
+    <h2>Keyboard Shortcuts at a Glance</h2>
+    <table>
+      <thead><tr><th>Action</th><th>Shortcut</th></tr></thead>
+      <tbody>
+        <tr><td>New project</td><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td></tr>
+        <tr><td>Open project</td><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td></tr>
+        <tr><td>Save project</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td></tr>
+        <tr><td>Insert task / resource</td><td><kbd>Ins</kbd></td></tr>
+        <tr><td>Delete selected</td><td><kbd>Del</kbd></td></tr>
+        <tr><td>Undo</td><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td></tr>
+        <tr><td>Redo</td><td><kbd>Ctrl</kbd>+<kbd>Y</kbd></td></tr>
+        <tr><td>Zoom in (Gantt)</td><td><kbd>Ctrl</kbd>+<kbd>+</kbd></td></tr>
+        <tr><td>Zoom out (Gantt)</td><td><kbd>Ctrl</kbd>+<kbd>-</kbd></td></tr>
+        <tr><td>Project Information</td><td><kbd>Alt</kbd>+<kbd>F11</kbd></td></tr>
+        <tr><td>Exit</td><td><kbd>Alt</kbd>+<kbd>F4</kbd></td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+</body>
+</html>

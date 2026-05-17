@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Secondary Calendar Integration &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Secondary Calendar Integration</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#secondary_calendar_integration">secondary calendar integration</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">41</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">41</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="secondary_calendar_integration">
+  <div class="module-header"><h2>integrations/secondary_calendar_integration.py</h2><span class="badge">41 tests</span></div>
+  <div class="module-desc">Per-resource secondary holiday calendar assignments persisted in project custom properties. Covers JSON map parsing and validation (<code>_parse_map</code>), reading and writing the full calendar map (<code>get_secondary_calendar_map</code>, <code>set_secondary_calendar_for_resource</code> including set/clear/noop paths), resolving a calendar object for a resource (<code>resolve_secondary_calendar</code> by name and UID, not-found path), inferring a secondary calendar from AD user metadata (<code>infer_secondary_calendar_from_ad</code>: state/country matching, scoring, auto-match tag), and the full assign-and-persist flow (<code>assign_secondary_calendar_from_ad</code>). Also covers the <strong>parent_dates named-only filter</strong>: anonymous (name=null/empty) default-calendar exceptions must not be added to <code>parent_dates</code> so that secondary-calendar holidays sharing a start date with a Schulferien block are not incorrectly suppressed in the Team Planner.</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestParseMap &mdash; Parse Map</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">None returns empty</span><div class="block"><div class="block-label">Init</div><code>from integrations.secondary_calendar_integration import _parse_map</code></div><div class="block"><div class="block-label">Run</div><code>_parse_map(None)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert _parse_map(None) == {}</code></div></div>
+      <div class="test-case"><span class="test-name">Empty string returns empty</span><div class="block"><div class="block-label">Init</div><code>from integrations.secondary_calendar_integration import _parse_map</code></div><div class="block"><div class="block-label">Run</div><code>_parse_map(&quot;&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert _parse_map(&quot;&quot;) == {}</code></div></div>
+      <div class="test-case"><span class="test-name">Valid JSON dict parsed</span><div class="block"><div class="block-label">Expect</div>Entry keyed by UID string with <code>calendar_name</code> = <code>&quot;Bayern&quot;</code>.</div></div>
+      <div class="test-case"><span class="test-name">Entry without calendar_name skipped</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Entry with blank calendar_name skipped</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Non-dict value skipped</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Invalid JSON returns empty</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Non-integer key skipped</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Source defaults to ad when missing</span><div class="block"><div class="block-label">Expect</div><code>source == &quot;ad&quot;</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGetSecondaryCalendarMap &mdash; Get Secondary Calendar Map</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">Empty project returns empty dict</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">None project returns empty dict</span><div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div></div>
+      <div class="test-case"><span class="test-name">Persisted entry is returned</span><div class="block"><div class="block-label">Expect</div>Entry <code>&quot;42&quot;</code> present with <code>calendar_name == &quot;Bayern&quot;</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestSetSecondaryCalendarForResource &mdash; Set Secondary Calendar For Resource</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">Set stores mapping</span><div class="block"><div class="block-label">Expect</div>Entry <code>&quot;42&quot;</code> with <code>calendar_name == &quot;Bayern&quot;</code> after set.</div></div>
+      <div class="test-case"><span class="test-name">Set with blank name removes entry</span><div class="block"><div class="block-label">Expect</div>Entry <code>&quot;42&quot;</code> absent after set with blank name.</div></div>
+      <div class="test-case"><span class="test-name">Set with None name removes entry</span><div class="block"><div class="block-label">Expect</div>Entry <code>&quot;42&quot;</code> absent after set with <code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">None UID is a noop</span><div class="block"><div class="block-label">Expect</div>Map remains empty.</div></div>
+      <div class="test-case"><span class="test-name">Source stored correctly</span><div class="block"><div class="block-label">Expect</div><code>source == &quot;manual&quot;</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestResolveSecondaryCalendar &mdash; Resolve Secondary Calendar</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">No mapping returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">Returns None when calendar not found</span><div class="block"><div class="block-label">Expect</div>Result dict returned with <code>calendar == None</code> and correct <code>calendar_name</code>.</div></div>
+      <div class="test-case"><span class="test-name">Returns calendar when found by name</span><div class="block"><div class="block-label">Expect</div><code>result[&quot;calendar&quot;]</code> is the mock calendar object.</div></div>
+      <div class="test-case"><span class="test-name">Returns calendar when found by UID</span><div class="block"><div class="block-label">Expect</div>Calendar resolved via UID even when name differs.</div></div>
+      <div class="test-case"><span class="test-name">None resource returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestInferSecondaryCalendarFromAd &mdash; Infer Secondary Calendar From AD</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">None project returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">Empty AD user returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">Non-dict AD user returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">Matching state returns calendar</span><div class="block"><div class="block-label">Expect</div>Calendar named <code>&quot;Bayern&quot;</code> returned when state field matches.</div></div>
+      <div class="test-case"><span class="test-name">No matching calendar returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code> when no calendar name overlaps AD metadata.</div></div>
+      <div class="test-case"><span class="test-name">Country field used for matching</span><div class="block"><div class="block-label">Expect</div>Calendar named <code>&quot;Germany&quot;</code> returned when country field matches.</div></div>
+      <div class="test-case"><span class="test-name">Source tagged as ad:auto-match</span><div class="block"><div class="block-label">Expect</div><code>source == &quot;ad:auto-match&quot;</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestAssignSecondaryCalendarFromAd &mdash; Assign Secondary Calendar From AD</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">No matching calendar returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code>.</div></div>
+      <div class="test-case"><span class="test-name">Matching calendar is persisted</span><div class="block"><div class="block-label">Expect</div>Entry <code>&quot;42&quot;</code> with <code>calendar_name == &quot;Bayern&quot;</code> in the map after assign.</div></div>
+      <div class="test-case"><span class="test-name">Returns resolved dict after assign</span><div class="block"><div class="block-label">Expect</div>Result dict with <code>calendar_name</code> and live <code>calendar</code> object.</div></div>
+      <div class="test-case"><span class="test-name">None resource UID returns None</span><div class="block"><div class="block-label">Expect</div><code>None</code> when resource raises on <code>getUniqueID()</code>.</div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestParentDatesNamedFilter &mdash; Parent Dates Named-Only Filter</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">Named exception is included in parent_dates</span><div class="block"><div class="block-label">Expect</div>Exception with non-empty name (e.g. <code>&quot;Christi Himmelfahrt&quot;</code>) is added to <code>parent_dates</code>.</div></div>
+      <div class="test-case"><span class="test-name">Anonymous exception is excluded from parent_dates</span><div class="block"><div class="block-label">Expect</div>Exception with <code>getName() == None</code> is skipped; its date does not appear in <code>parent_dates</code>.</div></div>
+      <div class="test-case"><span class="test-name">Empty string name is excluded from parent_dates</span><div class="block"><div class="block-label">Expect</div>Exception with <code>getName() == &quot;&quot;</code> is skipped.</div></div>
+      <div class="test-case"><span class="test-name">Whitespace-only name is excluded from parent_dates</span><div class="block"><div class="block-label">Expect</div>Exception with <code>getName() == &quot;   &quot;</code> is treated as anonymous after <code>.strip()</code>.</div></div>
+      <div class="test-case"><span class="test-name">Mixed named and anonymous exceptions</span><div class="block"><div class="block-label">Expect</div>Named holidays appear in <code>parent_dates</code>; anonymous Schulferien blocks do not. Final set contains exactly the two named holiday dates.</div></div>
+      <div class="test-case"><span class="test-name">Secondary holiday not suppressed when Schulferien starts same day</span><div class="block"><div class="block-label">Expect</div>BW Fronleichnam on <code>2026-06-04</code> must NOT be filtered out just because an anonymous Schulferien block also starts on that date. With the fix, <code>&quot;2026-06-04&quot;</code> is absent from <code>parent_dates</code> so the yellow secondary block is rendered.</div></div>
+      <div class="test-case"><span class="test-name">Empty exception list gives empty set</span><div class="block"><div class="block-label">Expect</div><code>parent_dates == set()</code>.</div></div>
+      <div class="test-case"><span class="test-name">Exception raising getName is skipped gracefully</span><div class="block"><div class="block-label">Expect</div>Java exception from <code>getName()</code> is caught; result is still <code>set()</code>.</div></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

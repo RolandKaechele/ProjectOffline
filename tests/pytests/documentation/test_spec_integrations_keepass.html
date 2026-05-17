@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: KeePass Integration &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; KeePass Integration</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#keepass_integration">keepass integration</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">52</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">52</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="keepass_integration">
+  <div class="module-header"><h2>integrations/keepass_integration.py</h2><span class="badge">52 tests</span></div>
+  <div class="module-desc">KeePassManager owns the in-memory pykeepass session. Tests cover singleton lifecycle, state queries, unlock/lock/auto-unlock (incl. failure path and key-file forwarding), database creation (absolute path conversion, parent-dir creation, keyfile persistence, failure), entry CRUD (locked and unlocked), save exception path, module-level convenience functions, and key-file generation (64 binary bytes, randomness, binary format guard, bad-path error).</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerInit &mdash; Manager Init</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-01</span><span class="test-name">Init creates manager</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>mock_sm = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m = keepass_integration.init(mock_sm)</code></div><div class="block"><div class="block-label">Expect</div><code>m</code> is an instance of <code>KeePassManager</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(m, KeePassManager)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-02</span><span class="test-name">Get manager returns registered instance</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m = keepass_integration.init(MagicMock())</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.get_manager()</code></div><div class="block"><div class="block-label">Expect</div>Return value <code>is m</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.get_manager() is m</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerBeforeInit &mdash; Safe Defaults Before Init</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-03</span><span class="test-name">Is configured false</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.is_configured()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.is_configured() is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-04</span><span class="test-name">Is unlocked false</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.is_unlocked()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.is_unlocked() is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-05</span><span class="test-name">Unlock returns error tuple</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = keepass_integration.unlock(&quot;any&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>False</code>; <code>err</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert err</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-06</span><span class="test-name">Auto unlock returns error tuple</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = keepass_integration.auto_unlock()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>False</code>; <code>err</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert err</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-07</span><span class="test-name">Get entry returns none</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.get_entry(&quot;anything&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.get_entry(&quot;anything&quot;) is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-08</span><span class="test-name">Get credentials returns empty strings</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>user, pwd = keepass_integration.get_credentials(&quot;anything&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Both empty strings.</div><div class="block"><div class="block-label">Check</div><code>assert user == &quot;&quot; and pwd == &quot;&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-09</span><span class="test-name">List entries returns empty list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.list_entries()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.list_entries() == []</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-10</span><span class="test-name">Lock does not raise</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>keepass_integration._manager = None</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.lock()</code></div><div class="block"><div class="block-label">Expect</div>No exception raised.</div><div class="block"><div class="block-label">Check</div>No assertion; must not raise.</div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerState &mdash; State Queries</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-11</span><span class="test-name">Is configured false when path empty</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_db_path.return_value = &quot;&quot;</code></div><div class="block"><div class="block-label">Run</div><code>m.is_configured()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.is_configured() is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-12</span><span class="test-name">Is configured true when path set</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_db_path.return_value = &quot;/path/db.kdbx&quot;</code></div><div class="block"><div class="block-label">Run</div><code>m.is_configured()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.is_configured() is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-13</span><span class="test-name">Is unlocked false initially</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>m.is_unlocked()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.is_unlocked() is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-14</span><span class="test-name">Is unlocked true when db set</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code><br><code>m._db = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.is_unlocked()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.is_unlocked() is True</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerUnlock &mdash; Unlock / Lock</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-15</span><span class="test-name">Unlock success sets db</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_db_path.return_value = &quot;/db.kdbx&quot;</code><br><code>sys.modules['pykeepass'].PyKeePass.return_value = mock_db</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.unlock(&quot;masterpass&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>True</code>, <code>err == &quot;&quot;</code>, <code>m._db is mock_db</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>assert err == &quot;&quot;</code><br><code>assert m._db is mock_db</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-16</span><span class="test-name">Unlock failure returns error and clears db</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>PyKeePass.side_effect = Exception(&quot;wrong password&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.unlock(&quot;bad&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>False</code>, <code>&quot;wrong password&quot;</code> in <code>err</code>, <code>m._db is None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok is False</code><br><code>assert &quot;wrong password&quot; in err</code><br><code>assert m._db is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-17</span><span class="test-name">Lock clears db</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code><br><code>m._db = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.lock()</code></div><div class="block"><div class="block-label">Expect</div><code>m._db is None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m._db is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-18</span><span class="test-name">Auto unlock noop when already unlocked</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>m._db = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.auto_unlock()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>True</code>; <code>sm.get_keepass_password</code> not called.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>sm.get_keepass_password.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-19</span><span class="test-name">Auto unlock uses saved password</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_password.return_value = &quot;saved&quot;</code><br><code>PyKeePass.return_value = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.auto_unlock()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>True</code>; <code>sm.get_keepass_password</code> called.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>sm.get_keepass_password.assert_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-20</span><span class="test-name">Auto unlock fails when no password saved</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_password.return_value = &quot;&quot;</code><br><code>PyKeePass.side_effect = Exception(&quot;credentials&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.auto_unlock()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>False</code>; <code>err</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert err</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-21</span><span class="test-name">Unlock passes keyfile to PyKeePass</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>sm.get_keepass_key_file.return_value = &quot;/my.keyx&quot;</code><br><code>PyKeePass.return_value = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.unlock(&quot;pwd&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>PyKeePass</code> called with <code>keyfile=&quot;/my.keyx&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>_, kwargs = PyKeePass.call_args</code><br><code>assert kwargs.get(&quot;keyfile&quot;) == &quot;/my.keyx&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerCreateDb &mdash; Database Creation</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-22</span><span class="test-name">Create db success</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>create_database.return_value = mock_db</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.create_db(&quot;/new/db.kdbx&quot;, &quot;pwd&quot;, None)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>True</code>, <code>m._db is mock_db</code>, <code>sm.set_keepass_db_path</code> called with absolute path.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>assert m._db is mock_db</code><br><code>sm.set_keepass_db_path.assert_called_with(abs_path)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-23</span><span class="test-name">Create db converts relative to absolute</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>create_database.return_value = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.create_db(&quot;relative/db.kdbx&quot;, &quot;pwd&quot;, None)</code></div><div class="block"><div class="block-label">Expect</div><code>set_keepass_db_path</code> receives an absolute path.</div><div class="block"><div class="block-label">Check</div><code>assert os.path.isabs(called_path)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-24</span><span class="test-name">Create db ensures parent directory</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>m.create_db(&quot;/some/deep/path/db.kdbx&quot;, &quot;pwd&quot;, None)</code></div><div class="block"><div class="block-label">Expect</div><code>os.makedirs</code> called once with <code>exist_ok=True</code>.</div><div class="block"><div class="block-label">Check</div><code>mock_makedirs.assert_called_once()</code><br><code>assert kwargs.get(&quot;exist_ok&quot;) is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-25</span><span class="test-name">Create db saves keyfile path</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>create_database.return_value = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.create_db(&quot;/db.kdbx&quot;, &quot;pwd&quot;, &quot;/my.keyx&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>sm.set_keepass_key_file</code> called with <code>&quot;/my.keyx&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>sm.set_keepass_key_file.assert_called_with(&quot;/my.keyx&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-26</span><span class="test-name">Create db clears keyfile when none</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, sm = _fresh_manager()</code><br><code>create_database.return_value = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>m.create_db(&quot;/db.kdbx&quot;, &quot;pwd&quot;, None)</code></div><div class="block"><div class="block-label">Expect</div><code>sm.set_keepass_key_file</code> called with <code>&quot;&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>sm.set_keepass_key_file.assert_called_with(&quot;&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-27</span><span class="test-name">Create db failure returns error</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code><br><code>create_database.side_effect = Exception(&quot;disk full&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.create_db(&quot;/new/db.kdbx&quot;, &quot;pwd&quot;, None)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is <code>False</code>, <code>&quot;disk full&quot;</code> in <code>err</code>, <code>m._db is None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok is False</code><br><code>assert &quot;disk full&quot; in err</code><br><code>assert m._db is None</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerEntriesLocked &mdash; Entry Operations (Locked)</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-28</span><span class="test-name">Find entry returns none when locked</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>m.find_entry(&quot;MyEntry&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.find_entry(&quot;MyEntry&quot;) is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-29</span><span class="test-name">List entries returns empty when locked</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>m.list_entries()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.list_entries() == []</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-30</span><span class="test-name">Add entry fails when locked</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.add_entry(&quot;title&quot;, &quot;user&quot;, &quot;pass&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is falsy; <code>&quot;not open&quot;</code> in <code>err.lower()</code>.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert &quot;not open&quot; in err.lower()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-31</span><span class="test-name">Save fails when locked</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, _ = _fresh_manager()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.save()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is falsy; <code>err</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert err</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerEntriesUnlocked &mdash; Entry Operations (Unlocked)</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-32</span><span class="test-name">Find entry returns first match</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>entry = MagicMock()</code><br><code>db.find_entries.return_value = [entry]</code></div><div class="block"><div class="block-label">Run</div><code>result = m.find_entry(&quot;MyEntry&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>result is entry</code>; <code>find_entries</code> called with <code>title=&quot;MyEntry&quot;, regex=False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result is entry</code><br><code>db.find_entries.assert_called_with(title=&quot;MyEntry&quot;, regex=False)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-33</span><span class="test-name">Find entry no match returns none</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.find_entries.return_value = []</code></div><div class="block"><div class="block-label">Run</div><code>m.find_entry(&quot;NoSuch&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert m.find_entry(&quot;NoSuch&quot;) is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-34</span><span class="test-name">List entries sorted</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.entries = [MagicMock(title=&quot;Zeta&quot;, group=None), MagicMock(title=&quot;Alpha&quot;, group=None)]</code></div><div class="block"><div class="block-label">Run</div><code>result = m.list_entries()</code></div><div class="block"><div class="block-label">Expect</div><code>result == sorted(result)</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == sorted(result)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-35</span><span class="test-name">List entries with group prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br>Entry with <code>group.name = &quot;MyGroup&quot;</code>, <code>title = &quot;MyEntry&quot;</code>.</div><div class="block"><div class="block-label">Run</div><code>result = m.list_entries()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;MyGroup/MyEntry&quot;</code> in <code>result</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;MyGroup/MyEntry&quot; in result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-36</span><span class="test-name">Add entry no group uses root</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.add_entry(&quot;title&quot;, &quot;user&quot;, &quot;pass&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is truthy; <code>db.add_entry</code> called with <code>db.root_group</code>; <code>db.save</code> called once.</div><div class="block"><div class="block-label">Check</div><code>assert ok</code><br><code>db.add_entry.assert_called_with(db.root_group, &quot;title&quot;, &quot;user&quot;, &quot;pass&quot;)</code><br><code>db.save.assert_called_once()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-37</span><span class="test-name">Add entry creates missing group</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.find_groups.return_value = None</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.add_entry(&quot;title&quot;, &quot;user&quot;, &quot;pass&quot;, group_name=&quot;NewGroup&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is truthy; <code>db.add_group</code> called.</div><div class="block"><div class="block-label">Check</div><code>assert ok</code><br><code>db.add_group.assert_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-38</span><span class="test-name">Add entry uses existing group</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>existing = MagicMock()</code><br><code>db.find_groups.return_value = existing</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.add_entry(&quot;title&quot;, &quot;user&quot;, &quot;pass&quot;, group_name=&quot;Existing&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is truthy; <code>db.add_group</code> not called; <code>db.add_entry</code> called with <code>existing</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok</code><br><code>db.add_group.assert_not_called()</code><br><code>db.add_entry.assert_called_with(existing, &quot;title&quot;, &quot;user&quot;, &quot;pass&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-39</span><span class="test-name">Save calls db save</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.save()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is truthy; <code>db.save</code> called once.</div><div class="block"><div class="block-label">Check</div><code>assert ok</code><br><code>db.save.assert_called_once()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-40</span><span class="test-name">Save returns error on exception</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.save.side_effect = Exception(&quot;io error&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = m.save()</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is falsy; <code>&quot;io error&quot;</code> in <code>err</code>.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert &quot;io error&quot; in err</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-41</span><span class="test-name">Get credentials returns username and password</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>entry = MagicMock(username=&quot;alice&quot;, password=&quot;secret&quot;)</code><br><code>db.find_entries.return_value = [entry]</code></div><div class="block"><div class="block-label">Run</div><code>user, pwd = m.get_credentials(&quot;MyEntry&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>user == &quot;alice&quot;</code>; <code>pwd == &quot;secret&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert user == &quot;alice&quot;</code><br><code>assert pwd == &quot;secret&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-42</span><span class="test-name">Get credentials strips group prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.find_entries.return_value = [MagicMock(username=&quot;bob&quot;, password=&quot;tok&quot;)]</code></div><div class="block"><div class="block-label">Run</div><code>m.get_credentials(&quot;Group/MyEntry&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>db.find_entries</code> called with <code>title=&quot;MyEntry&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>db.find_entries.assert_called_with(title=&quot;MyEntry&quot;, regex=False)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-43</span><span class="test-name">Get credentials not found returns empty strings</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>m, db = _unlocked_manager()</code><br><code>db.find_entries.return_value = []</code></div><div class="block"><div class="block-label">Run</div><code>user, pwd = m.get_credentials(&quot;NoSuch&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Both empty strings.</div><div class="block"><div class="block-label">Check</div><code>assert user == &quot;&quot; and pwd == &quot;&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestModuleLevelFunctions &mdash; Module-Level Convenience Functions</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-44</span><span class="test-name">Is configured delegates to manager</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Manager registered; <code>get_keepass_db_path.return_value = &quot;/db.kdbx&quot;</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.is_configured()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.is_configured() is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-45</span><span class="test-name">Is unlocked delegates to manager</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Manager registered; <code>_manager._db = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.is_unlocked()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert keepass_integration.is_unlocked() is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-46</span><span class="test-name">Lock clears manager db</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Manager registered; <code>_manager._db = MagicMock()</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.lock()</code></div><div class="block"><div class="block-label">Expect</div><code>_manager._db is None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert self._manager._db is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-47</span><span class="test-name">Get entry returns matching entry</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Manager registered with unlocked mock db; <code>db.find_entries.return_value = [entry]</code></div><div class="block"><div class="block-label">Run</div><code>result = keepass_integration.get_entry(&quot;MyEntry&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>result is entry</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result is entry</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-48</span><span class="test-name">List entries returns entry titles</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Manager registered with unlocked mock db; <code>db.entries = [MagicMock(title=&quot;E1&quot;, group=None)]</code></div><div class="block"><div class="block-label">Run</div><code>keepass_integration.list_entries()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;E1&quot;</code> in result.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;E1&quot; in keepass_integration.list_entries()</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestKeePassManagerGenerateKeyFile &mdash; Key-File Generation</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-49</span><span class="test-name">Generates 64 bytes</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path = str(tmp_path / &quot;test.keyx&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>ok, err = KeePassManager.generate_key_file(path)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is truthy; <code>err == &quot;&quot;</code>; file contains exactly 64 bytes.</div><div class="block"><div class="block-label">Check</div><code>assert ok</code><br><code>assert err == &quot;&quot;</code><br><code>assert len(f.read()) == 64</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-50</span><span class="test-name">Key file is binary</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path = str(tmp_path / &quot;test.keyx&quot;)</code><br><code>KeePassManager.generate_key_file(path)</code></div><div class="block"><div class="block-label">Run</div>Read file bytes</div><div class="block"><div class="block-label">Expect</div>Content does not start with <code>&lt;?xml</code> or <code>&lt;Key</code>.</div><div class="block"><div class="block-label">Check</div><code>assert not content.startswith(b&quot;&lt;?xml&quot;)</code><br><code>assert not content.startswith(b&quot;&lt;Key&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-51</span><span class="test-name">Generates random bytes</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two distinct paths <code>p1</code>, <code>p2</code></div><div class="block"><div class="block-label">Run</div><code>KeePassManager.generate_key_file(p1)</code><br><code>KeePassManager.generate_key_file(p2)</code></div><div class="block"><div class="block-label">Expect</div>File contents differ.</div><div class="block"><div class="block-label">Check</div><code>assert f1.read() != f2.read()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">KP-52</span><span class="test-name">Bad path returns error</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Non-existent directory path</div><div class="block"><div class="block-label">Run</div><code>ok, err = KeePassManager.generate_key_file(&quot;/no/such/dir/test.keyx&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok</code> is falsy; <code>err</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert err</code></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

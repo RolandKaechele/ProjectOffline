@@ -1,0 +1,85 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_02_AppDebug	PO-DBG-	Project Offline – App Debug Dump Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Debug Infrastructure			1	1_Heading.0	Not relevant		
+	Requirements for the central debug flag (is_debug / set_debug) and the Ctrl+D debug dump command that serialises live application state to a JSON file.	information	1.1	PO-DBG-INFO-001.0	Not relevant		
+	When the --debug flag is active, the debug dump shall export the current project state including task details, resource assignments, baseline slots, split task details, timeline pins, Confluence calendar settings, KeePass integration status, email integration config, Jira sync config, Jira project filter properties, Jira sync result, Jira push result and meta, VCS integration status, secondary calendar state, and active view state.	functional requirement	1.2	PO-DBG-001.0	Not relevant	approved	aligned
+	When the --debug flag is active and the debug dump fails, the error message dialog shall include a 'Copy to Clipboard' button.	functional requirement	1.3	PO-DBG-002.0	Not relevant	approved	aligned
+2 File Management			2	2_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. Task and resource data from the loaded file is fully captured under the 'tasks' and 'resources' keys of the core dump (section 1.1); the raw project file can be inspected directly for format-level diagnostics.	information	2.1	PO-DBG-INFO-002.0	Not relevant		
+3 Task Management			3	3_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. All task data including WBS hierarchy, assignments, constraints, and dependencies is captured under the 'tasks' key of the core dump (section 1.1).	information	3.1	PO-DBG-INFO-003.0	Not relevant		
+4 Gantt Chart			4	4_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. Gantt view state (zoom level, scroll offset, column widths, visible columns) is captured under the 'active_view_state' key of the core dump (section 1.1).	information	4.1	PO-DBG-INFO-004.0	Not relevant		
+5 Team Planner			5	5_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. Resource assignment data and the Team Planner view state are captured under the 'tasks', 'resources', and 'active_view_state' keys of the core dump (section 1.1).	information	5.1	PO-DBG-INFO-005.0	Not relevant		
+6 Resource Management			6	6_Heading.0	Not relevant		
+	The debug dump (app_debug.py) shall include a "resource_sidecar" block containing: sidecar file path and existence flag, file size in bytes, count of resources with stored thumbnails, count of resources with stored department values, and a per-UID entry list with resource name, type, existence in the live project, whether a thumbnail is stored (and its byte size), and the stored department value.	functional requirement	6.1	PO-RES-DBG-001.0	Not relevant	approved	aligned
+7 Advanced Features			7	7_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a "calendar_diagnostics" block containing: the default calendar name and UID; all exceptions from the default calendar (from, to, name, working flag); and a 70-day weekday probe using ProjectCalendar.isWorkingDate() listing non-working weekdays and any probe errors.	functional requirement	7.1	PO-DBG-003.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a "split_tasks" list containing for each split task: unique_id, task_id, task_name, num_segments, and segments (list of start/finish pairs). Segments are sourced from ui_state["split_tasks"] when available, falling back to Task.getSplits() from MPXJ.	functional requirement	7.2	PO-DBG-004.0	Not relevant	approved	aligned
+	When the --debug flag is active, the elapsed wall-clock time of each completed long-running operation shall be recorded in a timing log and included in the debug dump under the long_running_timings key, retaining at most the 50 most recent entries.	functional requirement	7.3	PO-PROG-004.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a "project_calendars" block containing: all project calendars with name, UID, parent name/UID, is_default flag, per-weekday type settings (WORKING/NON_WORKING/DEFAULT), all exceptions with name/from/to/working flag, and the list of assigned resources.	functional requirement	7.4	PO-CAL-019.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump "project_calendars" block shall list which holidays-module calendar names are already installed and which are still available to install.	functional requirement	7.5	PO-CAL-020.0	Not relevant	approved	aligned
+8 Confluence Calendar Integration			8	8_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a "confluence_calendar_props" block containing: base_url_set (bool), base_url (string or null), space_key_set (bool), space_key (string or null), timezone (string), and days_ahead (int), read from the enterprise custom fields via get_project_base_url / get_project_space_key / get_project_timezone / get_project_days_ahead.	functional requirement	8.1	PO-DBG-006.0	Not relevant	approved	aligned
+9 Secondary Calendar			9	9_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a "secondary_calendar" block per resource in the resources list, containing the mapped calendar name, calendar UID, and a list of non-working exception entries (date, description) from the secondary calendar.	functional requirement	9.1	PO-SC-006.0	Not relevant	approved	aligned
+10 KeePass Integration			10	10_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a "keepass_integration" block containing non-sensitive status fields only: configured (bool), unlocked (bool), db_path_set (bool), key_file_set (bool), password_saved (bool), entry_count (int), and confluence_entry_configured (bool). No paths, passwords, or KeePass entry names shall appear.	functional requirement	10.1	PO-DBG-005.0	Not relevant	approved	aligned
+11 Enterprise Custom Fields			11	11_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. Enterprise custom field values relevant to integrations (Confluence base URL, space key, timezone, days-ahead; Jira project filter) are captured in the Confluence Calendar Integration Dump (section 8) and the Jira Integration Dump (section 14).	information	11.1	PO-DBG-INFO-006.0	Not relevant		
+12 Active Directory Integration			12	12_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include an ad_sync_result block with two sub-keys: "sync" (containing total, updated, skipped, errors from the last sync_resources() call, or null values when no sync has been run) and "lookups" (the full lookup history list from get_last_lookup_results()).	functional requirement	12.1	PO-AD-014.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a "resource_calendars" list within the "ad_sync_result" block, containing for each resource that has a personal calendar: resource name, calendar name, calendar UID, parent calendar name, and count of calendar exceptions.	functional requirement	12.2	PO-AD-028.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall split the AD lookup history into "single_lookups" (lookup_by_name / lookup_by_email / lookup_by_username), "multi_result_searches" (lookup_by_*_all with match count and matched user details), and "ad_search_history" (condensed chronological list).	functional requirement	12.3	PO-AD-029.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump resources list shall include a "calendar" block per resource containing: calendar name, UID, parent calendar name, exception count, and the full list of calendar exceptions (from, to, name, working flag).	functional requirement	12.4	PO-AD-030.0	Not relevant	approved	aligned
+13 Email Integration			13	13_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include an email_integration block containing the complete output of get_config_summary().	functional requirement	13.1	PO-EMAIL-051.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include an "email_export_status" block containing the last email export run metadata: timestamp, view exported, number of recipients, sent/skipped/failed counts, and SMTP config name used; all email addresses and credentials shall be redacted.	functional requirement	13.2	PO-DBG-007.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include an "email_templates_status" block containing: folder_exists (bool), template_count (int), and template_names (list of display name strings). No template body text or placeholder values shall be included.	functional requirement	13.3	PO-DBG-008.0	Not relevant	approved	aligned
+14 Jira Integration			14	14_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a jira_sync_config block containing the complete output of get_config_summary().	functional requirement	14.1	PO-JIRA-018.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a jira_project_props block reading the "jira2project" custom property container from the project (JSON-parsing it if present), exposing filter_set (bool) and filter (string) keys.	functional requirement	14.2	PO-JIRA-049.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump jira_project_props block shall gracefully handle projects without the "jira2project" custom property by returning an empty dict.	functional requirement	14.3	PO-JIRA-050.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a jira_sync_result block obtained from get_last_result(), exposing created, updated, skipped, the first 20 errors, and the first 50 log entries; the block shall be empty when no sync has been run in the current session.	functional requirement	14.4	PO-J2P-035.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a jira_push_result block obtained from get_last_push_result(), exposing created, updated, transitioned, skipped, the first 20 errors, and the first 50 log entries; the block shall be null when no push has been run in the current session.	functional requirement	14.5	PO-P2J-033.0	Not relevant	approved	aligned
+	When the --debug flag is active, the debug dump shall include a jira_push_meta block reading the jira_push_meta section from the project sidecar, exposing last_run_at, last_successful_push, audit_session_count (length of audit_sessions list), and task_p2j_count (number of entries in the task_p2j section).	functional requirement	14.6	PO-P2J-034.0	Not relevant	approved	aligned
+15 Version Control			15	15_Heading.0	Not relevant		
+	When the --debug flag is active, the debug dump shall include a vcs_integration block containing the output of get_config_summary(): configured (bool), vcs_type, repo_root_set (bool), current_branch, keepass_entry_set (bool), auto_commit_enabled, auto_commit_scope, last_commit (without message text), and last_status; no credentials or commit message text shall appear in this block.	functional requirement	15.1	PO-VCS-037.0	Not relevant	approved	aligned
+16 Export and Import			16	16_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. The last email export run status is captured in the Email Integration Dump (section 13). The PlantUML import produces no persistent runtime state requiring a dump.	information	16.1	PO-DBG-INFO-007.0	Not relevant		
+17 Critical Path Method			17	17_Heading.0	Not relevant		
+	No debug dump requirements are defined for this module. CPM results are recalculated on demand from the live task graph; there is no persistent CPM state to serialise beyond what is already present in the 'tasks' key of the core dump (section 1.1).	information	17.1	PO-DBG-INFO-008.0	Not relevant		
+</OBJECTS>

@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Planner &mdash; Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html" class="active">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Team Planner</h1>
+    <p>See who is working on what and when &mdash; drag tasks between resources to reassign them without leaving the calendar view.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Team Planner</div>
+
+    <h2>What Is the Team Planner?</h2>
+    <p>The <strong>Team Planner</strong> tab shows a resource-row timeline where each
+    horizontal row represents one resource and each coloured bar represents a task
+    assignment.  Unlike the Gantt chart (which is task-centric), the Team Planner is
+    <em>resource-centric</em>: you can immediately see who is busy, who is free, and
+    whether anyone is over-allocated.</p>
+
+    <h2>Reading the View</h2>
+    <table>
+      <thead><tr><th>Visual element</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Blue task bar</td><td>Assigned task for this resource</td></tr>
+        <tr><td>Semi-transparent bar (ghost)</td><td>Proposed position while dragging</td></tr>
+        <tr><td>Orange block</td><td>Vacation / non-working period (from personal or Confluence calendar)</td></tr>
+        <tr><td>Yellow block</td><td>Regional public holiday from the resource&rsquo;s secondary calendar (auto-assigned from AD location)</td></tr>
+        <tr><td>Green line</td><td>Today indicator</td></tr>
+        <tr><td>Grey column</td><td>Saturday / public holiday</td></tr>
+        <tr><td>Blue-tint column</td><td>Sunday</td></tr>
+        <tr><td>Red row background + &#33; badge</td><td>Over-allocated resource (assigned &gt; Max Units)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Unassigned Tasks Panel</h2>
+    <p>The bottom strip shows task chips for tasks that have <strong>no resource assigned</strong>.
+    Drag a chip from the unassigned panel onto a resource row to assign it and schedule it
+    starting on the day where you drop it.</p>
+
+    <h2>Drag-and-Drop Assignment</h2>
+    <ol>
+      <li>Click and hold a task bar (or unassigned chip).</li>
+      <li>Drag horizontally to reschedule, or vertically to a different resource row
+          to reassign.</li>
+      <li>A ghost bar follows the cursor; the target row highlights in blue.</li>
+      <li>If the drop lands on a vacation block the ghost turns red &mdash; release to confirm
+          anyway, or move the cursor to avoid it.</li>
+      <li>Release the mouse to commit the change.  The project is updated and the Gantt
+          chart reflects the new dates.</li>
+    </ol>
+
+    <h2>Zoom &amp; Navigation</h2>
+    <p>The Team Planner shares the zoom level with the Gantt chart.
+    Use the same zoom slider or the <strong>&#9664; Today</strong> navigation button
+    to scroll to the current date.</p>
+
+    <div class="callout note">
+      <strong>Scroll sync</strong>
+      The calendar header and the resource rows scroll horizontally in perfect lock-step &mdash;
+      a dedicated spacer in the layout ensures there is never a pixel drift between
+      column headers and data cells regardless of the vertical scrollbar width.
+    </div>
+    <div class="callout note">
+      <strong>Hover tooltips</strong>
+      Hovering over an orange or yellow block shows a tooltip with the exception name
+      and date range. For yellow (secondary calendar) blocks the tooltip also shows
+      the name of the regional holiday calendar (e.g. <em>Source: Bayern</em>).
+    </div>
+    <div class="callout note">
+      <strong>Secondary calendar date filtering</strong>
+      Yellow blocks show only the exceptions that are <em>unique</em> to the secondary
+      (regional) calendar &mdash; dates already present in the parent national calendar
+      are filtered out to avoid double-rendering of national public holidays. The filter
+      compares only <strong>named</strong> exceptions from the parent calendar; anonymous
+      entries (e.g. unnamed school-holiday blocks from Confluence) are ignored, so a
+      state holiday that falls on the same date as a Schulferien block is always
+      displayed. When a
+      secondary calendar exception has no name, the block label falls back to the
+      calendar name (e.g. <em>Baden-W&uuml;rttemberg</em>); otherwise the label combines
+      both as <em>Calendar: Exception</em> (e.g. <em>Baden-W&uuml;rttemberg: Heilige
+      Drei K&ouml;nige</em>).
+    </div>
+
+    <div class="callout note">
+      <strong>All resources always visible</strong>
+      The Team Planner displays a swimlane row for every named resource even if the
+      resource's unique ID is unavailable or raises an error.  Such resources appear
+      with an empty task set and do not cause a crash.  Newly added resources appear
+      immediately because the application assigns a UID automatically on creation.
+    </div>  </div>
+</div>
+
+</body>
+</html>

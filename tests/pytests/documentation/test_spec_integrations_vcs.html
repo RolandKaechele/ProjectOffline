@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Version Control Integration &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Version Control Integration</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#version_control_integration">version control integration</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">35</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">35</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="version_control_integration">
+  <div class="module-header"><h2>integrations/version_control_integration.py</h2><span class="badge">35 tests</span></div>
+  <div class="module-desc">Dynamic GIT_ASKPASS helper generation, repository detection (Git/.git and SVN/.svn walk-up), module init/reset state, public accessor functions, <code>get_config_summary()</code> non-sensitive dump, and <code>_sanitise_output()</code> credential scrubbing.</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsAskpassScript &mdash; Dynamic askpass script</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-01</span><span class="test-name">Creates temp file</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>import integrations.version_control_integration as vci</code><br><code>vci._askpass_tmp_path = None</code></div><div class="block"><div class="block-label">Run</div><code>path = _askpass_script()</code></div><div class="block"><div class="block-label">Expect</div><code>os.path.isfile(path)</code> is truthy. <code>path.endswith(&quot;.bat&quot;)</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert os.path.isfile(path)</code><br><code>assert path.endswith(&quot;.bat&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-02</span><span class="test-name">File content has @echo off</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path = _askpass_script()</code></div><div class="block"><div class="block-label">Run</div>Read file as ASCII bytes.</div><div class="block"><div class="block-label">Expect</div><code>&quot;@echo off&quot;</code> is contained in <code>content</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;@echo off&quot; in content</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-03</span><span class="test-name">File content echoes username env</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path = _askpass_script()</code></div><div class="block"><div class="block-label">Run</div>Read file as ASCII bytes.</div><div class="block"><div class="block-label">Expect</div><code>&quot;GIT_ASKPASS_USERNAME&quot;</code> is contained in <code>content</code>. <code>&quot;username&quot;</code> is contained in <code>content.lower()</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;GIT_ASKPASS_USERNAME&quot; in content</code><br><code>assert &quot;username&quot; in content.lower()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-04</span><span class="test-name">File content echoes password env</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path = _askpass_script()</code></div><div class="block"><div class="block-label">Run</div>Read file as ASCII bytes.</div><div class="block"><div class="block-label">Expect</div><code>&quot;GIT_ASKPASS_PASSWORD&quot;</code> is contained in <code>content</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;GIT_ASKPASS_PASSWORD&quot; in content</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-05</span><span class="test-name">Cached on second call</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path1 = _askpass_script()</code></div><div class="block"><div class="block-label">Run</div><code>path2 = _askpass_script()</code></div><div class="block"><div class="block-label">Expect</div><code>path1 == path2</code>.</div><div class="block"><div class="block-label">Check</div><code>assert path1 == path2</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-06</span><span class="test-name">Regenerates if deleted</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>path1 = _askpass_script(); os.unlink(path1); vci._askpass_tmp_path = path1</code></div><div class="block"><div class="block-label">Run</div><code>path2 = _askpass_script()</code></div><div class="block"><div class="block-label">Expect</div><code>os.path.isfile(path2)</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert os.path.isfile(path2)</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsDetectRepo &mdash; Repository detection</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-07</span><span class="test-name">No repo returns empty dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>tmpdir = tempfile.TemporaryDirectory()</code></div><div class="block"><div class="block-label">Run</div><code>result = detect_repo(os.path.join(tmpdir, &quot;project.xml&quot;))</code></div><div class="block"><div class="block-label">Expect</div><code>result == {}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-08</span><span class="test-name">Detects git repo</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>os.makedirs(tmpdir/.git)</code><br><code>patch _run_git → (0, &quot;main\n&quot;, &quot;&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>result = detect_repo(fake_file)</code></div><div class="block"><div class="block-label">Expect</div><code>result[&quot;type&quot;] == &quot;git&quot;</code>. <code>result[&quot;branch&quot;] == &quot;main&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;type&quot;) == &quot;git&quot;</code><br><code>assert result.get(&quot;branch&quot;) == &quot;main&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-09</span><span class="test-name">Detects SVN repo</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>os.makedirs(tmpdir/.svn)</code><br><code>patch _run_svn → (0, &quot;42\n&quot;, &quot;&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>result = detect_repo(fake_file)</code></div><div class="block"><div class="block-label">Expect</div><code>result[&quot;type&quot;] == &quot;svn&quot;</code>. <code>result[&quot;revision&quot;] == 42</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;type&quot;) == &quot;svn&quot;</code><br><code>assert result.get(&quot;revision&quot;) == 42</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-10</span><span class="test-name">Walks up to parent</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>.git in root/; call detect_repo from root/subproject/</code></div><div class="block"><div class="block-label">Run</div><code>result = detect_repo(root/subproject/project.xml)</code></div><div class="block"><div class="block-label">Expect</div><code>result[&quot;root&quot;] == root</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;root&quot;) == root</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-11</span><span class="test-name">Empty path returns empty dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>&mdash;</div><div class="block"><div class="block-label">Run</div><code>detect_repo(&quot;&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert detect_repo(&quot;&quot;) == {}</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsModuleState &mdash; init / reset / accessors</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-12</span><span class="test-name">is_configured false initially</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {}</code></div><div class="block"><div class="block-label">Run</div><code>is_configured()</code></div><div class="block"><div class="block-label">Expect</div><code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert is_configured() is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-13</span><span class="test-name">get_vcs_type empty initially</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {}</code></div><div class="block"><div class="block-label">Run</div><code>get_vcs_type()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_vcs_type() == &quot;&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-14</span><span class="test-name">get_repo_root empty initially</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {}</code></div><div class="block"><div class="block-label">Run</div><code>get_repo_root()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_repo_root() == &quot;&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-15</span><span class="test-name">get_current_branch empty initially</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {}</code></div><div class="block"><div class="block-label">Run</div><code>get_current_branch()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_current_branch() == &quot;&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-16</span><span class="test-name">reset clears repo info</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {&quot;type&quot;: &quot;git&quot;, ...}</code><br><code>vci._project_file_path = &quot;/some/path/project.xml&quot;</code></div><div class="block"><div class="block-label">Run</div><code>reset()</code></div><div class="block"><div class="block-label">Expect</div><code>is_configured()</code> is <code>False</code>. <code>vci._project_file_path == &quot;&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert is_configured() is False</code><br><code>assert vci._project_file_path == &quot;&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsConfigSummary &mdash; Non-sensitive debug dump</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-17</span><span class="test-name">Has expected keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>&mdash;</div><div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div><div class="block"><div class="block-label">Expect</div>Keys <code>configured</code>, <code>vcs_type</code>, <code>repo_root_set</code>, <code>current_branch</code>, <code>auto_commit_enabled</code> present.</div><div class="block"><div class="block-label">Check</div><code>for key in (&quot;configured&quot;, &quot;vcs_type&quot;, ...): assert key in summary</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-18</span><span class="test-name">No password in summary</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {&quot;type&quot;: &quot;git&quot;, &quot;root&quot;: &quot;/repo&quot;, &quot;branch&quot;: &quot;main&quot;}</code></div><div class="block"><div class="block-label">Run</div><code>summary_str = str(get_config_summary()).lower()</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;password&quot;</code> not in <code>summary_str</code>. <code>&quot;secret&quot;</code> not in <code>summary_str</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;password&quot; not in summary_str</code><br><code>assert &quot;secret&quot; not in summary_str</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-19</span><span class="test-name">configured reflects repo state</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>vci._repo_info = {&quot;type&quot;: &quot;git&quot;, ...}</code></div><div class="block"><div class="block-label">Run</div><code>get_config_summary()[&quot;configured&quot;]</code></div><div class="block"><div class="block-label">Expect</div>Equals <code>is_configured()</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_config_summary()[&quot;configured&quot;] == is_configured()</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsSanitiseOutput &mdash; Credential scrubbing</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-20</span><span class="test-name">Passthrough when no credentials</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;&quot;, &quot;&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>result = _sanitise_output(&quot;some command output&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>result == &quot;some command output&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;some command output&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-21</span><span class="test-name">Replaces password in output</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;alice&quot;, &quot;s3cr3t&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>result = _sanitise_output(&quot;authentication with s3cr3t failed&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;s3cr3t&quot;</code> not in <code>result</code>. <code>&quot;&lt;password&gt;&quot;</code> in <code>result</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;s3cr3t&quot; not in result</code><br><code>assert &quot;&lt;password&gt;&quot; in result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-22</span><span class="test-name">Replaces username in output</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;alice&quot;, &quot;s3cr3t&quot;)</code></div><div class="block"><div class="block-label">Run</div><code>result = _sanitise_output(&quot;user alice not authorised&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;alice&quot;</code> not in <code>result</code>. <code>&quot;&lt;username&gt;&quot;</code> in <code>result</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;alice&quot; not in result</code><br><code>assert &quot;&lt;username&gt;&quot; in result</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestRunSvnNoAuthCache &mdash; --no-auth-cache flag handling (bug fix)</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-23</span><span class="test-name">No-auth-cache absent when no credentials</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;&quot;, &quot;&quot;)</code>; patch subprocess.run to capture cmd.</div><div class="block"><div class="block-label">Run</div><code>_run_svn([&quot;log&quot;, &quot;-l10&quot;, &quot;--xml&quot;], cwd=&quot;/tmp&quot;, with_credentials=True)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;--no-auth-cache&quot;</code> must NOT be in the captured command — local SVN credential cache must remain usable.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;--no-auth-cache&quot; not in cmd</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-24</span><span class="test-name">No-auth-cache absent when with_credentials=False</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;user&quot;, &quot;pass&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>_run_svn([&quot;log&quot;], cwd=&quot;/tmp&quot;, with_credentials=False)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;--no-auth-cache&quot;</code> not in cmd.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;--no-auth-cache&quot; not in cmd</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-25</span><span class="test-name">No-auth-cache present when explicit credentials provided</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>patch _get_credentials → (&quot;alice&quot;, &quot;s3cr3t&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>_run_svn([&quot;commit&quot;, &quot;-m&quot;, &quot;msg&quot;], cwd=&quot;/tmp&quot;, with_credentials=True)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;--no-auth-cache&quot;</code> in cmd — prevents KeePass credential from being cached by SVN.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;--no-auth-cache&quot; in cmd</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-26</span><span class="test-name">Non-interactive always present</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two runs: one with no credentials, one with credentials.</div><div class="block"><div class="block-label">Run</div>Both calls to <code>_run_svn</code>.</div><div class="block"><div class="block-label">Expect</div><code>&quot;--non-interactive&quot;</code> in cmd for both runs.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;--non-interactive&quot; in cmd_no_creds</code><br><code>assert &quot;--non-interactive&quot; in cmd_creds</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-27</span><span class="test-name">svn_log does not get no-auth-cache when no cached credentials</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Set <code>_repo_info = {&quot;type&quot;: &quot;svn&quot;, &quot;root&quot;: &quot;/repo&quot;}</code>; patch subprocess.run, credentials → (&quot;&quot;, &quot;&quot;).</div><div class="block"><div class="block-label">Run</div><code>ok, entries = svn_log(max_entries=10)</code></div><div class="block"><div class="block-label">Expect</div><code>ok is True</code>; <code>&quot;--no-auth-cache&quot;</code> absent from subprocess command so local SVN cache is used.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>assert &quot;--no-auth-cache&quot; not in captured[&quot;cmd&quot;]</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestSvnIsUnversioned &mdash; svn_is_unversioned() status check</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-28</span><span class="test-name">Returns True when svn status starts with &lsquo;?&rsquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_repo_info = {&quot;type&quot;: &quot;svn&quot;, &quot;root&quot;: &quot;/repo&quot;}</code>; patch <code>_run_svn</code> to return <code>(0, &quot;? /repo/project.xml\n&quot;, &quot;&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>svn_is_unversioned(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>True</code> — file is untracked.</div><div class="block"><div class="block-label">Check</div><code>assert result is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-29</span><span class="test-name">Returns False when status output is empty (clean)</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_repo_info = {&quot;type&quot;: &quot;svn&quot;, &quot;root&quot;: &quot;/repo&quot;}</code>; patch <code>_run_svn</code> to return <code>(0, &quot;&quot;, &quot;&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>svn_is_unversioned(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code> — file is already tracked.</div><div class="block"><div class="block-label">Check</div><code>assert result is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-30</span><span class="test-name">Returns False when no repo configured</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_repo_info = {}</code>.</div><div class="block"><div class="block-label">Run</div><code>svn_is_unversioned(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>False</code> — <code>get_repo_root()</code> returns &ldquo;&rdquo;, short-circuits.</div><div class="block"><div class="block-label">Check</div><code>assert result is False</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestSvnAdd &mdash; svn_add() schedule file for addition</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-31</span><span class="test-name">Calls &lsquo;svn add &mdash; &lt;file&gt;&rsquo; command</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_repo_info = {&quot;type&quot;: &quot;svn&quot;, &quot;root&quot;: &quot;/repo&quot;}</code>; capture <code>_run_svn</code> args.</div><div class="block"><div class="block-label">Run</div><code>svn_add(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>_run_svn</code> called with <code>[&quot;add&quot;, &quot;--&quot;, &quot;/repo/project.xml&quot;]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert captured[&quot;args&quot;] == [&quot;add&quot;, &quot;--&quot;, &quot;/repo/project.xml&quot;]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-32</span><span class="test-name">Returns True on rc=0</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>patch <code>_run_svn</code> → <code>(0, &quot;A  /repo/project.xml\n&quot;, &quot;&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>ok, _ = svn_add(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok is True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-33</span><span class="test-name">Returns False on rc=1</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>patch <code>_run_svn</code> → <code>(1, &quot;&quot;, &quot;svn: E200009: not a working copy&quot;)</code>.</div><div class="block"><div class="block-label">Run</div><code>ok, _ = svn_add(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>ok is False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert ok is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-34</span><span class="test-name">Updates _last_status_result with operation=&lsquo;svn_add&rsquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>patch <code>_run_svn</code> → success.</div><div class="block"><div class="block-label">Run</div><code>svn_add(&quot;/repo/project.xml&quot;)</code></div><div class="block"><div class="block-label">Expect</div><code>vci._last_status_result[&quot;operation&quot;] == &quot;svn_add&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert vci._last_status_result[&quot;operation&quot;] == &quot;svn_add&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsWorkerSvnAdd &mdash; VcsWorker operation routing</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-35</span><span class="test-name">VcsWorker(&lsquo;svn_add&rsquo;) delegates to svn_add()</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_repo_info = {&quot;type&quot;: &quot;svn&quot;, &quot;root&quot;: &quot;/repo&quot;}</code>; patch <code>svn_add</code>.</div><div class="block"><div class="block-label">Run</div><code>VcsWorker(&quot;svn_add&quot;, file_path=&quot;/repo/project.xml&quot;).run()</code></div><div class="block"><div class="block-label">Expect</div><code>svn_add</code> called once with <code>file_path=&quot;/repo/project.xml&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>mock_add.assert_called_once_with(file_path=&quot;/repo/project.xml&quot;)</code></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

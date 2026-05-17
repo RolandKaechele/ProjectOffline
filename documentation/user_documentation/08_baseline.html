@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline Tracking — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html" class="active">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Baseline Tracking</h1>
+    <p>Capture scheduled dates as a baseline snapshot, then track variances as the project progresses.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Baseline Tracking</div>
+
+    <h2>What Is a Baseline?</h2>
+    <p>A <strong>baseline</strong> is a saved snapshot of the project schedule at a
+    specific point in time (typically when the project is approved and work starts).
+    As the project progresses you can compare current dates to the baseline to
+    measure schedule variance.</p>
+    <p>Project Offline supports <strong>11 independent baseline slots</strong>
+    (Baseline 0 through Baseline 10), matching Microsoft Project's MSPDI format.</p>
+
+    <h2>Setting a Baseline</h2>
+    <ol>
+      <li>Open <strong>Project &rarr; Set Baseline&hellip;</strong> from the menu bar,
+          or click the <strong>Set Baseline</strong> split-button in the BASELINE ribbon tab.</li>
+      <li>Choose which slot to save into (Baseline 0 is the default).</li>
+      <li>Click <strong>Set Baseline</strong>.  The current Start, Finish, and Duration
+          of every task are copied into the chosen slot, and the capture date is
+          recorded in the project properties.</li>
+    </ol>
+    <p>The <strong>Set Baseline</strong> ribbon button is a <strong>split-button</strong> &mdash;
+    click the &#9660;&nbsp;arrow for two additional quick-access modes:</p>
+    <ul>
+      <li><strong>Set into next free slot</strong> &mdash; automatically finds the lowest-numbered
+          unoccupied slot (BL-0 through BL-10) and snapshots instantly, without showing the dialog.</li>
+      <li><strong>Set all slots (bulk)</strong> &mdash; snapshots the current schedule into all
+          11 slots simultaneously.</li>
+    </ul>
+
+    <h2>Clearing a Baseline</h2>
+    <p>Open <strong>Project &rarr; Clear Baseline&hellip;</strong>, select the slot,
+    and confirm.  All baseline fields for that slot are set to null and the capture
+    date is removed from project properties.</p>
+    <p>The <strong>Clear Baseline</strong> ribbon button is also a split-button.
+    Click the &#9660;&nbsp;arrow and choose <strong>Clear all baselines</strong> to
+    remove all data from all 11 slots simultaneously without navigating the dialog.</p>
+
+    <h2>Baseline View</h2>
+    <p>Switch to the <strong>Baseline</strong> tab to see the comparison table.
+    Use the <strong>Reference</strong> and <strong>Compare&nbsp;to</strong> selectors
+    to choose which slots to compare.</p>
+    <table>
+      <thead><tr><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>ID / Name</td><td>Task identifier and name</td></tr>
+        <tr><td>BL Start / BL Finish / BL Duration</td><td>Values stored in the reference baseline slot</td></tr>
+        <tr><td>Current Start / Current Finish / Current Duration</td><td>Current schedule (or a second baseline when comparing two baselines)</td></tr>
+        <tr><td>Start &#916; (d) / Finish &#916; (d)</td><td>Variance in calendar days (positive = late)</td></tr>
+        <tr><td>Duration &#916; %</td><td>Duration change as a percentage of the baseline value</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Colour Coding</h2>
+    <table>
+      <thead><tr><th>Colour</th><th>&#916; Days threshold</th><th>&#916; Duration % threshold</th></tr></thead>
+      <tbody>
+        <tr><td>Yellow</td><td>1–2 days</td><td>&le; 10%</td></tr>
+        <tr><td>Orange</td><td>3–5 days</td><td>&le; 25%</td></tr>
+        <tr><td>Red</td><td>&ge; 6 days</td><td>&gt; 25%</td></tr>
+      </tbody>
+    </table>
+    <p>Cells in the Current Start/Finish/Duration columns are highlighted yellow
+    whenever their value differs from the reference baseline cell.</p>
+
+    <h2>Baseline Strip on Gantt Chart</h2>
+    <p>When a baseline is set a thin dark strip appears <em>below</em> each task bar
+    on the Gantt chart, showing the planned start and finish.  The strip is drawn
+    even when the Baseline tab is not active.</p>
+
+    <div class="callout note">
+      <strong>Comparing two baselines</strong>
+      Set <strong>Compare to</strong> to any slot other than &ldquo;Current&rdquo;
+      to compare two historical snapshots — for example, Baseline 1 (initial plan)
+      vs Baseline 2 (re-plan after first month).
+    </div>
+
+    <h2>Quick-Access Split-Button Options</h2>
+    <p>The <strong>Set Baseline</strong> and <strong>Clear Baseline</strong> buttons in the
+    BASELINE ribbon tab are <strong>split-buttons</strong>. Clicking the main button area
+    opens the normal dialog. Clicking the small <strong>&#9660;</strong> drop-down arrow
+    gives quick access to additional options without opening a dialog:</p>
+    <table>
+      <thead><tr><th>Button</th><th>Drop-down option</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr>
+          <td rowspan="2"><strong>Set Baseline &#9660;</strong></td>
+          <td>Set into next free slot</td>
+          <td>Automatically finds the lowest unoccupied baseline slot (BL-0 through BL-10)
+              and snapshots the current schedule into it immediately, without showing the dialog.</td>
+        </tr>
+        <tr>
+          <td>Set all slots (bulk)</td>
+          <td>Snapshots the current schedule into all 11 slots (BL-0 through BL-10)
+              simultaneously in one step.</td>
+        </tr>
+        <tr>
+          <td><strong>Clear Baseline &#9660;</strong></td>
+          <td>Clear all baselines</td>
+          <td>Removes all baseline data from all 11 slots simultaneously,
+              without showing the dialog. Use with caution.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <strong>Tip:</strong> Use <em>Set into next free slot</em> when you want to capture
+      intermediate progress checkpoints without having to count which slot numbers are
+      already in use.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

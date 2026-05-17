@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Logic & Main &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Logic & Main</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#logic">logic</a>
+  <a href="#main">main</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">22</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">22</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">2</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="logic">
+  <div class="module-header"><h2>logic.py</h2><span class="badge">6 tests</span></div>
+  <div class="module-desc">ProjectLogic data container: initial state, load_data storage, overwrite and clear, accessor immutability.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestProjectLogic — Project Logic</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-01</span>
+          <span class="test-name">Initial state is none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>logic = ProjectLogic()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data() is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-02</span>
+          <span class="test-name">Load data stores value</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>sentinel = object()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>logic.load_data(sentinel)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data() is sentinel</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() is sentinel</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-03</span>
+          <span class="test-name">Load data none clears previous</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(&quot;something&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>logic.load_data(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data() is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-04</span>
+          <span class="test-name">Load data overwrites previous</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(&quot;first&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>logic.load_data(&quot;second&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data()</code> equals <code>&quot;second&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() == &quot;second&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-05</span>
+          <span class="test-name">Get data does not mutate</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>logic.load_data(42)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_ = logic.get_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data()</code> equals <code>42</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() == 42</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">LG-06</span>
+          <span class="test-name">Project data attribute accessible</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>logic = ProjectLogic()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(logic, &#x27;project_data&#x27;)</code> is truthy. <code>logic.project_data is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(logic, &#x27;project_data&#x27;)</code><br><code>assert logic.project_data is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="main">
+  <div class="module-header"><h2>main.py</h2><span class="badge">16 tests</span></div>
+  <div class="module-desc">Entry-point module: argument parser flags (--open, --debug, --verbose), main() invocation chain; bundled-first tool discovery (JDK, Git, SVN).</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestMainModule — Main Module</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-01</span>
+          <span class="test-name">Main function exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>import main</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main, &#x27;main&#x27;)</code> is truthy. <code>callable(main.main)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main, &#x27;main&#x27;)</code><br><code>assert callable(main.main)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-02</span>
+          <span class="test-name">Main module has docstring</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>import main</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>main.__doc__ is not None</code> is truthy. <code>len(main.__doc__)</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main.__doc__ is not None</code><br><code>assert len(main.__doc__) &gt; 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestArgumentParsing — Argument Parsing</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-03</span>
+          <span class="test-name">Argparse with no args</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import argparse</code><br><code>parser = argparse.ArgumentParser(description=&quot;Project Offline&quot;)</code><br><code>parser.add_argument(&#x27;--open&#x27;, type=str, help=&#x27;Path to a Microsoft Project file to open at startup&#x27;)</code><br><code>parser.add_argument(&#x27;--debug&#x27;, &#x27;-v&#x27;, action=&#x27;store_true&#x27;, help=&#x27;Enable verbose debug output&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = parser.parse_args([])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>args.open is None</code> is truthy. <code>args.debug</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert args.open is None</code><br><code>assert args.debug is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-04</span>
+          <span class="test-name">Argparse with open arg</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import argparse</code><br><code>parser = argparse.ArgumentParser(description=&quot;Project Offline&quot;)</code><br><code>parser.add_argument(&#x27;--open&#x27;, type=str, help=&#x27;Path to a Microsoft Project file to open at startup&#x27;)</code><br><code>parser.add_argument(&#x27;--debug&#x27;, &#x27;-v&#x27;, action=&#x27;store_true&#x27;, help=&#x27;Enable verbose debug output&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = parser.parse_args([&#x27;--open&#x27;, &#x27;test.mpp&#x27;])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>args.open</code> equals <code>&#x27;test.mpp&#x27;</code>. <code>args.debug</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert args.open == &#x27;test.mpp&#x27;</code><br><code>assert args.debug is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-05</span>
+          <span class="test-name">Argparse with debug flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import argparse</code><br><code>parser = argparse.ArgumentParser(description=&quot;Project Offline&quot;)</code><br><code>parser.add_argument(&#x27;--open&#x27;, type=str, help=&#x27;Path to a Microsoft Project file to open at startup&#x27;)</code><br><code>parser.add_argument(&#x27;--debug&#x27;, &#x27;-v&#x27;, action=&#x27;store_true&#x27;, help=&#x27;Enable verbose debug output&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = parser.parse_args([&#x27;--debug&#x27;])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>args.open is None</code> is truthy. <code>args.debug</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert args.open is None</code><br><code>assert args.debug is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-06</span>
+          <span class="test-name">Argparse with verbose short flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import argparse</code><br><code>parser = argparse.ArgumentParser(description=&quot;Project Offline&quot;)</code><br><code>parser.add_argument(&#x27;--open&#x27;, type=str, help=&#x27;Path to a Microsoft Project file to open at startup&#x27;)</code><br><code>parser.add_argument(&#x27;--debug&#x27;, &#x27;-v&#x27;, action=&#x27;store_true&#x27;, help=&#x27;Enable verbose debug output&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = parser.parse_args([&#x27;-v&#x27;])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>args.open is None</code> is truthy. <code>args.debug</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert args.open is None</code><br><code>assert args.debug is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-07</span>
+          <span class="test-name">Argparse with all args</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import argparse</code><br><code>parser = argparse.ArgumentParser(description=&quot;Project Offline&quot;)</code><br><code>parser.add_argument(&#x27;--open&#x27;, type=str, help=&#x27;Path to a Microsoft Project file to open at startup&#x27;)</code><br><code>parser.add_argument(&#x27;--debug&#x27;, &#x27;-v&#x27;, action=&#x27;store_true&#x27;, help=&#x27;Enable verbose debug output&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = parser.parse_args([&#x27;--open&#x27;, &#x27;project.mpp&#x27;, &#x27;--debug&#x27;])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>args.open</code> equals <code>&#x27;project.mpp&#x27;</code>. <code>args.debug</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert args.open == &#x27;project.mpp&#x27;</code><br><code>assert args.debug is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestMainExecution — Main Execution</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-08</span>
+          <span class="test-name">Main calls expected components</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_args = [&#x27;main.py&#x27;]</code><br><code>with patch(&#x27;sys.argv&#x27;, test_args), \</code><br><code>patch(&#x27;main.QApplication&#x27;) as mock_qapp_class, \</code><br><code>patch(&#x27;main.ProjectLogic&#x27;) as mock_logic_class, \</code><br><code>patch(&#x27;main.ProjectFileHandler&#x27;) as mock_handler_class, \</code><br><code>patch(&#x27;main.MainWindow&#x27;) as mock_window_class, \</code><br><code>patch(&#x27;sys.exit&#x27;):</code><br><code>mock_app = MagicMock()</code><br><code>mock_app.exec_.return_value = 0</code><br><code>mock_qapp_class.return_value = mock_app</code><br><code>mock_logic = MagicMock()</code><br><code>mock_logic_class.return_value = mock_logic</code><br><code>mock_handler = MagicMock()</code><br><code>mock_handler_class.return_value = mock_handler</code><br><code>mock_window = MagicMock()</code><br><code>mock_window_class.return_value = mock_window</code><br><code>import main as main_module</code><br><code>try:</code><br><code>main_module.main()</code><br><code>except SystemExit:</code><br><code>pass  # main() calls sys.exit, which we&#x27;re mocking</code><br><code>mock_logic_class.assert_called_once()</code><br><code>mock_handler_class.assert_called_once_with(mock_logic)</code><br><code>mock_window_class.assert_called_once_with(mock_logic, mock_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_window.show.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>main calls expected components</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-09</span>
+          <span class="test-name">Main opens file when open arg provided</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_args = [&#x27;main.py&#x27;, &#x27;--open&#x27;, &#x27;test.mpp&#x27;]</code><br><code>with patch(&#x27;sys.argv&#x27;, test_args), \</code><br><code>patch(&#x27;main.QApplication&#x27;) as mock_qapp_class, \</code><br><code>patch(&#x27;main.ProjectLogic&#x27;) as mock_logic_class, \</code><br><code>patch(&#x27;main.ProjectFileHandler&#x27;) as mock_handler_class, \</code><br><code>patch(&#x27;main.MainWindow&#x27;) as mock_window_class, \</code><br><code>patch(&#x27;sys.exit&#x27;):</code><br><code>mock_app = MagicMock()</code><br><code>mock_app.exec_.return_value = 0</code><br><code>mock_qapp_class.return_value = mock_app</code><br><code>mock_logic = MagicMock()</code><br><code>mock_logic_class.return_value = mock_logic</code><br><code>mock_handler = MagicMock()</code><br><code>mock_handler_class.return_value = mock_handler</code><br><code>mock_window = MagicMock()</code><br><code>mock_window_class.return_value = mock_window</code><br><code>import main as main_module</code><br><code>try:</code><br><code>main_module.main()</code><br><code>except SystemExit:</code><br><code>pass</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_window.open_project_file.assert_called_once_with(&#x27;test.mpp&#x27;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>main opens file when open arg provided</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-10</span>
+          <span class="test-name">Main enables debug when debug flag provided</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_args = [&#x27;main.py&#x27;, &#x27;--debug&#x27;]</code><br><code>with patch(&#x27;sys.argv&#x27;, test_args), \</code><br><code>patch(&#x27;main.QApplication&#x27;) as mock_qapp_class, \</code><br><code>patch(&#x27;main.ProjectLogic&#x27;) as mock_logic_class, \</code><br><code>patch(&#x27;main.ProjectFileHandler&#x27;) as mock_handler_class, \</code><br><code>patch(&#x27;main.MainWindow&#x27;) as mock_window_class, \</code><br><code>patch(&#x27;sys.exit&#x27;):</code><br><code>with patch(&#x27;app_debug.set_debug&#x27;) as mock_set_debug:</code><br><code>mock_app = MagicMock()</code><br><code>mock_app.exec_.return_value = 0</code><br><code>mock_qapp_class.return_value = mock_app</code><br><code>mock_logic = MagicMock()</code><br><code>mock_logic_class.return_value = mock_logic</code><br><code>mock_handler = MagicMock()</code><br><code>mock_handler_class.return_value = mock_handler</code><br><code>mock_window = MagicMock()</code><br><code>mock_window_class.return_value = mock_window</code><br><code>import main as main_module</code><br><code>try:</code><br><code>main_module.main()</code><br><code>except SystemExit:</code><br><code>pass</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_set_debug.assert_called_once_with(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>main enables debug when debug flag provided</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFindAndConfigureJdk — Find And Configure Jdk</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-11</span>
+          <span class="test-name">Bundled JDK preferred over system</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>exe_dir = tmp_path / &quot;exe&quot;</code><br><code>jdk_bin = exe_dir / &quot;jdk&quot; / &quot;bin&quot;</code><br><code>jdk_bin.mkdir(parents=True)</code><br><code>(jdk_bin / &quot;java.exe&quot;).touch()</code><br><code>patch(&quot;sys.executable&quot;, ...), patch.object(main_module, &quot;__file__&quot;, ...), patch.dict(os.environ, {&quot;JAVA_HOME&quot;: &quot;/system/java&quot;, &quot;PATH&quot;: &quot;/old&quot;})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_jdk()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>os.environ[&quot;JAVA_HOME&quot;]</code> equals the bundled JDK path. Bundled <code>bin/</code> is in <code>PATH</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.environ[&quot;JAVA_HOME&quot;] == str(exe_dir / &quot;jdk&quot;)</code><br><code>assert str(exe_dir / &quot;jdk&quot; / &quot;bin&quot;) in os.environ[&quot;PATH&quot;].split(os.pathsep)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-12</span>
+          <span class="test-name">System Java fallback when no bundled JDK</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>exe_dir = tmp_path / &quot;exe&quot;</code> (no JDK structure)<br><code>patch.dict(os.environ, {&quot;JAVA_HOME&quot;: &quot;/system/java&quot;})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_jdk()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>JAVA_HOME</code> is unchanged at <code>&quot;/system/java&quot;</code> (function returns early).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.environ.get(&quot;JAVA_HOME&quot;) == &quot;/system/java&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFindAndConfigureGit — Find And Configure Git</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-13</span>
+          <span class="test-name">Bundled Git preferred over system</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>git_cmd_dir = exe_dir / &quot;git&quot; / &quot;cmd&quot;</code><br><code>(git_cmd_dir / &quot;git.exe&quot;).touch()</code><br><code>patch(&quot;shutil.which&quot;) as mock_which</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_git()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Bundled <code>git/cmd</code> is prepended to PATH. <code>shutil.which</code> is not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert str(git_cmd_dir) in os.environ[&quot;PATH&quot;].split(os.pathsep)</code><br><code>mock_which.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-14</span>
+          <span class="test-name">System Git fallback when no bundled Git</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>exe_dir = tmp_path / &quot;exe&quot;</code> (no git structure)<br><code>patch(&quot;shutil.which&quot;, return_value=&quot;/usr/bin/git.exe&quot;) as mock_which</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_git()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>shutil.which</code> is called with <code>&quot;git.exe&quot;</code> as the system fallback.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_which.assert_called_once_with(&quot;git.exe&quot;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFindAndConfigureSvn — Find And Configure Svn</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-15</span>
+          <span class="test-name">Bundled SVN preferred over system</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>svn_dir = exe_dir / &quot;svn&quot;</code><br><code>(svn_dir / &quot;svn.exe&quot;).touch()</code><br><code>patch(&quot;shutil.which&quot;) as mock_which</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_svn()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Bundled <code>svn/</code> is prepended to PATH. <code>shutil.which</code> is not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert str(svn_dir) in os.environ[&quot;PATH&quot;].split(os.pathsep)</code><br><code>mock_which.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">MN-16</span>
+          <span class="test-name">System SVN fallback when no bundled SVN</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>exe_dir = tmp_path / &quot;exe&quot;</code> (no svn structure)<br><code>patch(&quot;shutil.which&quot;, return_value=&quot;/usr/bin/svn.exe&quot;) as mock_which</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_module._find_and_configure_svn()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>shutil.which</code> is called with <code>&quot;svn.exe&quot;</code> as the system fallback.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_which.assert_called_once_with(&quot;svn.exe&quot;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

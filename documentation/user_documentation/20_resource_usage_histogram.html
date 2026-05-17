@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Usage Histogram &mdash; Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html" class="active">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Resource Usage Histogram</h1>
+    <p>See at a glance whether your entire team is over- or under-allocated &mdash; without inspecting individual resource rows.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Resource Usage Histogram</div>
+
+    <h2>What the Histogram Shows</h2>
+
+    <figure class="screenshot">
+      <style>
+        #ruh-ss *,#ruh-ss *::before,#ruh-ss *::after{box-sizing:border-box;margin:0;padding:0}
+        #ruh-ss{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;user-select:none}
+        #ruh-ss .window{display:flex;flex-direction:column;width:1100px;height:620px;border:1px solid #888;border-radius:4px;overflow:hidden;}
+        #ruh-ss .menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:26px;font-size:13px}
+        #ruh-ss .menubar span{padding:4px 12px;cursor:default}
+        #ruh-ss .ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column;flex-shrink:0}
+        #ruh-ss .ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+        #ruh-ss .rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 16px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+        #ruh-ss .rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+        #ruh-ss .ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+        #ruh-ss .rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+        #ruh-ss .rgroup-btns{display:flex;gap:2px;flex:1;align-items:flex-start;padding-top:2px}
+        #ruh-ss .rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:52px;padding:3px 6px 0;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+        #ruh-ss .rbtn.on{background:#dce8f8;border-color:#8ab0d8}
+        #ruh-ss .rbtn-icon{font-size:17px;line-height:1.1}
+        #ruh-ss .rgroup-lbl{font-size:9px;color:#5a6070;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:auto}
+        #ruh-ss .rgroup-sep{width:1px;background:#c8d8ee;margin:5px 5px;align-self:stretch}
+        #ruh-ss .ss-body{display:flex;flex:1;flex-direction:column;overflow:hidden;background:#fff}
+        #ruh-ss .nav-bar{height:28px;background:#f0f4fb;border-bottom:1px solid #c8d8ee;display:flex;align-items:center;padding:0 10px;gap:10px;flex-shrink:0}
+        #ruh-ss .nav-btn{font-size:11px;padding:2px 10px;border:1px solid #a8bcd8;border-radius:3px;background:#fff;color:#2B579A;font-weight:700;cursor:default}
+        #ruh-ss .hdr-row{display:flex;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A;flex-shrink:0}
+        #ruh-ss .corner{width:160px;flex-shrink:0;border-right:2px solid #2B579A;padding:4px 8px;font-size:11.5px;font-weight:700;color:#1A3F7A;display:flex;align-items:center}
+        #ruh-ss .cal-hdr{flex:1;overflow:hidden;display:flex;flex-direction:column}
+        #ruh-ss .month-row{display:flex;height:20px;border-bottom:1px solid #B0C8E0}
+        #ruh-ss .mc{border-right:1px solid #B0C8E0;font-size:11px;font-weight:700;color:#1A3F7A;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+        #ruh-ss .day-row{display:flex;height:18px}
+        #ruh-ss .dc{flex:1;font-size:9px;color:#4a5570;display:flex;align-items:center;justify-content:center;border-right:1px solid #E0EAF8;min-width:0}
+        #ruh-ss .dc.we{background:rgba(190,200,215,.35);color:#888}
+        #ruh-ss .dc.td{background:#b8f0b8;color:#145214;font-weight:700}
+        #ruh-ss .planner-body{display:flex;overflow:hidden;flex-shrink:0}
+        #ruh-ss .res-pane{width:160px;flex-shrink:0;border-right:2px solid #2B579A}
+        #ruh-ss .res-row{height:36px;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#1a3060;border-bottom:1px solid #D8E8F5}
+        #ruh-ss .res-row.even{background:#fff}#ruh-ss .res-row.odd{background:#F4F8FF}
+        #ruh-ss .res-row.over{background:#fff0f0;color:#8a0000}
+        #ruh-ss .canvas-wrap{flex:1;position:relative;overflow:hidden}
+        #ruh-ss .canvas{position:relative;height:100%}
+        #ruh-ss .row-bg{position:absolute;left:0;right:0;height:36px}
+        #ruh-ss .row-bg.even{background:#fff}#ruh-ss .row-bg.odd{background:#F4F8FF}
+        #ruh-ss .row-bg.over{background:#fff5f5}
+        #ruh-ss .we-stripe{position:absolute;top:0;bottom:0;background:rgba(190,200,215,.28)}
+        #ruh-ss .tl{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:20}
+        #ruh-ss .tbar{position:absolute;height:22px;border-radius:3px;display:flex;align-items:center;overflow:hidden;z-index:10;cursor:default}
+        #ruh-ss .tbar-lbl{color:#fff;font-size:9.5px;font-weight:600;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #ruh-ss .vac{position:absolute;background:rgba(240,160,90,.38);border:1px solid rgba(185,90,30,.5);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#7a3a08;font-style:italic;z-index:5}
+        #ruh-ss .hist-section{display:flex;flex-shrink:0;border-top:2px solid #2B579A;height:120px}
+        #ruh-ss .hist-label{width:160px;flex-shrink:0;border-right:2px solid #2B579A;background:#f0f4fb;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}
+        #ruh-ss .hist-label-title{font-size:11px;font-weight:700;color:#1A3F7A}
+        #ruh-ss .hist-label-sub{font-size:9px;color:#5a6070;text-align:center;line-height:1.4}
+        #ruh-ss .hist-label-legend{display:flex;flex-direction:column;gap:3px;margin-top:4px;width:100%}
+        #ruh-ss .legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#3a3a3a}
+        #ruh-ss .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+        #ruh-ss .hist-canvas{flex:1;position:relative;overflow:hidden;background:#fafbfd}
+        #ruh-ss .hist-inner{position:absolute;inset:0;display:flex;align-items:flex-end;padding-bottom:18px;gap:1px;padding-left:2px;padding-right:2px}
+        #ruh-ss .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;min-width:0}
+        #ruh-ss .bar{width:100%;border-radius:2px 2px 0 0;position:relative}
+        #ruh-ss .bar.green{background:#4CAF50}
+        #ruh-ss .bar.amber{background:#FF9800}
+        #ruh-ss .bar.red{background:#F44336}
+        #ruh-ss .hist-axis{position:absolute;bottom:0;left:0;right:0;height:18px;border-top:1px solid #c8d8ee;display:flex;align-items:center;padding:0 2px;gap:1px}
+        #ruh-ss .axis-lbl{flex:1;font-size:8px;color:#888;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+        #ruh-ss .cap-line{position:absolute;left:0;right:0;height:1px;background:rgba(43,87,154,.35);border-top:1px dashed rgba(43,87,154,.5)}
+        #ruh-ss .cap-label{position:absolute;right:4px;font-size:8px;color:#2B579A;font-weight:700}
+        #ruh-ss .statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 10px;display:flex;gap:14px;height:20px;align-items:center;flex-shrink:0}
+        #ruh-ss .status-warn{color:#FFD700;font-weight:700}
+      </style>
+      <div style="width:880px;height:496px;overflow:hidden;margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.15);border-radius:4px;">
+        <div id="ruh-ss" style="transform:scale(0.8);transform-origin:top left;width:1100px;height:620px;">
+          <div class="window">
+            <div class="menubar">
+              <span>File</span><span>Options</span><span>Project</span>
+            </div>
+            <div class="ribbon">
+              <div class="ribbon-tabs">
+                <button class="rtab">TASK</button>
+                <button class="rtab active">RESOURCE</button>
+                <button class="rtab">REPORT</button>
+              </div>
+              <div class="ribbon-panel">
+                <div class="rgroup">
+                  <div class="rgroup-btns">
+                    <div class="rbtn on"><div class="rbtn-icon">&#128101;</div>Team<br>Planner</div>
+                    <div class="rbtn"><div class="rbtn-icon">&#128202;</div>Resource<br>Sheet</div>
+                    <div class="rbtn"><div class="rbtn-icon">&#9646;</div>Usage<br>Graph</div>
+                  </div>
+                  <div class="rgroup-lbl">View</div>
+                </div>
+                <div class="rgroup-sep"></div>
+                <div class="rgroup">
+                  <div class="rgroup-btns">
+                    <div class="rbtn on"><div class="rbtn-icon">&#128200;</div>Histogram</div>
+                  </div>
+                  <div class="rgroup-lbl">Show</div>
+                </div>
+                <div class="rgroup-sep"></div>
+                <div class="rgroup">
+                  <div class="rgroup-btns">
+                    <div class="rbtn"><div class="rbtn-icon">&#43;</div>Add<br>Resource</div>
+                    <div class="rbtn"><div class="rbtn-icon">&#10005;</div>Delete<br>Resource</div>
+                  </div>
+                  <div class="rgroup-lbl">Insert</div>
+                </div>
+              </div>
+            </div>
+            <div class="ss-body">
+              <div class="nav-bar">
+                <span class="nav-btn">&#9664; Today</span>
+              </div>
+              <div class="hdr-row">
+                <div class="corner">Resource Name</div>
+                <div class="cal-hdr">
+                  <div class="month-row">
+                    <div class="mc" style="width:13%">Apr W16</div>
+                    <div class="mc" style="width:13%">Apr W17</div>
+                    <div class="mc" style="width:13%">Apr W18</div>
+                    <div class="mc" style="width:13%">Mai W19</div>
+                    <div class="mc" style="width:13%">Mai W20</div>
+                    <div class="mc" style="width:13%">Mai W21</div>
+                    <div class="mc" style="flex:1">Mai W22</div>
+                  </div>
+                  <div class="day-row">
+                    <div class="dc">14</div><div class="dc we">15</div><div class="dc we">16</div>
+                    <div class="dc">17</div><div class="dc">18</div><div class="dc">19</div>
+                    <div class="dc we">20</div><div class="dc we">21</div><div class="dc">22</div>
+                    <div class="dc">23</div><div class="dc">24</div><div class="dc we">25</div>
+                    <div class="dc we">26</div><div class="dc">27</div><div class="dc">28</div>
+                    <div class="dc">29</div><div class="dc">30</div><div class="dc">1</div>
+                    <div class="dc we">2</div><div class="dc we">3</div><div class="dc">4</div>
+                    <div class="dc">5</div><div class="dc">6</div><div class="dc td">7</div>
+                    <div class="dc">8</div><div class="dc we">9</div><div class="dc we">10</div>
+                    <div class="dc">11</div><div class="dc">12</div><div class="dc">13</div>
+                    <div class="dc">14</div><div class="dc we">15</div><div class="dc we">16</div>
+                    <div class="dc">17</div>
+                  </div>
+                </div>
+              </div>
+              <div class="planner-body" style="height:144px">
+                <div class="res-pane">
+                  <div class="res-row even over">Alice M. &#9888;</div>
+                  <div class="res-row odd">Bob K.</div>
+                  <div class="res-row even">Carol S.</div>
+                  <div class="res-row odd">David L.</div>
+                </div>
+                <div class="canvas-wrap">
+                  <div class="canvas">
+                    <div class="row-bg over" style="top:0"></div>
+                    <div class="row-bg odd" style="top:36px"></div>
+                    <div class="row-bg even" style="top:72px"></div>
+                    <div class="row-bg odd" style="top:108px"></div>
+                    <div class="we-stripe" style="left:3%;width:2.94%"></div>
+                    <div class="we-stripe" style="left:11.76%;width:5.88%"></div>
+                    <div class="we-stripe" style="left:29.41%;width:5.88%"></div>
+                    <div class="we-stripe" style="left:47.06%;width:5.88%"></div>
+                    <div class="we-stripe" style="left:64.71%;width:5.88%"></div>
+                    <div class="we-stripe" style="left:82.35%;width:5.88%"></div>
+                    <div class="tl" style="left:67.5%"></div>
+                    <div class="tbar" style="top:7px;left:0%;width:38%;background:#c04040"><span class="tbar-lbl">Backend Refactoring</span></div>
+                    <div class="tbar" style="top:7px;left:40%;width:25%;background:#c04040"><span class="tbar-lbl">API Integration</span></div>
+                    <div class="tbar" style="top:43px;left:5%;width:30%;background:#4476C0"><span class="tbar-lbl">UI Design</span></div>
+                    <div class="tbar" style="top:43px;left:45%;width:20%;background:#4476C0"><span class="tbar-lbl">Review</span></div>
+                    <div class="vac" style="top:72px;left:14%;width:11%;height:34px">Vacation</div>
+                    <div class="tbar" style="top:79px;left:30%;width:35%;background:#2e8b57"><span class="tbar-lbl">Testing Suite</span></div>
+                    <div class="tbar" style="top:115px;left:8%;width:55%;background:#4476C0"><span class="tbar-lbl">Documentation</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="hist-section">
+                <div class="hist-label">
+                  <div class="hist-label-title">&#128200; Workload</div>
+                  <div class="hist-label-sub">Total allocated<br>hours per day</div>
+                  <div class="hist-label-legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>&#x2264; 80 % capacity</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>80 &ndash; 100 %</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#F44336"></div>&gt; 100 % (over)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:rgba(43,87,154,.35);border:1px dashed #2B579A"></div>100 % capacity</div>
+                  </div>
+                </div>
+                <div class="hist-canvas">
+                  <div class="cap-line" style="bottom:28px">
+                    <span class="cap-label" style="bottom:2px">100 %</span>
+                  </div>
+                  <div class="hist-inner">
+                    <div class="bar-wrap"><div class="bar green" style="height:67px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:50px"></div></div>
+                    <div class="bar-wrap"><div class="bar amber" style="height:73px"></div></div>
+                    <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"></div></div>
+                    <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"></div></div>
+                    <div class="bar-wrap"></div><div class="bar-wrap"></div>
+                    <div class="bar-wrap"><div class="bar amber" style="height:75px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:58px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:60px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:55px"></div></div>
+                    <div class="bar-wrap"><div class="bar amber" style="height:72px"></div></div>
+                    <div class="bar-wrap"></div><div class="bar-wrap"></div>
+                    <div class="bar-wrap"><div class="bar amber" style="height:71px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:50px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:48px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:25px;opacity:.5"></div></div>
+                    <div class="bar-wrap"></div><div class="bar-wrap"></div>
+                    <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"></div></div>
+                    <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"></div></div>
+                    <div class="bar-wrap" style="background:rgba(180,240,180,.25)"><div class="bar green" style="height:55px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:42px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:38px"></div></div>
+                    <div class="bar-wrap"></div><div class="bar-wrap"></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:30px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:28px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:20px"></div></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:16px"></div></div>
+                    <div class="bar-wrap"></div><div class="bar-wrap"></div>
+                    <div class="bar-wrap"><div class="bar green" style="height:8px"></div></div>
+                  </div>
+                  <div class="hist-axis">
+                    <span class="axis-lbl">14</span><span class="axis-lbl">15</span>
+                    <span class="axis-lbl">16</span><span class="axis-lbl">17</span>
+                    <span class="axis-lbl">18</span><span class="axis-lbl">Sa</span>
+                    <span class="axis-lbl">So</span><span class="axis-lbl">21</span>
+                    <span class="axis-lbl">22</span><span class="axis-lbl">23</span>
+                    <span class="axis-lbl">24</span><span class="axis-lbl">25</span>
+                    <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+                    <span class="axis-lbl">28</span><span class="axis-lbl">29</span>
+                    <span class="axis-lbl">30</span><span class="axis-lbl">1</span>
+                    <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+                    <span class="axis-lbl" style="color:#00a800;font-weight:700">5</span>
+                    <span class="axis-lbl" style="color:#00a800;font-weight:700">6</span>
+                    <span class="axis-lbl" style="color:#145214;font-weight:700">7&#9650;</span>
+                    <span class="axis-lbl">8</span><span class="axis-lbl">9</span>
+                    <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+                    <span class="axis-lbl">12</span><span class="axis-lbl">13</span>
+                    <span class="axis-lbl">14</span><span class="axis-lbl">15</span>
+                    <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+                    <span class="axis-lbl">19</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="statusbar">
+              <span>Team Planner</span>
+              <span class="status-warn">&#9888; 4 days over capacity</span>
+              <span>Histogram: daily zoom &middot; 4 resources &middot; capacity 32 h/day</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Resource Usage Histogram strip below the Team Planner &mdash; green, amber, and red bars indicate utilisation level per day</figcaption>
+    </figure>
+
+    <p>The <strong>Resource Usage Histogram</strong> is a bar chart strip that appears
+    directly below the Team Planner.  Each vertical bar represents one calendar day
+    and its height reflects the <em>total allocated hours across all resources</em>
+    on that day compared to the team&rsquo;s total available capacity.</p>
+
+    <p>It answers the question <em>&ldquo;Is the team as a whole over- or
+    under-allocated?&rdquo;</em> at a glance &mdash; without expanding individual
+    resource rows in the Team Planner or Resource Usage Graph.</p>
+
+    <h2>Reading the Bars</h2>
+    <table>
+      <thead><tr><th>Bar colour</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#1a6e1a;font-weight:700">Green</td><td>Utilisation &le; 80 % &mdash; team is comfortably within capacity</td></tr>
+        <tr><td style="color:#b36b00;font-weight:700">Amber</td><td>Utilisation 80&ndash;100 % &mdash; team is near full capacity</td></tr>
+        <tr><td style="color:#a00000;font-weight:700">Red</td><td>Utilisation &gt; 100 % &mdash; team is over-allocated on this day</td></tr>
+      </tbody>
+    </table>
+    <p>A <strong>dashed blue line</strong> marks the 100 % capacity level so you can
+    see at a glance which bars exceed it.</p>
+
+    <h2>Capacity Calculation</h2>
+    <p>For each calendar day, the histogram sums the available hours of every resource:</p>
+    <ul>
+      <li><strong>Weekends</strong> (Saturday and Sunday) count as 0 h capacity.</li>
+      <li><strong>Project-level public holidays</strong> (from the project calendar) count as 0 h capacity.</li>
+      <li><strong>Resource vacation exceptions</strong> (from a resource&rsquo;s personal calendar) reduce that resource&rsquo;s capacity to 0 h on the affected days.</li>
+      <li>All other working days contribute the project&rsquo;s standard working hours (typically 8 h) per resource.</li>
+    </ul>
+
+    <h2>Allocation Calculation</h2>
+    <p>Each resource assignment&rsquo;s total work hours are spread evenly across all
+    <em>working days</em> within the assignment span, applying the same exclusion rules
+    as capacity (weekends, public holidays, and that resource&rsquo;s vacation days).
+    Summary tasks are excluded from allocation.</p>
+
+    <div class="callout note">
+      <strong>Example</strong>
+      A 40&nbsp;h task assigned to one resource spanning Mon&ndash;Fri contributes
+      8&nbsp;h per working day.  If Wednesday is a public holiday, the 40&nbsp;h are
+      spread across the remaining 4 days (10&nbsp;h each) and Wednesday shows
+      0&nbsp;h allocated and 0&nbsp;h capacity.
+    </div>
+
+    <h2>Showing and Hiding the Histogram</h2>
+    <ol>
+      <li>Open the <strong>Format</strong> menu.</li>
+      <li>Click <strong>Show Resource Usage Histogram</strong> to toggle the strip on or off.</li>
+    </ol>
+    <p>The visibility setting is saved and restored automatically when you reopen the application.</p>
+
+    <h2>Scroll Synchronisation</h2>
+    <p>The histogram is locked in horizontal alignment with the Team Planner timeline &mdash;
+    scrolling the Team Planner left or right also moves the histogram.  The day-width
+    (zoom level) is shared too, so zooming the Team Planner rescales the histogram bars
+    at the same time.</p>
+
+    <h2>Typical Use-Cases</h2>
+    <table>
+      <thead><tr><th>Scenario</th><th>What to look for</th></tr></thead>
+      <tbody>
+        <tr><td>Capacity planning</td><td>Red bars signal days that need re-scheduling or additional resources</td></tr>
+        <tr><td>Sprint / milestone preparation</td><td>Low bars before a deadline reveal slack that can absorb scope creep</td></tr>
+        <tr><td>Resource levelling</td><td>Spikes show where work is unevenly distributed across the schedule</td></tr>
+        <tr><td>Executive overview</td><td>The histogram gives a one-line team-load summary beside the Team Planner</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Relation to Other Views</h2>
+    <table>
+      <thead><tr><th>View</th><th>Shows</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Resource Usage Graph</strong></td><td>Per-resource and per-task hours in a spreadsheet-style grid with four zoom levels</td></tr>
+        <tr><td><strong>Team Planner</strong></td><td>Per-resource task bars on a timeline; drag-and-drop reassignment</td></tr>
+        <tr><td><strong>Resource Usage Histogram</strong></td><td>Aggregate (team total) hours vs. capacity per calendar day &mdash; strip below the Team Planner</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

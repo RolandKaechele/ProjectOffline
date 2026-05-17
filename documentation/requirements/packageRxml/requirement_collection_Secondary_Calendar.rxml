@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <Project_Offline depth="0">
+    <Secondary_Calendar depth="1">
+      <GROUP_TYPES>
+        <TYPES Name="teRequirementObjectType" Basetype="Enumeration" minValue="" maxValue="" Strings="functional requirement,non functional requirement,information" Values="" Colors=""/>
+        <TYPES Name="t_Status_Sup" Basetype="Enumeration" minValue="" maxValue="" Strings="open,clarify,approved,to be deleted" Values="" Colors=""/>
+        <TYPES Name="t_Status_ZF" Basetype="Enumeration" minValue="" maxValue="" Strings="new,modified,to be clarified,aligned,to be deleted" Values="" Colors=""/>
+        <TYPES Name="teVariant" Basetype="Enumeration" minValue="" maxValue="" Strings="" Values="" Colors=""/>
+      </GROUP_TYPES>
+      <GROUP_ATTRIBUTES>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="aRequirementObjectType" Type="teRequirementObjectType"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Text" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Heading" Type="String"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_Variant" Type="teVariant"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_PO_Status" Type="t_Status_Sup"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF_PO_Status" Type="t_Status_ZF"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_RequestedInCR_PO" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB4ZF_PO_Comment" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF4EB_PO_Comment" Type="Text"/>
+      </GROUP_ATTRIBUTES>
+      <GROUP_ATTRIBUTEVALUES/>
+      <GROUP_FILEINFO>
+        <FILEINFO Annotation="-" Creation_Date="1777892400" Creator="Project Offline" Description="Project Offline – Secondary Calendar Integration Requirements" Encoding="65001" Export_type="6.1" Internal_links_module="" Module="PO_10_SecondaryCalendar" Prefix="PO-SC-" Scriptversion="1.0" Steps="0" Suffix="-" Version_number="1.0"/>
+      </GROUP_FILEINFO>
+      <GROUP_FORMALMODULES/>
+      <GROUP_LINKMODULES/>
+      <GROUP_PASSEDATTRIBUTES/>
+      <GROUP_PICTURES/>
+      <GROUP_OBJECT_IDS/>
+      <GROUP_OBJECTS>
+        <OBJECTS ID.Status="1_Heading.0" Object_Heading="1 Secondary Calendar Integration" Object_Text="" Section_number="1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1.0" Object_Heading="" Object_Text="Requirements for managing per-resource secondary regional holiday calendars, persisted in the project file and surfaced in the Team Planner." Section_number="1.1" aRequirementObjectType="information" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1_1_Heading.0" Object_Heading="2.1 Secondary Calendar Integration Requirements" Object_Text="" Section_number="1.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2.0" Object_Heading="" Object_Text="The system shall provide a secondary_calendar_integration module that stores and retrieves per-resource secondary calendar assignments as a JSON map in the MPXJ project custom properties under the key &quot;AD Secondary Calendars&quot;." Section_number="1.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="3.0" Object_Heading="" Object_Text="The secondary calendar map shall use resource unique ID strings as keys and store at minimum the calendar_name, calendar_uid (nullable), and source (e.g. &quot;ad:auto-match&quot; or &quot;manual&quot;) for each assigned resource." Section_number="1.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="4.0" Object_Heading="" Object_Text="The module shall expose a get_secondary_calendar_map(project) function returning the full {uid → entry} dict, a set_secondary_calendar_for_resource(...) function for creating and clearing entries, and a resolve_secondary_calendar(project, resource) function that looks up the mapped MPXJ calendar object (by UID first, then by name)." Section_number="1.1.3" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="5.0" Object_Heading="" Object_Text="resolve_secondary_calendar shall return None when no mapping exists for the resource; it shall return a result dict with calendar=None when a mapping exists but the named calendar is not found in the project calendar list, so that callers can distinguish &quot;not configured&quot; from &quot;calendar not yet imported&quot;." Section_number="1.1.4" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="6.0" Object_Heading="" Object_Text="The module shall expose an assign_secondary_calendar_from_ad(project, resource, ad_user) function that infers the best-matching project calendar from the AD user's location fields and persists the assignment; it shall return None and make no change when no matching calendar is found." Section_number="1.1.5" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+      </GROUP_OBJECTS>
+    </Secondary_Calendar>
+  </Project_Offline>
+</root>

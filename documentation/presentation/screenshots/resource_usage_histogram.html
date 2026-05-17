@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Resource Usage Histogram – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1100px;height:620px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Menu bar ── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:26px;font-size:13px}
+.menubar span{padding:4px 12px;cursor:default}.menubar span:hover{background:#3A6EBC}
+
+/* ── Ribbon ── */
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column;flex-shrink:0}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 16px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:2px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:52px;padding:3px 6px 0;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn.on{background:#dce8f8;border-color:#8ab0d8}
+.rbtn-icon{font-size:17px;line-height:1.1}
+.rgroup-lbl{font-size:9px;color:#5a6070;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:auto}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:5px 5px;align-self:stretch}
+
+/* ── Body ── */
+.body{display:flex;flex:1;flex-direction:column;overflow:hidden;background:#fff}
+.nav-bar{height:28px;background:#f0f4fb;border-bottom:1px solid #c8d8ee;display:flex;align-items:center;padding:0 10px;gap:10px;flex-shrink:0}
+.nav-btn{font-size:11px;padding:2px 10px;border:1px solid #a8bcd8;border-radius:3px;background:#fff;color:#2B579A;font-weight:700;cursor:default}
+
+/* ── Calendar header (shared by Team Planner + Histogram) ── */
+.hdr-row{display:flex;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A;flex-shrink:0}
+.corner{width:160px;flex-shrink:0;border-right:2px solid #2B579A;padding:4px 8px;font-size:11.5px;font-weight:700;color:#1A3F7A;display:flex;align-items:center}
+.cal-hdr{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.month-row{display:flex;height:20px;border-bottom:1px solid #B0C8E0}
+.mc{border-right:1px solid #B0C8E0;font-size:11px;font-weight:700;color:#1A3F7A;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+.day-row{display:flex;height:18px}
+.dc{flex:1;font-size:9px;color:#4a5570;display:flex;align-items:center;justify-content:center;border-right:1px solid #E0EAF8;min-width:0}
+.dc.we{background:rgba(190,200,215,.35);color:#888}
+.dc.td{background:#b8f0b8;color:#145214;font-weight:700}
+
+/* ── Team Planner (compact) ── */
+.planner-body{display:flex;overflow:hidden;flex-shrink:0}
+.res-pane{width:160px;flex-shrink:0;border-right:2px solid #2B579A}
+.res-row{height:36px;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#1a3060;border-bottom:1px solid #D8E8F5}
+.res-row.even{background:#fff}.res-row.odd{background:#F4F8FF}
+.res-row.over{background:#fff0f0;color:#8a0000}
+.canvas-wrap{flex:1;position:relative;overflow:hidden}
+.canvas{position:relative;height:100%}
+.row-bg{position:absolute;left:0;right:0;height:36px}
+.row-bg.even{background:#fff}.row-bg.odd{background:#F4F8FF}
+.row-bg.over{background:#fff5f5}
+.we-stripe{position:absolute;top:0;bottom:0;background:rgba(190,200,215,.28)}
+.tl{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:20}
+.tbar{position:absolute;height:22px;border-radius:3px;display:flex;align-items:center;overflow:hidden;z-index:10;cursor:default}
+.tbar-lbl{color:#fff;font-size:9.5px;font-weight:600;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vac{position:absolute;background:rgba(240,160,90,.38);border:1px solid rgba(185,90,30,.5);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#7a3a08;font-style:italic;z-index:5}
+
+/* ── Histogram strip ── */
+.hist-section{display:flex;flex-shrink:0;border-top:2px solid #2B579A;height:120px}
+.hist-label{width:160px;flex-shrink:0;border-right:2px solid #2B579A;background:#f0f4fb;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px}
+.hist-label-title{font-size:11px;font-weight:700;color:#1A3F7A}
+.hist-label-sub{font-size:9px;color:#5a6070;text-align:center;line-height:1.4}
+.hist-label-legend{display:flex;flex-direction:column;gap:3px;margin-top:4px;width:100%}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#3a3a3a}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.hist-canvas{flex:1;position:relative;overflow:hidden;background:#fafbfd}
+.hist-inner{position:absolute;inset:0;display:flex;align-items:flex-end;padding-bottom:18px;gap:1px;padding-left:2px;padding-right:2px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;min-width:0}
+.bar{width:100%;border-radius:2px 2px 0 0;transition:opacity .15s;position:relative}
+.bar-tip{position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);background:rgba(30,30,30,.85);color:#fff;font-size:8px;white-space:nowrap;padding:2px 4px;border-radius:2px;pointer-events:none;display:none;z-index:30}
+.bar-wrap:hover .bar-tip{display:block}
+.bar.green{background:#4CAF50}
+.bar.amber{background:#FF9800}
+.bar.red{background:#F44336}
+.hist-axis{position:absolute;bottom:0;left:0;right:0;height:18px;border-top:1px solid #c8d8ee;display:flex;align-items:center;padding:0 2px;gap:1px}
+.axis-lbl{flex:1;font-size:8px;color:#888;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cap-line{position:absolute;left:0;right:0;height:1px;background:rgba(43,87,154,.35);border-top:1px dashed rgba(43,87,154,.5)}
+.cap-label{position:absolute;right:4px;font-size:8px;color:#2B579A;font-weight:700}
+
+/* ── Status bar ── */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 10px;display:flex;gap:14px;height:20px;align-items:center;flex-shrink:0}
+.status-warn{color:#FFD700;font-weight:700}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <!-- Menu bar -->
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+
+  <!-- Ribbon -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab">TASK</button>
+      <button class="rtab active">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#128101;</div>Team<br>Planner</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128202;</div>Resource<br>Sheet</div>
+          <div class="rbtn on"><div class="rbtn-icon">&#128200;</div>Resource<br>Usage</div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#43;</div>Add<br>Resource</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128421;</div>Add from<br>AD</div>
+        </div>
+        <div class="rgroup-lbl">Insert</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#10005;</div>Delete<br>Resource</div>
+        </div>
+        <div class="rgroup-lbl">Editing</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#9881;</div>Calendar<br>Config</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128260;</div>Sync<br>Calendar</div>
+        </div>
+        <div class="rgroup-lbl">Confluence</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab active">Resource Usage</div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <div class="nav-bar">
+      <span class="nav-btn">&#9664; Today</span>
+    </div>
+
+    <!-- Shared calendar header -->
+    <div class="hdr-row">
+      <div class="corner">Resource Name</div>
+      <div class="cal-hdr">
+        <div class="month-row">
+          <div class="mc" style="width:13%">Apr W16</div>
+          <div class="mc" style="width:13%">Apr W17</div>
+          <div class="mc" style="width:13%">Apr W18</div>
+          <div class="mc" style="width:13%">Mai W19</div>
+          <div class="mc" style="width:13%">Mai W20</div>
+          <div class="mc" style="width:13%">Mai W21</div>
+          <div class="mc" style="flex:1">Mai W22</div>
+        </div>
+        <div class="day-row">
+          <div class="dc">14</div><div class="dc we">15</div><div class="dc we">16</div>
+          <div class="dc">17</div><div class="dc">18</div><div class="dc">19</div>
+          <div class="dc we">20</div><div class="dc we">21</div><div class="dc">22</div>
+          <div class="dc">23</div><div class="dc">24</div><div class="dc we">25</div>
+          <div class="dc we">26</div><div class="dc">27</div><div class="dc">28</div>
+          <div class="dc">29</div><div class="dc">30</div><div class="dc">1</div>
+          <div class="dc we">2</div><div class="dc we">3</div><div class="dc">4</div>
+          <div class="dc">5</div><div class="dc">6</div><div class="dc td">7</div>
+          <div class="dc">8</div><div class="dc we">9</div><div class="dc we">10</div>
+          <div class="dc">11</div><div class="dc">12</div><div class="dc">13</div>
+          <div class="dc">14</div><div class="dc we">15</div><div class="dc we">16</div>
+          <div class="dc">17</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Planner rows (compact) -->
+    <div class="planner-body" style="height:144px">
+      <div class="res-pane">
+        <div class="res-row even over">Alice M. ⚠</div>
+        <div class="res-row odd">Bob K.</div>
+        <div class="res-row even">Carol S.</div>
+        <div class="res-row odd">David L.</div>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas">
+          <!-- row backgrounds -->
+          <div class="row-bg over" style="top:0"></div>
+          <div class="row-bg odd" style="top:36px"></div>
+          <div class="row-bg even" style="top:72px"></div>
+          <div class="row-bg odd" style="top:108px"></div>
+          <!-- weekend stripes -->
+          <div class="we-stripe" style="left:3%;width:2.94%"></div>
+          <div class="we-stripe" style="left:11.76%;width:5.88%"></div>
+          <div class="we-stripe" style="left:29.41%;width:5.88%"></div>
+          <div class="we-stripe" style="left:47.06%;width:5.88%"></div>
+          <div class="we-stripe" style="left:64.71%;width:5.88%"></div>
+          <div class="we-stripe" style="left:82.35%;width:5.88%"></div>
+          <!-- Today line -->
+          <div class="tl" style="left:67.5%"></div>
+          <!-- Alice bars (over-allocated) -->
+          <div class="tbar" style="top:7px;left:0%;width:38%;background:#c04040"><span class="tbar-lbl">Backend Refactoring</span></div>
+          <div class="tbar" style="top:7px;left:40%;width:25%;background:#c04040"><span class="tbar-lbl">API Integration</span></div>
+          <!-- Bob -->
+          <div class="tbar" style="top:43px;left:5%;width:30%;background:#4476C0"><span class="tbar-lbl">UI Design</span></div>
+          <div class="tbar" style="top:43px;left:45%;width:20%;background:#4476C0"><span class="tbar-lbl">Review</span></div>
+          <!-- Carol vacation -->
+          <div class="vac" style="top:72px;left:14%;width:11%;height:34px">Vacation</div>
+          <div class="tbar" style="top:79px;left:30%;width:35%;background:#2e8b57"><span class="tbar-lbl">Testing Suite</span></div>
+          <!-- David -->
+          <div class="tbar" style="top:115px;left:8%;width:55%;background:#4476C0"><span class="tbar-lbl">Documentation</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histogram strip -->
+    <div class="hist-section">
+      <div class="hist-label">
+        <div class="hist-label-title">&#128200; Workload</div>
+        <div class="hist-label-sub">Total allocated<br>hours per day</div>
+        <div class="hist-label-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>≤ 80 % capacity</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>80 – 100 %</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#F44336"></div>&gt; 100 % (over)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:rgba(43,87,154,.35);border:1px dashed #2B579A"></div>100 % capacity</div>
+        </div>
+      </div>
+      <div class="hist-canvas">
+        <!-- 100 % capacity dashed line -->
+        <div class="cap-line" style="bottom:28px">
+          <span class="cap-label" style="bottom:2px">100 %</span>
+        </div>
+        <div class="hist-inner">
+          <!-- bars: heights correspond to ~utilisation%; max usable height = 84px (100%) -->
+          <!-- Apr 14 Mon -->
+          <div class="bar-wrap"><div class="bar green" style="height:67px"><div class="bar-tip">Apr 14 · 26.8 h / 32 h · 84%</div></div></div>
+          <!-- Apr 15 Tue -->
+          <div class="bar-wrap"><div class="bar green" style="height:50px"><div class="bar-tip">Apr 15 · 20 h / 32 h · 63%</div></div></div>
+          <!-- Apr 16 Wed -->
+          <div class="bar-wrap"><div class="bar amber" style="height:73px"><div class="bar-tip">Apr 16 · 29.2 h / 32 h · 91%</div></div></div>
+          <!-- Apr 17 Thu – over -->
+          <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"><div class="bar-tip">Apr 17 · 40 h / 32 h · 125%</div></div></div>
+          <!-- Apr 18 Fri – over -->
+          <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"><div class="bar-tip">Apr 18 · 38 h / 32 h · 119%</div></div></div>
+          <!-- weekend -->
+          <div class="bar-wrap"></div><div class="bar-wrap"></div>
+          <!-- Apr 21 Mon -->
+          <div class="bar-wrap"><div class="bar amber" style="height:75px"><div class="bar-tip">Apr 21 · 30 h / 32 h · 94%</div></div></div>
+          <!-- Apr 22 Tue -->
+          <div class="bar-wrap"><div class="bar green" style="height:58px"><div class="bar-tip">Apr 22 · 23.2 h / 32 h · 73%</div></div></div>
+          <!-- Apr 23 Wed -->
+          <div class="bar-wrap"><div class="bar green" style="height:60px"><div class="bar-tip">Apr 23 · 24 h / 32 h · 75%</div></div></div>
+          <!-- Apr 24 Thu -->
+          <div class="bar-wrap"><div class="bar green" style="height:55px"><div class="bar-tip">Apr 24 · 22 h / 32 h · 69%</div></div></div>
+          <!-- Apr 25 Fri -->
+          <div class="bar-wrap"><div class="bar amber" style="height:72px"><div class="bar-tip">Apr 25 · 28.8 h / 32 h · 90%</div></div></div>
+          <!-- weekend -->
+          <div class="bar-wrap"></div><div class="bar-wrap"></div>
+          <!-- Apr 28 Mon vacation Carol -->
+          <div class="bar-wrap"><div class="bar amber" style="height:71px"><div class="bar-tip">Apr 28 · 28.4 h / 32 h · 89%</div></div></div>
+          <!-- Apr 29 -->
+          <div class="bar-wrap"><div class="bar green" style="height:50px"><div class="bar-tip">Apr 29 · 20 h / 32 h · 63%</div></div></div>
+          <!-- Apr 30 -->
+          <div class="bar-wrap"><div class="bar green" style="height:48px"><div class="bar-tip">Apr 30 · 19.2 h / 32 h · 60%</div></div></div>
+          <!-- Mai 1 holiday -->
+          <div class="bar-wrap"><div class="bar green" style="height:25px;opacity:.5"><div class="bar-tip">Mai 1 (Holiday) · 10 h / 16 h · 63%</div></div></div>
+          <!-- weekend -->
+          <div class="bar-wrap"></div><div class="bar-wrap"></div>
+          <!-- Mai 5 Mon – over -->
+          <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"><div class="bar-tip">Mai 5 · 36 h / 32 h · 113%</div></div></div>
+          <!-- Mai 6 Tue – over -->
+          <div class="bar-wrap"><div class="bar red" style="height:84px;box-shadow:0 0 4px rgba(244,67,54,.6)"><div class="bar-tip">Mai 6 · 34 h / 32 h · 106%</div></div></div>
+          <!-- Mai 7 Wed Today -->
+          <div class="bar-wrap" style="background:rgba(180,240,180,.25)"><div class="bar green" style="height:55px"><div class="bar-tip">Mai 7 (Today) · 22 h / 32 h · 69%</div></div></div>
+          <!-- Mai 8 Thu -->
+          <div class="bar-wrap"><div class="bar green" style="height:42px"><div class="bar-tip">Mai 8 · 16.8 h / 32 h · 53%</div></div></div>
+          <!-- Mai 9 Fri -->
+          <div class="bar-wrap"><div class="bar green" style="height:38px"><div class="bar-tip">Mai 9 · 15.2 h / 32 h · 48%</div></div></div>
+          <!-- weekend -->
+          <div class="bar-wrap"></div><div class="bar-wrap"></div>
+          <!-- Mai 12–16 -->
+          <div class="bar-wrap"><div class="bar green" style="height:30px"><div class="bar-tip">Mai 12 · 12 h / 32 h · 38%</div></div></div>
+          <div class="bar-wrap"><div class="bar green" style="height:28px"><div class="bar-tip">Mai 13 · 11.2 h / 32 h · 35%</div></div></div>
+          <div class="bar-wrap"><div class="bar green" style="height:20px"><div class="bar-tip">Mai 14 · 8 h / 32 h · 25%</div></div></div>
+          <div class="bar-wrap"><div class="bar green" style="height:16px"><div class="bar-tip">Mai 15 · 6.4 h / 32 h · 20%</div></div></div>
+          <!-- weekend -->
+          <div class="bar-wrap"></div><div class="bar-wrap"></div>
+          <div class="bar-wrap"><div class="bar green" style="height:8px"><div class="bar-tip">Mai 19 · 3.2 h / 32 h · 10%</div></div></div>
+        </div>
+        <!-- Date axis labels -->
+        <div class="hist-axis">
+          <span class="axis-lbl">14</span><span class="axis-lbl">15</span>
+          <span class="axis-lbl">16</span><span class="axis-lbl">17</span>
+          <span class="axis-lbl">18</span><span class="axis-lbl">Sa</span>
+          <span class="axis-lbl">So</span><span class="axis-lbl">21</span>
+          <span class="axis-lbl">22</span><span class="axis-lbl">23</span>
+          <span class="axis-lbl">24</span><span class="axis-lbl">25</span>
+          <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+          <span class="axis-lbl">28</span><span class="axis-lbl">29</span>
+          <span class="axis-lbl">30</span><span class="axis-lbl">1</span>
+          <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+          <span class="axis-lbl" style="color:#00a800;font-weight:700">5</span>
+          <span class="axis-lbl" style="color:#00a800;font-weight:700">6</span>
+          <span class="axis-lbl" style="color:#145214;font-weight:700">7▲</span>
+          <span class="axis-lbl">8</span><span class="axis-lbl">9</span>
+          <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+          <span class="axis-lbl">12</span><span class="axis-lbl">13</span>
+          <span class="axis-lbl">14</span><span class="axis-lbl">15</span>
+          <span class="axis-lbl">Sa</span><span class="axis-lbl">So</span>
+          <span class="axis-lbl">19</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span>Team Planner</span>
+    <span class="status-warn">⚠ 4 days over capacity</span>
+    <span>Histogram: daily zoom · 4 resources · capacity 32 h/day</span>
+  </div>
+
+</div>
+</body>
+</html>

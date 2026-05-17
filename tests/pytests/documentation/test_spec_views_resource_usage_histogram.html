@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Resource Usage Histogram View &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Resource Usage Histogram View</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#resource_usage_histogram_view">resource usage histogram view</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">15</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">15</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="resource_usage_histogram_view">
+  <div class="module-header"><h2>resource_usage_histogram_view.py</h2><span class="badge">15 tests</span></div>
+  <div class="module-desc">compute_histogram_data(): per-day capacity and allocation aggregated across all resources; weekend, vacation, and public-holiday exclusions; even distribution of assignment hours across working days; over-capacity detection via utilisation_pct.</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataEmpty — Empty / None project handling</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-01</span><span class="test-name">None project returns empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>patch <code>_to_qdate</code> and <code>read_work_hours</code> stubs active.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(None, start, end)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Result is an empty list.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-02</span><span class="test-name">Inverted range returns empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project with one resource; <code>start_date &gt; end_date</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, end, start)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Result is an empty list.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-03</span><span class="test-name">No resources no allocation</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project with empty resource list over a 5-day range.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, start, end)</code></div>
+          <div class="block"><div class="block-label">Expect</div>5 entries returned; all <code>capacity_hours == 0</code> and <code>total_hours == 0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["capacity_hours"] == 0 and d["total_hours"] == 0 for d in result)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataSingleResource — Single resource capacity and allocation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-04</span><span class="test-name">Single resource capacity on working days</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource, no vacations; 5-day Mon–Fri window; 8 h/day stub.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Each weekday entry has <code>capacity_hours == 8.0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["capacity_hours"] == 8.0 for d in result)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-05</span><span class="test-name">Single resource allocation distributed evenly</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource, one task spanning Mon–Fri with 40 h assignment.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Each weekday has <code>total_hours == 8.0</code> (40 h ÷ 5 working days).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["total_hours"] == 8.0 for d in result if d["date"].dayOfWeek() &lt; 6)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-06</span><span class="test-name">Utilisation over 100 when overallocated</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource; task with 120 h assignment over a 5-day window (capacity 40 h total).</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>At least one entry has <code>utilisation_pct &gt; 100</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert any(d["utilisation_pct"] &gt; 100 for d in result)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-07</span><span class="test-name">Weekend days have zero capacity</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource; 7-day Mon–Sun window including a weekend.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, sun)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Saturday and Sunday entries have <code>capacity_hours == 0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["capacity_hours"] == 0 for d in result if d["date"].dayOfWeek() &gt;= 6)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataMultipleResources — Multiple resource aggregation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-08</span><span class="test-name">Two resources capacity aggregated</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two resources, no vacations; 5-day Mon–Fri window; 8 h/day stub.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Each weekday has <code>capacity_hours == 16.0</code> (2 × 8).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["capacity_hours"] == 16.0 for d in result)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-09</span><span class="test-name">Two resources allocation aggregated</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two resources each assigned to the same task; 8 h/resource/day.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Each weekday has <code>total_hours == 16.0</code> (2 resources × 8 h).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert all(d["total_hours"] == 16.0 for d in result)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataVacationExclusion — Resource vacation exclusion</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-10</span><span class="test-name">Resource vacation reduces capacity</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource with a vacation exception on Wednesday of a Mon–Fri window.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Wednesday entry has <code>capacity_hours == 0</code>; other weekdays have <code>capacity_hours == 8.0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert wed_entry["capacity_hours"] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-11</span><span class="test-name">Allocation not placed on vacation day</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource on vacation Wednesday; task spans Mon–Fri with 40 h assignment.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Wednesday <code>total_hours == 0</code>; 40 h distributed across the remaining 4 working days (10 h each).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert wed_entry["total_hours"] == 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataPublicHolidays — Public holiday exclusion</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-12</span><span class="test-name">Public holiday reduces capacity</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource; Wednesday passed in <code>non_working_dates</code> set.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri, non_working_dates={wed})</code></div>
+          <div class="block"><div class="block-label">Expect</div>Wednesday entry has <code>capacity_hours == 0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert wed_entry["capacity_hours"] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-13</span><span class="test-name">Allocation not placed on public holiday</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource; Wednesday is a public holiday; task spans Mon–Fri with 40 h assignment.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri, non_working_dates={wed})</code></div>
+          <div class="block"><div class="block-label">Expect</div>Wednesday <code>total_hours == 0</code>; 40 h distributed across 4 remaining working days.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert wed_entry["total_hours"] == 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataSummaryTaskExclusion — Summary task exclusion</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-14</span><span class="test-name">Summary tasks not counted</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource; one summary task (<code>getSummary() == True</code>) and one normal task, both with 40 h assignments.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, mon, fri)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Only the normal task's hours appear; total across all days equals 40 h (not 80 h).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert sum(d["total_hours"] for d in result) == pytest.approx(40.0)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestComputeHistogramDataOverCapacity — Over-capacity detection</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RH-15</span><span class="test-name">Over capacity flag via utilisation pct</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One resource (8 h/day capacity); task with 16 h/day assignment over a single working day.</div>
+          <div class="block"><div class="block-label">Run</div><code>compute_histogram_data(project, day, day)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The day's entry has <code>utilisation_pct == 200.0</code> (16 h allocated ÷ 8 h capacity × 100).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[0]["utilisation_pct"] == pytest.approx(200.0)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

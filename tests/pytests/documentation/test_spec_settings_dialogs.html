@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Settings Dialogs &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Settings Dialogs</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#settings_dialogs">settings dialogs</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">161</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">161</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="settings_dialogs">
+  <div class="module-header"><h2>settings_dialogs.py</h2><span class="badge">161 tests</span></div>
+  <div class="module-desc">Settings dialog classes: KeePass config/new-entry, Jira server edit/list/sync-config &mdash; modal flags, titles, data loading. JiraSyncConfigDialog: server dropdown (disabled when empty, enabled with servers, pre-selects saved server), Add button for server management; filter and field-checkbox state is persisted inside a single <code>jira2project</code> JSON container in custom properties (backward-compatible load from legacy flat keys). ConfluenceCalendarConfigDialog: auth combo, KeePass stack pages, calendar props, <strong>timezone QComboBox</strong> (editable, IANA data via tzdata, QCompleter with <code>MatchContains</code> + case-insensitive, <code>NoInsert</code> policy, defaults to <code>Europe/Berlin</code>, pre-selects via index so popup scrolls to selection, unknown timezone kept as free text, saves on accept; timezone tests use an <code>autouse</code> monkeypatch fixture to inject a known zone list so results are independent of <code>tzdata</code> installation). EmailServerEditDialog: SMTP-only account editor (no KeePass section), &ldquo;From KeePass&hellip;&rdquo; button looks up sender address via AD/LDAP using the saved KeePass username. EmailConfigDialog: project-aware dialog with account <code>QComboBox</code>, &ldquo;Manage Accounts&hellip;&rdquo; button, per-project sender display-name field; active account and sender name are stored in the project sidecar JSON; KeePass entry remains in <code>QSettings</code>.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestKeePassConfigDialog — Kee Pass Config Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-01</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-02</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-03</span>
+          <span class="test-name">Dialog has title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.windowTitle()</code> is not <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.windowTitle() != &quot;&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestKeePassNewEntryDialog — Kee Pass New Entry Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-04</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassNewEntryDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassNewEntryDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-05</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassNewEntryDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassNewEntryDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-06</span>
+          <span class="test-name">Dialog has title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import KeePassNewEntryDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassNewEntryDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.windowTitle()</code> is not <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.windowTitle() != &quot;&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestJiraServerEditDialog — Jira Server Edit Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-07</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServerEditDialog</code><br><code>with patch(&#x27;settings_dialogs.QFileDialog&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServerEditDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-08</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServerEditDialog</code><br><code>with patch(&#x27;settings_dialogs.QFileDialog&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServerEditDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-09</span>
+          <span class="test-name">Dialog with existing server</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServerEditDialog</code><br><code>existing = {</code><br><code>&quot;name&quot;: &quot;Test Server&quot;,</code><br><code>&quot;base_url&quot;: &quot;https://test.atlassian.net&quot;,</code><br><code>&quot;email&quot;: &quot;test@example.com&quot;,</code><br><code>&quot;token&quot;: &quot;test-token&quot;</code><br><code>}</code><br><code>with patch(&#x27;settings_dialogs.QFileDialog&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServerEditDialog(mock_settings_manager, existing)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestJiraServersDialog — Jira Servers Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-10</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServersDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServersDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-11</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServersDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServersDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-12</span>
+          <span class="test-name">Dialog has title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServersDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServersDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.windowTitle()</code> is not <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.windowTitle() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-13</span>
+          <span class="test-name">Dialog loads servers</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraServersDialog</code><br><code>servers = [</code><br><code>{&quot;name&quot;: &quot;Server1&quot;, &quot;base_url&quot;: &quot;https://s1.atlassian.net&quot;},</code><br><code>{&quot;name&quot;: &quot;Server2&quot;, &quot;base_url&quot;: &quot;https://s2.atlassian.net&quot;}</code><br><code>]</code><br><code>mock_settings_manager.get_jira_servers.return_value = servers</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraServersDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▼</span><h3>TestJiraSyncConfigDialog — Jira Sync Configuration Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-14</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-15</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-16</span>
+          <span class="test-name">Dialog has title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Jira Sync&quot; in dialog.windowTitle()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Jira Sync&quot; in dialog.windowTitle()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-17</span>
+          <span class="test-name">Server combo disabled when no servers</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>mock_settings_manager.get_jira_sync_server.return_value = &quot;&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._server_combo.isEnabled()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dialog._server_combo.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-18</span>
+          <span class="test-name">Server combo enabled when servers exist</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = [{&quot;name&quot;: &quot;Test Server&quot;, &quot;url&quot;: &quot;https://test.atlassian.net&quot;}]</code><br><code>mock_settings_manager.get_jira_sync_server.return_value = &quot;&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._server_combo.isEnabled()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._server_combo.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-19</span>
+          <span class="test-name">Server combo populates from settings</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>servers = [</code><br><code>{&quot;name&quot;: &quot;Server1&quot;, &quot;url&quot;: &quot;https://s1.atlassian.net&quot;},</code><br><code>{&quot;name&quot;: &quot;Server2&quot;, &quot;url&quot;: &quot;https://s2.atlassian.net&quot;}</code><br><code>]</code><br><code>mock_settings_manager.get_jira_servers.return_value = servers</code><br><code>mock_settings_manager.get_jira_sync_server.return_value = &quot;&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._server_combo.count()</code> equals 2.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._server_combo.count() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-20</span>
+          <span class="test-name">Server combo preselects saved server</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>servers = [</code><br><code>{&quot;name&quot;: &quot;Server1&quot;, &quot;url&quot;: &quot;https://s1.atlassian.net&quot;},</code><br><code>{&quot;name&quot;: &quot;Server2&quot;, &quot;url&quot;: &quot;https://s2.atlassian.net&quot;}</code><br><code>]</code><br><code>mock_settings_manager.get_jira_servers.return_value = servers</code><br><code>mock_settings_manager.get_jira_sync_server.return_value = &quot;Server2&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code><br><code>current_server = dialog._server_combo.currentData()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>current_server.get(&quot;name&quot;)</code> equals <code>&quot;Server2&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert current_server.get(&quot;name&quot;) == &quot;Server2&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-21</span>
+          <span class="test-name">Field checkboxes dictionary exists and initialized</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._field_checkboxes</code> is a dictionary with 36 field entries.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dialog, '_field_checkboxes')</code><br><code>assert isinstance(dialog._field_checkboxes, dict)</code><br><code>assert len(dialog._field_checkboxes) == 36</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-22</span>
+          <span class="test-name">Field checkboxes default to unchecked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All field checkboxes are initially unchecked (False).</div>
+          <div class="block"><div class="block-label">Check</div><code>for checkbox in dialog._field_checkboxes.values():</code><br><code>    assert not checkbox.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-23</span>
+          <span class="test-name">Field checkboxes disabled without project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>project = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All field checkboxes are disabled when no project is provided.</div>
+          <div class="block"><div class="block-label">Check</div><code>for checkbox in dialog._field_checkboxes.values():</code><br><code>    assert not checkbox.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-24</span>
+          <span class="test-name">Field checkboxes enabled with project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>project = MagicMock()</code><br><code>project.getCustomProperties.return_value = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All field checkboxes are enabled when a project is provided.</div>
+          <div class="block"><div class="block-label">Check</div><code>for checkbox in dialog._field_checkboxes.values():</code><br><code>    assert checkbox.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-25</span>
+          <span class="test-name">Field checkboxes load from project custom properties</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>project = MagicMock()</code><br><code>mock_cp = MagicMock()</code><br><code>mock_cp.get.side_effect = lambda k: {&quot;jira2project&quot;: json.dumps({</code><br><code>    &quot;fields&quot;: {&quot;jira_status&quot;: True, &quot;jira_assignee&quot;: False}</code><br><code>})}.get(k)</code><br><code>project.getProjectProperties.return_value.getCustomProperties.return_value = mock_cp</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Checkboxes load their state from the <code>jira2project.fields</code> container in custom properties.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._field_checkboxes[&quot;jira_status&quot;].isChecked()</code><br><code>assert not dialog._field_checkboxes[&quot;jira_assignee&quot;].isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-26</span>
+          <span class="test-name">Field checkboxes save to project custom properties</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>project = MagicMock()</code><br><code>mock_cp.get.return_value = None</code><br><code>mock_cp.keySet.return_value = []</code><br><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=project)</code><br><code>dialog._field_checkboxes[&quot;jira_status&quot;].setChecked(True)</code><br><code>dialog._field_checkboxes[&quot;jira_assignee&quot;].setChecked(False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;java&#x27;: mock_java, &#x27;java.util&#x27;: mock_java.util}):</code><br><code>    dialog._save_filter_to_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Field checkbox states are saved inside a single <code>&quot;jira2project&quot;</code> JSON container; no individual <code>&quot;JIRA Sync Field&nbsp;&hellip;&quot;</code> keys are written.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;jira2project&quot; in put_calls</code><br><code>j2p = json.loads(put_calls[&quot;jira2project&quot;])</code><br><code>assert j2p[&quot;fields&quot;][&quot;jira_status&quot;] is True</code><br><code>assert &quot;JIRA Sync Filter&quot; not in put_calls</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-27</span>
+          <span class="test-name">Field checkboxes contain expected core fields</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>mock_settings_manager.get_jira_servers.return_value = []</code><br><code>expected_fields = ["jira_status", "jira_assignee", "jira_description", "jira_priority", "jira_due_date"]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Core expected fields are present in the <code>_field_checkboxes</code> dictionary.</div>
+          <div class="block"><div class="block-label">Check</div><code>for field in expected_fields:</code><br><code>    assert field in dialog._field_checkboxes</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-28</span>
+          <span class="test-name">Filter type saved with filter mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager, mock_project)</code>; <code>mock_cp.get.return_value = None</code>; <code>mock_cp.keySet.return_value = []</code>; <code>dialog._radio_filter_id.setChecked(True)</code>; <code>dialog._filter_edit.setText(&quot;66111&quot;)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._save_filter_to_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>The <code>&quot;jira2project&quot;</code> container is written; <code>j2p[&quot;filter&quot;] == &quot;66111&quot;</code> and <code>j2p[&quot;filter_type&quot;] == &quot;filter&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;jira2project&quot; in put_calls</code><br><code>j2p = json.loads(put_calls[&quot;jira2project&quot;])</code><br><code>assert j2p.get(&quot;filter&quot;) == &quot;66111&quot;</code><br><code>assert j2p.get(&quot;filter_type&quot;) == &quot;filter&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-29</span>
+          <span class="test-name">Filter type saved with jql mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager, mock_project)</code>; <code>dialog._radio_jql.setChecked(True)</code>; <code>dialog._filter_edit.setText(&quot;project = MYPROJECT&quot;)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._save_filter_to_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>The <code>&quot;jira2project&quot;</code> container is written; <code>j2p[&quot;filter&quot;] == &quot;project = MYPROJECT&quot;</code> and <code>j2p[&quot;filter_type&quot;] == &quot;jql&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;jira2project&quot; in put_calls</code><br><code>j2p = json.loads(put_calls[&quot;jira2project&quot;])</code><br><code>assert j2p.get(&quot;filter&quot;) == &quot;project = MYPROJECT&quot;</code><br><code>assert j2p.get(&quot;filter_type&quot;) == &quot;jql&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-30</span>
+          <span class="test-name">Filter keys absent when filter is empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager, mock_project)</code>; <code>dialog._filter_edit.setText(&quot;&quot;)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._save_filter_to_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>The <code>&quot;jira2project&quot;</code> container is written but contains neither <code>&quot;filter&quot;</code> nor <code>&quot;filter_type&quot;</code> keys.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;jira2project&quot; in put_calls</code><br><code>j2p = json.loads(put_calls[&quot;jira2project&quot;])</code><br><code>assert &quot;filter&quot; not in j2p</code><br><code>assert &quot;filter_type&quot; not in j2p</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestKeePassConfigDialogConfluenceSso &#8212; Kee Pass Config Dialog Confluence SSO</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-31</span>
+          <span class="test-name">Confluence group hidden when db locked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager.is_keepass_unlocked.return_value = False</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._confluence_group</code> is hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._confluence_group.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-32</span>
+          <span class="test-name">Confluence group visible when db unlocked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager.is_keepass_unlocked.return_value = True</code><br><code>mock_settings_manager.list_keepass_entries.return_value = [&quot;entry1&quot;, &quot;entry2&quot;]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._confluence_group</code> is not hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dialog._confluence_group.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-33</span>
+          <span class="test-name">Confluence combo populated with entries</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager.is_keepass_unlocked.return_value = True</code><br><code>mock_settings_manager.list_keepass_entries.return_value = [&quot;Confluence/dev&quot;, &quot;Confluence/prod&quot;]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._confluence_entry_combo.count()</code> equals 3 (empty + 2 entries).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._confluence_entry_combo.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-34</span>
+          <span class="test-name">Confluence combo selects saved entry</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager.is_keepass_unlocked.return_value = True</code><br><code>mock_settings_manager.get_confluence_keepass_entry.return_value = &quot;Confluence/prod&quot;</code><br><code>mock_settings_manager.list_keepass_entries.return_value = [&quot;Confluence/dev&quot;, &quot;Confluence/prod&quot;]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = KeePassConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._confluence_entry_combo.currentText()</code> equals <code>&quot;Confluence/prod&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._confluence_entry_combo.currentText() == &quot;Confluence/prod&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraSyncConfigDialog &#8212; Jira Sync Config Dialog (continued)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-35</span>
+          <span class="test-name">Filter edit exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from settings_dialogs import JiraSyncConfigDialog</code><br><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Run</div>Check <code>dialog._filter_edit</code> attribute.</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(dialog, "_filter_edit")</code> is truthy and <code>dialog._filter_edit is not None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dialog, "_filter_edit")</code><br><code>assert dialog._filter_edit is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-36</span>
+          <span class="test-name">Filter edit loads saved filter</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project custom properties returning <code>"project = TEST"</code> for the filter key.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._filter_edit.text()</code> equals <code>"project = TEST"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._filter_edit.text() == "project = TEST"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-37</span>
+          <span class="test-name">Filter edit saves on accept</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; set filter text to <code>"project = MYPROJECT"</code>; mock <code>java.util.HashMap</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._accept()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>mock_props.setCustomProperties</code> was called once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCustomProperties.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-38</span>
+          <span class="test-name">Filter disabled without project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=None)</code></div>
+          <div class="block"><div class="block-label">Run</div>Check <code>dialog._filter_edit.isEnabled()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>Filter edit is disabled when no project provided.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dialog._filter_edit.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-39</span>
+          <span class="test-name">Filter type radios exist</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Run</div>Check <code>hasattr(dialog, "_radio_jql")</code> and <code>hasattr(dialog, "_radio_filter_id")</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>Both radio buttons exist.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dialog, "_radio_jql")</code><br><code>assert hasattr(dialog, "_radio_filter_id")</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-40</span>
+          <span class="test-name">Filter type defaults to JQL</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Run</div>Check <code>dialog._radio_jql.isChecked()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>JQL radio is checked by default; filter_id radio is not.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._radio_jql.isChecked()</code><br><code>assert not dialog._radio_filter_id.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-41</span>
+          <span class="test-name">Filter type radios disabled without project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, project=None)</code></div>
+          <div class="block"><div class="block-label">Run</div>Check enabled state of both radios.</div>
+          <div class="block"><div class="block-label">Expect</div>Both radios disabled when no project.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dialog._radio_jql.isEnabled()</code><br><code>assert not dialog._radio_filter_id.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-42</span>
+          <span class="test-name">Filter type loaded from project &#8212; filter mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project with custom properties returning <code>"filter"</code> for filter_type key.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._radio_filter_id.isChecked()</code> is <code>True</code>; filter text is loaded.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._radio_filter_id.isChecked()</code><br><code>assert dialog._filter_edit.text() == "66111"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-43</span>
+          <span class="test-name">Filter type loaded from project &#8212; JQL mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project with custom properties returning <code>"jql"</code> for filter_type key.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog._radio_jql.isChecked()</code> is <code>True</code>; filter text is loaded.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._radio_jql.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-44</span>
+          <span class="test-name">Test filter prompts to unlock KeePass when locked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass configured but locked; <code>auto_unlock_keepass</code> returns <code>(False, "locked")</code>.</div>
+          <div class="block"><div class="block-label">Run</div>Trigger test-filter button action.</div>
+          <div class="block"><div class="block-label">Expect</div>User is prompted to unlock KeePass before the filter test proceeds.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert unlock_prompt_shown</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-45</span>
+          <span class="test-name">Test filter aborts when user declines unlock</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass locked; user declines the unlock prompt (mock returns <code>False</code>).</div>
+          <div class="block"><div class="block-label">Run</div>Trigger test-filter button action.</div>
+          <div class="block"><div class="block-label">Expect</div>Filter test is not executed; no JIRA connection is attempted.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jira_test_not_called</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-46</span>
+          <span class="test-name">Test filter proceeds after successful auto unlock</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass locked; <code>auto_unlock_keepass</code> returns <code>(True, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div>Trigger test-filter button action.</div>
+          <div class="block"><div class="block-label">Expect</div>Filter test executes after successful unlock.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jira_test_called</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-47</span>
+          <span class="test-name">Test filter shows warning when unlock fails</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass locked; auto unlock returns <code>(False, "wrong password")</code>.</div>
+          <div class="block"><div class="block-label">Run</div>Trigger test-filter button action.</div>
+          <div class="block"><div class="block-label">Expect</div>Warning message displayed; filter test not run.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert warning_shown</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SD-48</span>
+          <span class="test-name">Test filter skips unlock for manual auth</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server configured with <code>credential_type="password"</code> (manual auth, no KeePass).</div>
+          <div class="block"><div class="block-label">Run</div>Trigger test-filter button action.</div>
+          <div class="block"><div class="block-label">Expect</div>No KeePass unlock prompt; filter test proceeds directly.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert unlock_prompt_not_shown</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestConfluenceCalendarConfigDialog &mdash; Confluence Calendar Config Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-49</span><span class="test-name">Dialog exists</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager</code>; <code>get_confluence_auth_mode</code> returns <code>&quot;manual&quot;</code>; <code>is_keepass_configured</code> returns <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg</code> is not <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-50</span><span class="test-name">Dialog is modal</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager</code>; auth mode manual; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg.isModal()</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-51</span><span class="test-name">Dialog has title</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>mock_settings_manager</code>; auth mode manual; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Confluence&quot;</code> in <code>dlg.windowTitle()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Confluence&quot; in dlg.windowTitle()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-52</span><span class="test-name">Auth combo defaults to manual</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_confluence_auth_mode</code> returns <code>&quot;manual&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._auth_combo.currentData()</code> equals <code>&quot;manual&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._auth_combo.currentData() == &quot;manual&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-53</span><span class="test-name">Auth combo restores keepass mode</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_confluence_auth_mode</code> returns <code>&quot;keepass&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._auth_combo.currentData()</code> equals <code>&quot;keepass&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._auth_combo.currentData() == &quot;keepass&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-54</span><span class="test-name">Manual mode shows manual group hides kp group</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_manual_group</code> not hidden; <code>_kp_group</code> hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dlg._manual_group.isHidden()</code><br><code>assert dlg._kp_group.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-55</span><span class="test-name">Keepass mode hides manual group shows kp group</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;keepass&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_manual_group</code> hidden; <code>_kp_group</code> not hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._manual_group.isHidden()</code><br><code>assert not dlg._kp_group.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-56</span><span class="test-name">KP stack page0 when not configured</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;keepass&quot;</code>; <code>is_keepass_configured</code> returns <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._kp_stack.currentIndex()</code> equals <code>0</code> (&#x22;not configured&#x22; page).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._kp_stack.currentIndex() == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-57</span><span class="test-name">KP stack page1 when configured but locked</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;keepass&quot;</code>; configured but <code>is_keepass_unlocked</code> returns <code>False</code>; <code>auto_unlock_keepass</code> returns <code>(False, &quot;locked&quot;)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._kp_stack.currentIndex()</code> equals <code>1</code> (&#x22;locked&#x22; page).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._kp_stack.currentIndex() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-58</span><span class="test-name">KP stack page2 when unlocked</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;keepass&quot;</code>; configured; <code>is_keepass_unlocked</code> returns <code>True</code>; <code>list_keepass_entries</code> returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._kp_stack.currentIndex()</code> equals <code>2</code> (entry selector page).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._kp_stack.currentIndex() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-59</span><span class="test-name">Calendar props disabled without project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; <code>project=None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All calendar property fields are disabled: <code>_cal_base_url_edit</code>, <code>_cal_space_key_edit</code>, <code>_cal_days_ahead_edit</code> and the timezone <code>_cal_timezone_combo</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for edit in (dlg._cal_base_url_edit, dlg._cal_space_key_edit,</code><br><code>             dlg._cal_days_ahead_edit):</code><br><code>    assert not edit.isEnabled()</code><br><code>assert not dlg._cal_timezone_combo.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-60</span><span class="test-name">Calendar props enabled with project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; <code>project=MagicMock()</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All calendar property fields are enabled: <code>_cal_base_url_edit</code>, <code>_cal_space_key_edit</code>, <code>_cal_days_ahead_edit</code> and the timezone <code>_cal_timezone_combo</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for edit in (dlg._cal_base_url_edit, dlg._cal_space_key_edit,</code><br><code>             dlg._cal_days_ahead_edit):</code><br><code>    assert edit.isEnabled()</code><br><code>assert dlg._cal_timezone_combo.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-61</span><span class="test-name">Switching to keepass mode via combo shows kp group</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; dialog created in manual mode.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._auth_combo.setCurrentIndex(1)  # switch to keepass</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_manual_group</code> hidden; <code>_kp_group</code> not hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._manual_group.isHidden()</code><br><code>assert not dlg._kp_group.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-62</span><span class="test-name">Timezone field is combobox</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cal_timezone_combo</code> is a <code>QComboBox</code>, not a plain <code>QLineEdit</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(dlg._cal_timezone_combo, QComboBox)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-63</span><span class="test-name">Timezone combo is editable</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cal_timezone_combo.isEditable()</code> is <code>True</code> so users can type to filter.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.isEditable()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-64</span><span class="test-name">Timezone combo contains Europe/Berlin</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured; <code>tzdata</code> package installed.</div>
+          <div class="block"><div class="block-label">Run</div><code>items = [dlg._cal_timezone_combo.itemText(i) for i in range(dlg._cal_timezone_combo.count())]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Europe/Berlin&quot;</code> is present in the dropdown items (provided by the <code>tzdata</code> package on Windows).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Europe/Berlin&quot; in items</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-65</span><span class="test-name">Timezone combo has completer</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div>A <code>QCompleter</code> is attached for case-insensitive contains-match filtering.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.completer() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-66</span><span class="test-name">Timezone combo pre populates from project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_project_timezone</code> patched to return <code>&quot;Europe/Berlin&quot;</code>; project mock provided.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cal_timezone_combo.currentText()</code> equals <code>&quot;Europe/Berlin&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.currentText() == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-67</span><span class="test-name">Timezone value saved to project on accept</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project mock with <code>getCustomProperties</code> returning <code>None</code>; all <code>get_project_*</code> patched to return empty.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._cal_timezone_combo.setCurrentText(&quot;America/New_York&quot;)</code><br><code>dlg._accept()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCustomProperties</code> was called, confirming the timezone value was written to the project.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert fake_props.setCustomProperties.called</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-68</span><span class="test-name">Timezone combo defaults to Europe/Berlin when not set</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_project_timezone</code> patched to return <code>&quot;&quot;</code> (unset); project mock provided.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cal_timezone_combo.currentText()</code> equals <code>&quot;Europe/Berlin&quot;</code> (fallback default).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.currentText() == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-69</span><span class="test-name">Timezone combo pre selected index is valid</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_project_timezone</code> patched to return <code>&quot;America/New_York&quot;</code>; project mock provided.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>currentIndex() &ge; 0</code> (set via <code>findText</code>+<code>setCurrentIndex</code> so the popup scrolls to the item) and <code>currentText()</code> equals <code>&quot;America/New_York&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.currentIndex() &gt;= 0</code><br><code>assert dlg._cal_timezone_combo.currentText() == &quot;America/New_York&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-70</span><span class="test-name">Timezone combo shows Europe/Berlin when no project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No project (<code>project=None</code>); combo is disabled.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cal_timezone_combo.currentText()</code> equals <code>&quot;Europe/Berlin&quot;</code> even when disabled, as a hint to the user.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.currentText() == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-71</span><span class="test-name">Timezone combo no insert policy</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>insertPolicy()</code> equals <code>QComboBox.NoInsert</code> &mdash; typing an unknown name does not add it to the list.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.insertPolicy() == QComboBox.NoInsert</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-72</span><span class="test-name">Timezone combo completer filter is contains</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Completer <code>filterMode()</code> equals <code>Qt.MatchContains</code> so typing <code>&quot;berlin&quot;</code> finds <code>&quot;Europe/Berlin&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.completer().filterMode() == Qt.MatchContains</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-73</span><span class="test-name">Timezone combo completer is case insensitive</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Auth mode <code>&quot;manual&quot;</code>; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Completer <code>caseSensitivity()</code> equals <code>Qt.CaseInsensitive</code> so <code>&quot;BERLIN&quot;</code> and <code>&quot;berlin&quot;</code> both match.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.completer().caseSensitivity() == Qt.CaseInsensitive</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-74</span><span class="test-name">Timezone combo unknown value kept as text</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>get_project_timezone</code> patched to return <code>&quot;Etc/UnknownLegacy&quot;</code> (not in the IANA list).</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ConfluenceCalendarConfigDialog(mock_settings_manager, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>findText</code> returns <code>-1</code> so the code falls back to <code>setCurrentText</code>; the free-text value is preserved.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cal_timezone_combo.currentText() == &quot;Etc/UnknownLegacy&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestEmailServerEditDialog &mdash; SMTP Account Editor (no KeePass section)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-75</span><span class="test-name">Dialog exists</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Minimal <code>SettingsManager</code> mock; KeePass not configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailServerEditDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The dialog can be constructed without error.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-76</span><span class="test-name">Dialog is modal</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog in add mode.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.isModal()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dialog is application-modal.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-77</span><span class="test-name">Dialog has non-empty title</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog in add mode.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.windowTitle()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Window title is not empty.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.windowTitle() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-78</span><span class="test-name">Add mode title contains &ldquo;Add&rdquo; or &ldquo;Email&rdquo;</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog created without an existing config (add mode).</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.windowTitle()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Title reflects add context.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Add&quot; in dlg.windowTitle() or &quot;Email&quot; in dlg.windowTitle()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-79</span><span class="test-name">Edit mode title contains &ldquo;Edit&rdquo; or &ldquo;Email&rdquo;</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog created with an existing config dict (edit mode).</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.windowTitle()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Title reflects edit context.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Edit&quot; in dlg.windowTitle() or &quot;Email&quot; in dlg.windowTitle()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-80</span><span class="test-name">Dialog has name field</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_name_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_name_edit</code> attribute exists (account name field).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_name_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-81</span><span class="test-name">Dialog has SMTP server field</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_smtp_server_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_smtp_server_edit</code> attribute exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_smtp_server_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-82</span><span class="test-name">Dialog has SMTP port field</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_smtp_port_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_smtp_port_edit</code> attribute exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_smtp_port_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-83</span><span class="test-name">Dialog has TLS checkbox</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_smtp_use_tls_check&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_smtp_use_tls_check</code> attribute exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_smtp_use_tls_check&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-84</span><span class="test-name">Dialog has sender address field</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_sender_address_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_sender_address_edit</code> attribute exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_sender_address_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-85</span><span class="test-name">Dialog has no KeePass stack</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_kp_stack&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The account editor must not contain a KeePass <code>QStackedWidget</code>; credentials are global.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hasattr(dlg, &quot;_kp_stack&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-86</span><span class="test-name">Dialog has no KeePass entry combo</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_kp_entry_combo&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_kp_entry_combo</code> must not be present in the SMTP editor.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not hasattr(dlg, &quot;_kp_entry_combo&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-87</span><span class="test-name">get_config returns a dict</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog populated with an existing config dict.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg.get_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Return value is a <code>dict</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(result, dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-88</span><span class="test-name">get_config has no keepass_entry key</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog populated with an existing config dict.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg.get_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>keepass_entry</code> must not appear in the per-account dict; it is a global QSettings key.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;keepass_entry&quot; not in result</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-89</span><span class="test-name">SMTP fields populated from config</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog created with a known config dict (server, port 465, TLS off, sender address).</div>
+          <div class="block"><div class="block-label">Run</div>Inspect <code>_name_edit</code>, <code>_smtp_server_edit</code>, <code>_smtp_port_edit</code>, <code>_smtp_use_tls_check</code>, <code>_sender_address_edit</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>All fields reflect the supplied config values.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._name_edit.text() == &quot;Work&quot;</code><br><code>assert dlg._smtp_server_edit.text() == &quot;smtp.work.com&quot;</code><br><code>assert dlg._smtp_port_edit.text() == &quot;465&quot;</code><br><code>assert dlg._smtp_use_tls_check.isChecked() is False</code><br><code>assert dlg._sender_address_edit.text() == &quot;alice@work.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-90</span><span class="test-name">Default port is 587</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog in add mode (no config supplied).</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._smtp_port_edit.text()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Port field defaults to <code>&quot;587&quot;</code> (standard submission port).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._smtp_port_edit.text() == &quot;587&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-91</span><span class="test-name">Default TLS is checked</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog in add mode.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._smtp_use_tls_check.isChecked()</code></div>
+          <div class="block"><div class="block-label">Expect</div>TLS is enabled by default (secure transport).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._smtp_use_tls_check.isChecked() is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-92</span><span class="test-name">Dialog has &ldquo;From KeePass&hellip;&rdquo; button</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog; find all <code>QPushButton</code> children.</div>
+          <div class="block"><div class="block-label">Run</div><code>kp_btns = [b for b in dlg.findChildren(QPushButton) if &quot;KeePass&quot; in b.text()]</code></div>
+          <div class="block"><div class="block-label">Expect</div>At least one button with &ldquo;KeePass&rdquo; in its label exists next to the Sender Address field.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert kp_btns</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-93</span><span class="test-name">KeePass lookup warns when no entry configured</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_email_keepass_entry.return_value = &quot;&quot;</code>; <code>QMessageBox.warning</code> patched.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._lookup_sender_from_keepass_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div>A warning dialog is shown mentioning &ldquo;KeePass&rdquo;; no AD lookup is attempted.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warn.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-94</span><span class="test-name">KeePass lookup warns when database locked</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_email_keepass_entry.return_value = &quot;Email/SMTP&quot;</code>; <code>keepass_integration.is_unlocked</code> patched to <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._lookup_sender_from_keepass_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div>A warning dialog is shown; AD lookup not attempted because KeePass is locked.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warn.assert_called_once()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestEmailConfigDialog &mdash; Project-Aware Account Selector</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-95</span><span class="test-name">Dialog exists</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Minimal SM mock; no accounts, no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dialog can be constructed without error.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-96</span><span class="test-name">Dialog is modal</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.isModal()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dialog is application-modal.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-97</span><span class="test-name">Dialog has KeePass section</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_kp_stack&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>KeePass credential stacked widget is retained in the redesigned dialog.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_kp_stack&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-98</span><span class="test-name">Dialog has account combo</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_account_combo&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_account_combo</code> <code>QComboBox</code> for selecting the active SMTP account exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_account_combo&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-99</span><span class="test-name">Dialog has sender name edit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Default dialog.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_sender_name_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_sender_name_edit</code> <code>QLineEdit</code> for the display name used in the From header exists.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_sender_name_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-100</span><span class="test-name">No-accounts label shown and combo hidden when no configs</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM returns empty account list.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_no_accounts_lbl</code> is not hidden; <code>_account_combo</code> is hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dlg._no_accounts_lbl.isHidden()</code><br><code>assert dlg._account_combo.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-101</span><span class="test-name">Account combo shown and no-accounts label hidden when configs present</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM returns one SMTP account.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_account_combo</code> is not hidden; <code>_no_accounts_lbl</code> is hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dlg._account_combo.isHidden()</code><br><code>assert dlg._no_accounts_lbl.isHidden()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-102</span><span class="test-name">Account combo populated with config names</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM returns two SMTP accounts (&ldquo;Work&rdquo;, &ldquo;Personal&rdquo;).</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._account_combo.count()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Combo contains exactly two items.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._account_combo.count() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-103</span><span class="test-name">Active account pre-selected from global setting</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM active name = <code>&quot;Personal&quot;</code>; two accounts in list.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._account_combo.currentData()</code></div>
+          <div class="block"><div class="block-label">Expect</div>&ldquo;Personal&rdquo; is pre-selected.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._account_combo.currentData() == &quot;Personal&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-104</span><span class="test-name">Sender name empty by default without project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog created without a project argument.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._sender_name_edit.text()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Sender name field is empty when no project sidecar provides a value.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_name_edit.text() == &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-105</span><span class="test-name">_get_current_config returns None when no accounts</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM returns empty account list.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>None</code> is returned when no SMTP accounts are configured.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._get_current_config() is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-106</span><span class="test-name">_get_current_config returns dict for selected account</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SM returns one account &ldquo;Work&rdquo;.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns a dict with <code>name == &quot;Work&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(result, dict)</code><br><code>assert result.get(&quot;name&quot;) == &quot;Work&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-107</span><span class="test-name">_get_current_config injects sender_name</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One account; <code>_sender_name_edit</code> set to <code>&quot;Alice Smith&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[&quot;sender_name&quot;]</code> equals <code>&quot;Alice Smith&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;sender_name&quot;) == &quot;Alice Smith&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-108</span><span class="test-name">_get_current_config omits sender_name when empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One account; <code>_sender_name_edit</code> is empty.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>sender_name</code> key is absent when the field is blank.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;sender_name&quot; not in result</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-109</span><span class="test-name">Project custom props pre-select active account</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project sidecar <code>&quot;Email Active Account&quot;</code> = <code>&quot;Personal&quot;</code>; two accounts in SM.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>&ldquo;Personal&rdquo; is pre-selected in the combo.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._account_combo.currentData() == &quot;Personal&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-110</span><span class="test-name">Project custom props populate sender name</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project sidecar <code>&quot;Email Sender Name&quot;</code> = <code>&quot;Bob Jones&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_sender_name_edit</code> pre-filled with <code>&quot;Bob Jones&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_name_edit.text() == &quot;Bob Jones&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraSyncConfigDialog &#8212; Project to Jira Export</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-111</span><span class="test-name">Field dependencies disable related Jira to Project options</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager, mock_project)</code>; access <code>jira_assignee</code> (controller) and <code>jira_assignee_display_name</code> (dependent) checkboxes from <code>_JIRA2PROJECT_FIELD_DEPENDENCIES</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>controller.setChecked(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dependent checkbox <code>jira_assignee_display_name</code> is disabled and unchecked; re-enabling the controller re-enables the dependent.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dependent.isEnabled()</code><br><code>assert not dependent.isChecked()</code><br><code>controller.setChecked(True)</code><br><code>assert dependent.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-112</span><span class="test-name">Project to Jira tab builds expected controls</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager, mock_project)</code></div>
+          <div class="block"><div class="block-label">Run</div>Inspect <code>_project2jira_fields</code>, scope/mode/conflict radio buttons, <code>_dry_run_check</code>, and <code>_project2jira_tables</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>36 outbound field entries; <code>_scope_selected_rb</code> checked by default; <code>_mode_both_rb</code> checked; <code>_conflict_manual_rb</code> checked; <code>_dry_run_check</code> checked; tables for <code>&quot;issue_type_map&quot;</code> and <code>&quot;transition_map&quot;</code> present.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(dialog._project2jira_fields) == 36</code><br><code>assert dialog._scope_selected_rb.isChecked()</code><br><code>assert dialog._mode_both_rb.isChecked()</code><br><code>assert dialog._conflict_manual_rb.isChecked()</code><br><code>assert dialog._dry_run_check.isChecked()</code><br><code>assert &quot;issue_type_map&quot; in dialog._project2jira_tables</code><br><code>assert &quot;transition_map&quot; in dialog._project2jira_tables</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-113</span><span class="test-name">Project to Jira tab loads from project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project custom properties return a <code>project2jira</code> JSON container: <code>export_scope=&quot;full_project&quot;</code>, <code>create_update_mode=&quot;create_only&quot;</code>, <code>conflict_policy=&quot;prefer_jira&quot;</code>, <code>dry_run=False</code>, two field entries (<code>jira_status</code>, <code>jira_description</code>), one-row tables.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = JiraSyncConfigDialog(mock_settings_manager, mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Scope, mode, conflict, dry-run controls reflect saved values; <code>jira_status</code> and <code>jira_description</code> checkboxes are checked; both tables have 1 row.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._scope_full_rb.isChecked()</code><br><code>assert dialog._mode_create_rb.isChecked()</code><br><code>assert dialog._conflict_jira_rb.isChecked()</code><br><code>assert not dialog._dry_run_check.isChecked()</code><br><code>assert dialog._project2jira_fields[&quot;jira_status&quot;][&quot;checkbox&quot;].isChecked()</code><br><code>assert dialog._project2jira_tables[&quot;issue_type_map&quot;].rowCount() == 1</code><br><code>assert dialog._project2jira_tables[&quot;transition_map&quot;].rowCount() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-114</span><span class="test-name">Project to Jira tab save to project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog with project; set <code>_scope_full_rb</code>, <code>_mode_create_rb</code>, <code>_conflict_jira_rb</code>; uncheck <code>_dry_run_check</code>; enable <code>jira_status</code> mapped to <code>&quot;status&quot;</code>; add rows to both tables.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._save_project_to_jira_settings()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Custom property <code>&quot;project2jira&quot;</code> is written; parsed JSON contains correct <code>export_scope</code>, <code>create_update_mode</code>, <code>conflict_policy</code>, <code>dry_run</code>, field mapping, <code>issue_type_map</code>, and <code>transition_map</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;project2jira&quot; in put_calls</code><br><code>config = json.loads(put_calls[&quot;project2jira&quot;])</code><br><code>assert config[&quot;export_scope&quot;] == &quot;full_project&quot;</code><br><code>assert config[&quot;create_update_mode&quot;] == &quot;create_only&quot;</code><br><code>assert config[&quot;fields&quot;][&quot;jira_status&quot;][&quot;enabled&quot;] is True</code><br><code>assert config[&quot;issue_type_map&quot;] == {&quot;Task&quot;: &quot;Task&quot;}</code><br><code>assert config[&quot;transition_map&quot;] == {&quot;Done&quot;: &quot;31&quot;}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-115</span><span class="test-name">Project to Jira validation requires project field for create modes</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_mode_create_rb</code> checked; only <code>jira_description</code> field enabled (no <code>&quot;project&quot;</code> Jira-field mapping); one row in <code>issue_type_map</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, error = dialog._validate_project_to_jira_settings()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Validation fails; error message contains <code>&quot;require mappings&quot;</code> and <code>&quot;project&quot;</code> because create mode requires a Jira project key.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert &quot;require mappings&quot; in error</code><br><code>assert &quot;project&quot; in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-116</span><span class="test-name">Project to Jira transition validation checks server capabilities</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>jira_project_name</code> mapped to <code>&quot;project&quot;</code>; transition_map row <code>Done&rarr;999</code>; mock Jira server returns <code>[{&quot;id&quot;: &quot;31&quot;, &quot;name&quot;: &quot;Done&quot;}]</code> (id 31, not 999).</div>
+          <div class="block"><div class="block-label">Run</div><code>with patch(&quot;integrations.jira_integration.get_jira_client&quot;, return_value=(mock_jira, &quot;&quot;)):</code><br><code>    ok, error = dialog._validate_project_to_jira_settings()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Validation fails because transition id <code>999</code> does not match any server transition id or name.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not ok</code><br><code>assert &quot;Unknown Jira transition&quot; in error</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestEmailConfigDialog &#8212; Sender Address &amp; KeePass Lookup</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-117</span><span class="test-name">EmailConfigDialog has sender address field</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code>; sender address is now per-project (not per-account).</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_sender_address_edit&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_sender_address_edit</code> attribute exists in <code>EmailConfigDialog</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_sender_address_edit&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-118</span><span class="test-name">Project custom props populate sender address</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project sidecar <code>&quot;Email Sender Address&quot;</code> = <code>&quot;alice@work.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = EmailConfigDialog(sm, project=project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_sender_address_edit</code> pre-filled with <code>&quot;alice@work.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_address_edit.text() == &quot;alice@work.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-119</span><span class="test-name">Sender address empty by default without project</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog created without a project argument.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._sender_address_edit.text()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Sender address field is empty when no project sidecar provides a value.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_address_edit.text() == &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-120</span><span class="test-name">_get_current_config injects sender_address</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One account; <code>_sender_address_edit</code> set to <code>&quot;alice@work.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[&quot;sender_address&quot;]</code> equals <code>&quot;alice@work.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;sender_address&quot;) == &quot;alice@work.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-121</span><span class="test-name">_get_current_config omits sender_address when empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One account; <code>_sender_address_edit</code> is empty.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = dlg._get_current_config()</code></div>
+          <div class="block"><div class="block-label">Expect</div>An empty sender address field must not inject a non-empty string into the config dict.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result.get(&quot;sender_address&quot;, &quot;&quot;) == &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-122</span><span class="test-name">EmailConfigDialog has lookup sender method</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code>; method moved from <code>EmailServerEditDialog</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(dlg, &quot;_lookup_sender_from_keepass_ad&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Method exists in <code>EmailConfigDialog</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &quot;_lookup_sender_from_keepass_ad&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-123</span><span class="test-name">KeePass lookup in EmailConfigDialog warns when no entry selected</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass unlocked; dialog on page 2 (entry selector); <code>_kp_entry_combo</code> current text is empty; <code>QMessageBox.warning</code> patched.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._lookup_sender_from_keepass_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Warning dialog shown mentioning <code>&quot;KeePass&quot;</code>; no AD lookup attempted.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warn.assert_called_once()</code><br><code>args = mock_warn.call_args[0]</code><br><code>assert &quot;KeePass&quot; in args[1] or &quot;KeePass&quot; in args[2]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-124</span><span class="test-name">KeePass lookup in EmailConfigDialog warns when KeePass locked</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>KeePass entry configured; <code>keepass_integration.is_unlocked</code> patched to return <code>False</code>; <code>QMessageBox.warning</code> patched.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._lookup_sender_from_keepass_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Warning dialog shown; AD lookup not attempted because KeePass is locked.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warn.assert_called_once()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>Tooltip Coverage &#8212; EmailServerEditDialog &amp; EmailConfigDialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-125</span><span class="test-name">Name field has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailServerEditDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._name_edit.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Name field carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._name_edit.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-126</span><span class="test-name">SMTP server field has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailServerEditDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._smtp_server_edit.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>SMTP Server field carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._smtp_server_edit.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-127</span><span class="test-name">SMTP port field has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailServerEditDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._smtp_port_edit.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>SMTP Port field carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._smtp_port_edit.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-128</span><span class="test-name">TLS checkbox has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailServerEditDialog(sm)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._smtp_use_tls_check.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>STARTTLS checkbox carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._smtp_use_tls_check.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-129</span><span class="test-name">Account combo has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code> with one account configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._account_combo.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Account combo carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._account_combo.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-130</span><span class="test-name">Sender address field has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code> with one account configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._sender_address_edit.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Sender Address field carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_address_edit.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-131</span><span class="test-name">Sender name field has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code> with one account configured.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._sender_name_edit.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Sender Display Name field carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._sender_name_edit.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-132</span><span class="test-name">KeePass entry combo has tooltip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>EmailConfigDialog(sm)</code>; KeePass configured and unlocked so combo is visible on page 2.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg._kp_entry_combo.toolTip()</code></div>
+          <div class="block"><div class="block-label">Expect</div>KeePass entry combo carries a non-empty descriptive tooltip.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._kp_entry_combo.toolTip() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-133</span><span class="test-name">Dialog maximumHeight does not exceed available screen height minus chrome buffer</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project; <code>QT_QPA_PLATFORM=offscreen</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dlg.maximumHeight()</code> and <code>QApplication.desktop().availableGeometry().height()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div><code>maximumHeight &le; availableGeometry.height() - 40</code> so the OK/Cancel button row is never clipped by the taskbar on any screen size.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.maximumHeight() &lt;= available_height - 40</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-134</span><span class="test-name">Jira to Project tab is wrapped in a QScrollArea</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project; <code>QT_QPA_PLATFORM=offscreen</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._tabs.widget(0)</code> &mdash; retrieve the widget added as Tab 0 (Jira &rarr; Project).</div>
+          <div class="block"><div class="block-label">Expect</div>Tab 0 is a <code>QScrollArea</code> so all Jira&rarr;Project content scrolls inside the tab, keeping the dialog height constrained.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(dialog._tabs.widget(0), QScrollArea)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-135</span><span class="test-name">Project to Jira tab is wrapped in a QScrollArea</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project; <code>QT_QPA_PLATFORM=offscreen</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._tabs.widget(1)</code> &mdash; retrieve the widget added as Tab 1 (Project &rarr; Jira).</div>
+          <div class="block"><div class="block-label">Expect</div>Tab 1 is a <code>QScrollArea</code> so all Project&rarr;Jira content (export scope, field map, issue type map, transition map) scrolls inside the tab without expanding the dialog.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(dialog._tabs.widget(1), QScrollArea)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-136</span><span class="test-name">Project to Jira tab label uses Unicode arrow</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._tabs.tabText(1)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Label is <code>&ldquo;Project &rarr; Jira&rdquo;</code> (Unicode arrow U+2192), not the ASCII sequence <code>-&gt;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._tabs.tabText(1) == "Project \u2192 Jira"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-137</span><span class="test-name">Export Scope combo has three choices</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._export_scope_combo.count()</code></div>
+          <div class="block"><div class="block-label">Expect</div>3 items: &ldquo;Selected tasks&rdquo;, &ldquo;Changed since last sync&rdquo;, &ldquo;Full project&rdquo;.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._export_scope_combo.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-138</span><span class="test-name">Export Scope defaults to Changed since last sync</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._export_scope_combo.currentIndex()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Index 1 (&ldquo;Changed since last sync&rdquo;) is selected by default.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._export_scope_combo.currentIndex() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-139</span><span class="test-name">Mode combo has three choices</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._create_update_combo.count()</code></div>
+          <div class="block"><div class="block-label">Expect</div>3 items: &ldquo;Create only&rdquo;, &ldquo;Update only&rdquo;, &ldquo;Create + update&rdquo;.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._create_update_combo.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-140</span><span class="test-name">Mode defaults to Create + update</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._create_update_combo.currentIndex()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Index 2 (&ldquo;Create + update&rdquo;) is selected by default.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._create_update_combo.currentIndex() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-141</span><span class="test-name">Conflict Policy combo has three choices</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._conflict_combo.count()</code></div>
+          <div class="block"><div class="block-label">Expect</div>3 items: &ldquo;Prefer Jira&rdquo;, &ldquo;Prefer Project&rdquo;, &ldquo;Manual review&rdquo;.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._conflict_combo.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-142</span><span class="test-name">Conflict Policy defaults to Manual review</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._conflict_combo.currentIndex()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Index 2 (&ldquo;Manual review&rdquo;) is selected by default.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._conflict_combo.currentIndex() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-143</span><span class="test-name">Unlinked tasks combo has three choices</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._unlinked_combo.count()</code></div>
+          <div class="block"><div class="block-label">Expect</div>3 items: &ldquo;Create new issue&rdquo;, &ldquo;Skip&rdquo;, &ldquo;Prompt&rdquo;.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._unlinked_combo.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-144</span><span class="test-name">Unlinked tasks defaults to Skip</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._unlinked_combo.currentIndex()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Index 1 (&ldquo;Skip&rdquo;) is selected by default.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._unlinked_combo.currentIndex() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-145</span><span class="test-name">Scope combo round-trips through save and load</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Open dialog with project; set scope to index 2 (&ldquo;Full project&rdquo;).</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._save_project_to_jira_settings()</code>; inspect <code>put_calls["project2jira"]</code>.</div>
+          <div class="block"><div class="block-label">Expect</div><code>config["export_scope"] == "full_project"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert config["export_scope"] == "full_project"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-146</span><span class="test-name">Field edit widget is an editable QComboBox</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div>Iterate <code>dialog._project2jira_fields</code>; check <code>wi["edit"]</code> type and <code>isEditable()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>Every field row uses an editable <code>QComboBox</code> instead of a plain <code>QLineEdit</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(wi["edit"], QComboBox) and wi["edit"].isEditable()</code> for each field.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-147</span><span class="test-name">Field edit QComboBox pre-populated with suggestions</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>JiraSyncConfigDialog(mock_settings_manager)</code>; no project.</div>
+          <div class="block"><div class="block-label">Run</div>Iterate <code>dialog._project2jira_fields</code>; check <code>wi["edit"].count()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>Each field combo has at least 1 item (default Jira field name suggestion).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert wi["edit"].count() &gt;= 1</code> for each field.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-148</span><span class="test-name">Hierarchy issue-type widgets are editable QComboBoxes</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Open dialog with project.</div>
+          <div class="block"><div class="block-label">Run</div>Check <code>_p2j_epic_type_edit</code>, <code>_p2j_story_type_edit</code>, <code>_p2j_subtask_type_edit</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>All three are editable <code>QComboBox</code> widgets.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(widget, QComboBox) and widget.isEditable()</code> for each.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-149</span><span class="test-name">Dependency link-type combo defaults to blocks</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Open dialog with project.</div>
+          <div class="block"><div class="block-label">Run</div><code>dialog._p2j_dep_link_type_edit.currentText()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Default value is <code>"blocks"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog._p2j_dep_link_type_edit.currentText() == "blocks"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">SD-150</span><span class="test-name">All scope combo choices map to correct serialised values</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Open dialog with project; iterate indices 0–2 of <code>_export_scope_combo</code>.</div>
+          <div class="block"><div class="block-label">Run</div>Set index; call <code>_save_project_to_jira_settings()</code>; read <code>config["export_scope"]</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>0 &rarr; <code>"selected_tasks"</code>; 1 &rarr; <code>"changed_since_last_sync"</code>; 2 &rarr; <code>"full_project"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert config["export_scope"] == expected_val</code> for each index.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>TestCpmSettingsDialog — Critical Path Settings dialog (Phase 2)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-151</span><span class="test-name">Dialog created successfully</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>CPMSettingsDialog(cfg=_cfg(), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div>Inspect type.</div><div class="block"><div class="block-label">Expect</div><code>isinstance(dlg, CPMSettingsDialog)</code> is truthy.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(dlg, CPMSettingsDialog)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-152</span><span class="test-name">Dialog is modal (QDialog subclass)</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>isinstance(dlg, QDialog)</code></div><div class="block"><div class="block-label">Expect</div>Dialog is a QDialog (can be used modally).</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(dlg, QDialog)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-153</span><span class="test-name">Dialog title</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>dlg.windowTitle()</code></div><div class="block"><div class="block-label">Expect</div><code>"Critical Path Settings"</code> or similar.</div><div class="block"><div class="block-label">Check</div><code>assert "Critical Path" in dlg.windowTitle() or "CPM" in dlg.windowTitle()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-154</span><span class="test-name">Slack spin initialized from cfg</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(slack=3), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>dlg._slack_spin.value()</code></div><div class="block"><div class="block-label">Expect</div><code>3</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._slack_spin.value() == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-155</span><span class="test-name">Dep all radio checked when cfg all</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(dep_types="all"), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>dlg._dep_all_radio.isChecked()</code></div><div class="block"><div class="block-label">Expect</div><code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._dep_all_radio.isChecked()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-156</span><span class="test-name">Dep fs radio checked when cfg fs only</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(dep_types="fs_only"), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>dlg._dep_fs_radio.isChecked()</code></div><div class="block"><div class="block-label">Expect</div><code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._dep_fs_radio.isChecked()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-157</span><span class="test-name">Display checkboxes initialized from settings manager</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>sm = _sm(); sm.get_show_float_bar.return_value = True</code></div><div class="block"><div class="block-label">Run</div><code>dlg = CPMSettingsDialog(cfg=_cfg(), sm=sm)</code></div><div class="block"><div class="block-label">Expect</div><code>dlg._show_float_bar_chk.isChecked()</code> is True.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._show_float_bar_chk.isChecked()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-158</span><span class="test-name">Restore defaults resets all fields</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(slack=5, dep_types="fs_only"), sm=_sm())</code></div><div class="block"><div class="block-label">Run</div><code>dlg._restore_defaults()</code></div><div class="block"><div class="block-label">Expect</div>Slack spin = 0; dep_all_radio checked.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._slack_spin.value() == 0; assert dlg._dep_all_radio.isChecked()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-159</span><span class="test-name">On ok saves slack to cpm cfg</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(), sm=_sm()); dlg._slack_spin.setValue(4)</code></div><div class="block"><div class="block-label">Run</div><code>dlg._on_ok()</code></div><div class="block"><div class="block-label">Expect</div><code>dlg.result_cfg["critical_slack_days"] == 4</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg.result_cfg["critical_slack_days"] == 4</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-160</span><span class="test-name">On ok saves dep types fs only</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = CPMSettingsDialog(cfg=_cfg(), sm=_sm()); dlg._dep_fs_radio.setChecked(True)</code></div><div class="block"><div class="block-label">Run</div><code>dlg._on_ok()</code></div><div class="block"><div class="block-label">Expect</div><code>dlg.result_cfg["dep_types"] == "fs_only"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg.result_cfg["dep_types"] == "fs_only"</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">SD-161</span><span class="test-name">On ok calls settings manager methods</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>sm = _sm(); dlg = CPMSettingsDialog(cfg=_cfg(), sm=sm)</code></div><div class="block"><div class="block-label">Run</div><code>dlg._on_ok()</code></div><div class="block"><div class="block-label">Expect</div><code>sm.set_show_float_bar</code>, <code>set_show_free_float_column</code>, <code>set_show_cpm_results_panel</code> each called once.</div><div class="block"><div class="block-label">Check</div><code>sm.set_show_float_bar.assert_called_once()</code> etc.</div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

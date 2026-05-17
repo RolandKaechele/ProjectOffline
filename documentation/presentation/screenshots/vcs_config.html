@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Version Control Settings – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:560px;height:580px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* header */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* body */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:16px 18px;overflow:auto;background:#fff;gap:12px}
+
+/* section headings */
+.sec-head{font-size:11.5px;font-weight:700;color:#1a3f7a;border-bottom:1px solid #d0dce8;padding-bottom:4px}
+
+/* form */
+.form-section{background:#fafbfc;border:1px solid #d8e4f0;border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.form-row{display:flex;align-items:center;gap:8px}
+.form-label{width:150px;font-size:11.5px;color:#444;flex-shrink:0;text-align:right}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff}
+.form-input.disabled{background:#f0f0f0;color:#888}
+.form-select{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#1a3f7a;background:#fff;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232B579A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center}
+.btn-small{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:3px 9px;font-size:11px;cursor:default;font-weight:600}
+
+/* checkbox row */
+.check-row{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#333}
+.check-row input{accent-color:#2B579A}
+
+/* status */
+.status-ok{color:#107C10;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+.status-ok::before{content:"✔ "}
+
+/* footer */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <div class="dlg-header">
+    <h2>Version Control Settings</h2>
+    <p>Configure KeePass credentials and auto-commit behaviour</p>
+  </div>
+
+  <div class="dlg-body">
+
+    <!-- KeePass entry -->
+    <div class="sec-head">Credentials (KeePass)</div>
+    <div class="form-section">
+      <div class="form-row">
+        <span class="form-label">KeePass entry</span>
+        <select class="form-select">
+          <option value="GitHub/eb-repos" selected>GitHub/eb-repos</option>
+          <option value="GitLab/internal">GitLab/internal</option>
+          <option value="SVN/company-svn">SVN/company-svn</option>
+        </select>
+        <button class="btn-small">Refresh</button>
+      </div>
+      <div class="status-ok">KeePass unlocked — 12 entries available</div>
+    </div>
+
+    <!-- Auto-commit -->
+    <div class="sec-head">Auto-Commit on Save</div>
+    <div class="form-section">
+      <div class="check-row">
+        <input type="checkbox" checked>
+        <span>Enable auto-commit on save (3-second debounce)</span>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Message template</span>
+        <input class="form-input" type="text" value="Auto-commit: {project_name} saved at {timestamp}" readonly>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Commit scope</span>
+        <select class="form-select">
+          <option value="file" selected>Project file only</option>
+          <option value="all">All tracked changes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Binary paths -->
+    <div class="sec-head">Binary Paths (optional — leave blank to use bundled tools)</div>
+    <div class="form-section">
+      <div class="form-row">
+        <span class="form-label">git.exe path</span>
+        <input class="form-input disabled" type="text" value="" placeholder="(bundled tools/git/cmd/git.exe)" readonly>
+        <button class="btn-small">Browse…</button>
+      </div>
+      <div class="form-row">
+        <span class="form-label">svn.exe path</span>
+        <input class="form-input disabled" type="text" value="" placeholder="(bundled tools/svn/svn.exe)" readonly>
+        <button class="btn-small">Browse…</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dlg-footer">
+    <button class="btn-default">Cancel</button>
+    <button class="btn-primary">OK</button>
+  </div>
+
+</div>
+</body>
+</html>

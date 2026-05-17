@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>AD Group Bulk Add - Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#f4f7fb;padding:12px}
+.win{width:860px;height:520px;border:1px solid #879bb8;border-radius:6px;overflow:hidden;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22);display:flex;flex-direction:column}
+.hd{background:#2B579A;color:#fff;padding:12px 16px}
+.hd h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.hd p{font-size:11px;color:#c8d8f4}
+.body{display:grid;grid-template-columns:320px 1fr;gap:12px;padding:12px;flex:1;background:#f8fbff}
+.card{background:#fff;border:1px solid #c9d8ee;border-radius:5px;overflow:hidden;display:flex;flex-direction:column}
+.card h3{font-size:12px;background:#e7effb;color:#1a3f7a;padding:7px 10px;border-bottom:1px solid #c9d8ee}
+.search{padding:10px;display:flex;gap:8px;border-bottom:1px solid #e2eaf6}
+.search input{flex:1;border:1px solid #adc0dd;border-radius:3px;padding:5px 7px;font-size:12px}
+.btn{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:5px 11px;font-size:11px;font-weight:600}
+.list{padding:8px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.group{border:1px solid #d5e1f2;border-radius:4px;padding:7px 8px;background:#fff}
+.group.sel{border-color:#2B579A;background:#edf4ff}
+.group .n{font-size:12px;font-weight:700;color:#1a2a4f}
+.group .m{font-size:10.5px;color:#5a6b86;margin-top:2px}
+.members{padding:8px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.row{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:8px;border:1px solid #d6e2f2;border-radius:4px;padding:6px 7px;background:#fff}
+.row.skip{opacity:.56;background:#f4f6f9}
+.name{font-size:11.5px;font-weight:600;color:#1d2940}
+.mail{font-size:10.5px;color:#5f708b}
+.badge{font-size:10px;padding:1px 7px;border-radius:10px;border:1px solid #bfcde2;background:#f0f4fb;color:#3f5171}
+.badge.new{background:#e4f6ea;border-color:#9fd3b0;color:#1e6a34}
+.badge.dupe{background:#f8ecec;border-color:#d9b2b2;color:#8a2f2f}
+.ft{border-top:1px solid #cfdced;background:#f3f7fd;padding:9px 12px;display:flex;align-items:center;justify-content:space-between}
+.sum{font-size:11px;color:#34486b}
+.actions{display:flex;gap:8px}
+.btn2{background:#fff;color:#2B579A;border:1px solid #9db2d0;border-radius:3px;padding:5px 11px;font-size:11px}
+.btnP{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 13px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="hd">
+    <h2>Add Resources from AD Group</h2>
+    <p>Search groups, preview members, and bulk-add only users that are not already in the project.</p>
+  </div>
+  <div class="body">
+    <div class="card">
+      <h3>AD Groups</h3>
+      <div class="search"><input value="Embedded"/><button class="btn">Search</button></div>
+      <div class="list">
+        <div class="group sel"><div class="n">GG_PM_Embedded_Core</div><div class="m">14 members • Project core engineering</div></div>
+        <div class="group"><div class="n">GG_PM_Embedded_Test</div><div class="m">8 members • Validation and QA</div></div>
+        <div class="group"><div class="n">GG_PM_Embedded_Architects</div><div class="m">4 members • Architecture board</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Members Preview (GG_PM_Embedded_Core)</h3>
+      <div class="members">
+        <div class="row"><input type="checkbox" checked/><div><div class="name">Muller, Max</div><div class="mail">max.muller@corp.example.com</div></div><span class="badge new">Will be added</span></div>
+        <div class="row"><input type="checkbox" checked/><div><div class="name">Schneider, Laura</div><div class="mail">laura.schneider@corp.example.com</div></div><span class="badge new">Will be added</span></div>
+        <div class="row skip"><input type="checkbox" checked disabled/><div><div class="name">Weber, Anna</div><div class="mail">anna.weber@corp.example.com</div></div><span class="badge dupe">Already exists</span></div>
+        <div class="row"><input type="checkbox" checked/><div><div class="name">Hoffmann, Lars</div><div class="mail">lars.hoffmann@corp.example.com</div></div><span class="badge new">Will be added</span></div>
+        <div class="row skip"><input type="checkbox" disabled/><div><div class="name">System Account (filtered)</div><div class="mail">no valid mail address</div></div><span class="badge">Skipped</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ft">
+    <div class="sum">Summary: 3 selected to add, 1 duplicate skipped, 1 invalid entry filtered.</div>
+    <div class="actions"><button class="btn2">Cancel</button><button class="btnP">Add Selected Users</button></div>
+  </div>
+</div>
+</body>
+</html>

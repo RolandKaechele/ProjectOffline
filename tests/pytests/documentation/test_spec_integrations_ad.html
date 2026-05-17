@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: AD Integration &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; AD Integration</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#ad_integration">ad integration</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">63</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">63</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="ad_integration">
+  <div class="module-header"><h2>integrations/ad_integration.py</h2><span class="badge">63 tests</span></div>
+  <div class="module-desc">Active Directory lookup via PowerShell subprocess. All PS calls patched &mdash; no domain membership or RSAT required. Covers availability detection, lookup by name/email/username (with input sanitisation and injection-char rejection), lookup history recording, <code>sync_resources</code>, <code>get_last_sync_result</code>, and multi-result lookups (<code>lookup_by_email_all</code>, <code>lookup_by_username_all</code>) including the fast-path exact-match optimisation and wildcard fallback. Also covers <code>search_groups()</code> (name-wildcard AD group search: empty/injection/single-quote guards, single vs. array JSON parsing, schema validation, group filtering) and <code>get_group_members()</code> (enabled-user member enumeration: injection guards, email validation, recursive flag, single/multi-user parsing).</div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; is_ad_available</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-01</span><span class="test-name">is_ad_available returns True when PS returns module name</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>&quot;ActiveDirectory&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = is_ad_available()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert is_ad_available() is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-02</span><span class="test-name">is_ad_available returns False when PS returns None</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = is_ad_available()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert is_ad_available() is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-03</span><span class="test-name">is_ad_available returns False when PS returns empty string</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = is_ad_available()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert is_ad_available() is False</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; lookup_by_name</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-04</span><span class="test-name">lookup_by_name returns dict on hit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return valid JSON with DisplayName, mail, Department, SamAccountName.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_name(&quot;Smith, Joe&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is not <code>None</code>; keys <code>email</code>, <code>display_name</code>, <code>department</code>, <code>username</code> are present.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;email&quot;] == &quot;joe.smith@corp.com&quot;</code><br><code>assert result[&quot;display_name&quot;] == &quot;Joe Smith&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-05</span><span class="test-name">lookup_by_name returns None when PS returns None</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_name(&quot;Nobody, Nope&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_name(&quot;Nobody, Nope&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-06</span><span class="test-name">lookup_by_name empty string returns None</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching needed; guard fires before any PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_name(&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_name(&quot;&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-07</span><span class="test-name">lookup_by_name rejects injection characters</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No PS call expected; sanitisation guard fires.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_name(&quot;(hack)&quot;)</code>, <code>lookup_by_name(&quot;wild*card&quot;)</code>, <code>lookup_by_name(&quot;back\\slash&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [&quot;(hack)&quot;, &quot;wild*card&quot;, &quot;back\\slash&quot;]:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;assert lookup_by_name(bad) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-08</span><span class="test-name">lookup_by_name escapes single quotes</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>; <code>call_args_list</code> captured.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_name(&quot;O&#x27;Brien, Sean&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>First PowerShell command string contains <code>O&#x27;&#x27;Brien</code> (doubled apostrophe).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;O&#x27;&#x27;Brien&quot; in mock_ps.call_args_list[0][0][0]</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; lookup_by_email</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-09</span><span class="test-name">lookup_by_email returns dict on hit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_email(&quot;joe.smith@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[&quot;email&quot;]</code> equals <code>&quot;joe.smith@corp.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;email&quot;] == &quot;joe.smith@corp.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-10</span><span class="test-name">lookup_by_email returns None for invalid input</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching; guard fires before PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_email(&quot;&quot;)</code>, <code>lookup_by_email(&quot;notanemail&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_email(&quot;&quot;) is None</code><br><code>assert lookup_by_email(&quot;notanemail&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-11</span><span class="test-name">lookup_by_email returns None when PS returns None</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_email(&quot;nobody@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_email(&quot;nobody@corp.com&quot;) is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; lookup_by_username</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-12</span><span class="test-name">lookup_by_username returns dict on hit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_username(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[&quot;username&quot;]</code> equals <code>&quot;jsmith&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;username&quot;] == &quot;jsmith&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-13</span><span class="test-name">lookup_by_username returns None for empty or whitespace</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching; guard fires before PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_username(&quot;&quot;)</code>, <code>lookup_by_username(&quot;   &quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_username(&quot;&quot;) is None</code><br><code>assert lookup_by_username(&quot;   &quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-14</span><span class="test-name">lookup_by_username rejects injection characters</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No PS call expected; sanitisation guard fires.</div>
+          <div class="block"><div class="block-label">Run</div>Multiple inputs: <code>&quot;user;cmd&quot;</code>, <code>&quot;a|b&quot;</code>, <code>&quot;cmd`x&quot;</code>, <code>&quot;$env&quot;</code>, <code>&quot;(x)&quot;</code>, <code>&quot;a&lt;b&quot;</code></div>
+          <div class="block"><div class="block-label">Expect</div>All return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [&quot;user;cmd&quot;, &quot;a|b&quot;, ...]:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;assert lookup_by_username(bad) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-15</span><span class="test-name">lookup_by_username passes use_identity=True to _ps_query_to_dict</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_ps_query_to_dict</code> patched to return <code>None</code>; call args captured.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_username(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_ps_query_to_dict</code> called once with <code>(&quot;jsmith&quot;, use_identity=True)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_q.assert_called_once_with(&quot;jsmith&quot;, use_identity=True)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; Lookup History</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-16</span><span class="test-name">lookup history records name hit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ad._last_lookup_results.clear()</code>; <code>_run_ps</code> returns valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_name(&quot;Smith, Joe&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>fn=&quot;lookup_by_name&quot;</code>, <code>input=&quot;Smith, Joe&quot;</code>, <code>result</code> not <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;fn&quot;] == &quot;lookup_by_name&quot;</code><br><code>assert history[-1][&quot;result&quot;] is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-17</span><span class="test-name">lookup history records miss</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ad._last_lookup_results.clear()</code>; <code>_run_ps</code> returns <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_name(&quot;Missing, Person&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>result=None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;result&quot;] is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-18</span><span class="test-name">lookup history records email lookup</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ad._last_lookup_results.clear()</code>; <code>_run_ps</code> returns valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_email(&quot;joe@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>fn=&quot;lookup_by_email&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;fn&quot;] == &quot;lookup_by_email&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-19</span><span class="test-name">lookup history records username lookup</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ad._last_lookup_results.clear()</code>; <code>_run_ps</code> returns valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_username(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>fn=&quot;lookup_by_username&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;fn&quot;] == &quot;lookup_by_username&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-20</span><span class="test-name">get_last_lookup_results returns independent copy</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module-level <code>_last_lookup_results</code> may have any contents.</div>
+          <div class="block"><div class="block-label">Run</div><code>copy1 = ad.get_last_lookup_results()</code><br><code>copy2 = ad.get_last_lookup_results()</code></div>
+          <div class="block"><div class="block-label">Expect</div>The two lists are not the same object (<code>is not</code>).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert copy1 is not copy2</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; sync_resources</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-21</span><span class="test-name">sync_resources with None project returns zeros</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No mocking needed.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = sync_resources(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>total=0</code>, <code>updated=0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;total&quot;] == 0</code><br><code>assert result[&quot;updated&quot;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-22</span><span class="test-name">sync_resources skips resource with existing email</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Resource has <code>getEmailAddress()</code> returning a non-empty string.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = sync_resources(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>skipped=1</code>, <code>updated=0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] == 1</code><br><code>assert result[&quot;updated&quot;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-23</span><span class="test-name">sync_resources updates resource without email</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Resource has empty email; <code>_run_ps</code> returns valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = sync_resources(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>updated=1</code>; <code>setEmailAddress</code> called with resolved email.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;updated&quot;] == 1</code><br><code>res.setEmailAddress.assert_called_once_with(&quot;joe.smith@corp.com&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-24</span><span class="test-name">sync_resources attaches _ad_data to resolved resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Resource has empty email; <code>_run_ps</code> returns valid JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>sync_resources(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(res, &quot;_ad_data&quot;)</code> is truthy; <code>res._ad_data[&quot;email&quot;]</code> is correct.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(res, &quot;_ad_data&quot;)</code><br><code>assert res._ad_data[&quot;email&quot;] == &quot;joe.smith@corp.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-25</span><span class="test-name">sync_resources skips resource with None name</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res.getName()</code> returns <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = sync_resources(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>total=0</code> (None-name resource excluded from count).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[&quot;total&quot;] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-26</span><span class="test-name">sync_resources captures errors on exception</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns valid JSON; <code>res.setEmailAddress</code> raises <code>RuntimeError</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = sync_resources(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[&quot;errors&quot;]</code> is a list.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(result[&quot;errors&quot;], list)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestADIntegration &#8212; get_last_sync_result</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-27</span><span class="test-name">get_last_sync_result reflects last sync call</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty project (<code>getResources</code> returns <code>[]</code>); <code>_run_ps</code> patched.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.sync_resources(project)</code><br><code>result = ad.get_last_sync_result()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is not <code>None</code>; keys <code>total</code>, <code>updated</code>, <code>skipped</code>, <code>errors</code> present.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is not None</code><br><code>assert &quot;total&quot; in result</code><br><code>assert &quot;updated&quot; in result</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestMultiResultLookups &#8212; lookup_by_email_all</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-28</span><span class="test-name">lookup_by_email_all fast path returns exact match without wildcard scan</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_ps_query_to_dict</code> patched to return a valid entry; <code>_ps_query_to_list</code> patched to return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_email_all(&quot;joe.smith@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[entry]</code>; <code>_ps_query_to_list</code> is never called.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == [entry]</code><br><code>mock_wild.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-29</span><span class="test-name">lookup_by_email_all falls back to wildcard when no exact match</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_ps_query_to_dict</code> returns <code>None</code>; <code>_ps_query_to_list</code> returns <code>[entry]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_email_all(&quot;joe.smith@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[entry]</code> (from wildcard fallback).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == [entry]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-30</span><span class="test-name">lookup_by_email_all returns empty list for missing @ sign</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching; guard fires before any PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_email_all(&quot;&quot;)</code>, <code>lookup_by_email_all(&quot;notanemail&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_email_all(&quot;&quot;) == []</code><br><code>assert lookup_by_email_all(&quot;notanemail&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-31</span><span class="test-name">lookup_by_email_all rejects injection characters</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No PS call expected; sanitisation guard fires.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_email_all(&quot;joe(*)@corp.com&quot;)</code>, <code>lookup_by_email_all(&quot;joe\\smith@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [...]:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;assert lookup_by_email_all(bad) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-32</span><span class="test-name">lookup_by_email_all records history entry with fn=lookup_by_email_all</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_last_lookup_results.clear()</code>; <code>_ps_query_to_dict</code> returns valid entry.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_email_all(&quot;joe.smith@corp.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>fn=&quot;lookup_by_email_all&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;fn&quot;] == &quot;lookup_by_email_all&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestMultiResultLookups &#8212; lookup_by_username_all</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-33</span><span class="test-name">lookup_by_username_all fast path returns exact match without wildcard scan</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_ps_query_to_dict</code> patched to return a valid entry; <code>_ps_query_to_list</code> patched to return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_username_all(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[entry]</code>; <code>_ps_query_to_list</code> is never called.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == [entry]</code><br><code>mock_wild.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-34</span><span class="test-name">lookup_by_username_all falls back to wildcard when identity lookup fails</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_ps_query_to_dict</code> returns <code>None</code>; <code>_ps_query_to_list</code> returns <code>[entry]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = lookup_by_username_all(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[entry]</code> (from wildcard fallback).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == [entry]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-35</span><span class="test-name">lookup_by_username_all returns empty list for empty or whitespace input</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching; guard fires before any PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_username_all(&quot;&quot;)</code>, <code>lookup_by_username_all(&quot;   &quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lookup_by_username_all(&quot;&quot;) == []</code><br><code>assert lookup_by_username_all(&quot;   &quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-36</span><span class="test-name">lookup_by_username_all rejects injection characters</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No PS call expected; sanitisation guard fires.</div>
+          <div class="block"><div class="block-label">Run</div><code>lookup_by_username_all(&quot;user;cmd&quot;)</code>, <code>&quot;a|b&quot;</code>, <code>&quot;wild*card&quot;</code></div>
+          <div class="block"><div class="block-label">Expect</div>All return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [...]:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;assert lookup_by_username_all(bad) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-37</span><span class="test-name">lookup_by_username_all records history entry with fn=lookup_by_username_all</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_last_lookup_results.clear()</code>; <code>_ps_query_to_dict</code> returns valid entry.</div>
+          <div class="block"><div class="block-label">Run</div><code>ad.lookup_by_username_all(&quot;jsmith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Last history entry has <code>fn=&quot;lookup_by_username_all&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert history[-1][&quot;fn&quot;] == &quot;lookup_by_username_all&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestSearchGroups &mdash; AD Group Name Search</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-38</span><span class="test-name">Empty query returns empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching needed; guard fires before any PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert search_groups(&quot;&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-39</span><span class="test-name">Whitespace-only query returns empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Input is spaces only.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;   &quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert search_groups(&quot;   &quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-40</span><span class="test-name">Injection characters rejected</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Inputs containing <code>(</code>, <code>)</code>, <code>;</code>, <code>&amp;</code>, <code>|</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Back(end&quot;)</code>, <code>&quot;Team;Hack&quot;</code>, etc.</div>
+          <div class="block"><div class="block-label">Expect</div>All return <code>[]</code> without invoking <code>_run_ps</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [...]: assert search_groups(bad) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-41</span><span class="test-name">Single quote escaped as &apos;&apos; in PS command</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>; query contains <code>&apos;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;O&apos;Connor&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The PS command string passed to <code>_run_ps</code> contains <code>O&apos;&apos;Connor</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;O&apos;&apos;Connor&quot; in cmd</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-42</span><span class="test-name">Single-group JSON object wrapped to list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns a JSON <em>object</em> (one group); PS returns object not array for single results.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns a list of length 1; <code>result[0][&quot;name&quot;] == &quot;Team-Backend&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code><br><code>assert result[0][&quot;name&quot;] == &quot;Team-Backend&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-43</span><span class="test-name">Multi-group JSON array parsed</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns a JSON array with two group objects.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Team&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns list of length 2; names are <code>Team-A</code> and <code>Team-B</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 2</code><br><code>assert {r[&quot;name&quot;] for r in result} == {&quot;Team-A&quot;, &quot;Team-B&quot;}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-44</span><span class="test-name">Result dict contains all required schema keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns a valid single-group JSON object.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Each dict has keys: <code>name</code>, <code>description</code>, <code>dn</code>, <code>category</code>, <code>scope</code>, <code>sam_name</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for key in (...):</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;assert key in result[0]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-45</span><span class="test-name">Groups without name or SamAccountName skipped</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>JSON array containing one entry where both <code>Name</code> and <code>SamAccountName</code> are <code>null</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;anything&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>; the nameless entry is filtered out.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-46</span><span class="test-name">PS returns None gives empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert search_groups(&quot;Backend&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-47</span><span class="test-name">PS returns invalid JSON gives empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns non-JSON string <code>&quot;not json&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>; JSON decode error is swallowed.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert search_groups(&quot;Backend&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-48</span><span class="test-name">description and scope fields populated</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Group JSON has <code>Description=&quot;My desc&quot;</code> and <code>GroupScope=&quot;Universal&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[0][&quot;description&quot;] == &quot;My desc&quot;</code> and <code>result[0][&quot;scope&quot;] == &quot;Universal&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[0][&quot;description&quot;] == &quot;My desc&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-49</span><span class="test-name">Wildcard pattern embedded in PS command</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched; query is <code>&quot;Dev&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>search_groups(&quot;Dev&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The PS command contains <code>*Dev*</code> (wildcard pattern).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;*Dev*&quot; in cmd</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestGetGroupMembers &mdash; Enabled Users in AD Group</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-50</span><span class="test-name">Empty input returns empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No patching needed; guard fires before PS call.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_group_members(&quot;&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-51</span><span class="test-name">Whitespace-only input returns empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Input is spaces only.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;   &quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_group_members(&quot;   &quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-52</span><span class="test-name">Injection characters rejected</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Inputs containing <code>;</code>, <code>&amp;</code>, <code>|</code>, <code>`</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Group;cmd&quot;)</code>, <code>&quot;DN&amp;hack&quot;</code>, etc.</div>
+          <div class="block"><div class="block-label">Expect</div>All return <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for bad in [...]: assert get_group_members(bad) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-53</span><span class="test-name">Single quote in DN escaped as &apos;&apos; in PS command</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched; DN contains <code>O&apos;Hara</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;CN=O&apos;Hara Team,...&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>PS command contains <code>O&apos;&apos;Hara</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;O&apos;&apos;Hara&quot; in cmd</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-54</span><span class="test-name">Single-user JSON object wrapped to list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns a single-user JSON object (not array).</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns list of length 1; <code>result[0][&quot;email&quot;] == &quot;bob@corp.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code><br><code>assert result[0][&quot;email&quot;] == &quot;bob@corp.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-55</span><span class="test-name">Result dict contains required schema keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Valid single-user JSON.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dict has keys: <code>display_name</code>, <code>email</code>, <code>department</code>, <code>username</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in result[0]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-56</span><span class="test-name">Members without mail attribute excluded</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>JSON array: Alice has <code>mail=null</code>; Bob has valid email.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Only Bob returned; Alice silently skipped.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code><br><code>assert result[0][&quot;username&quot;] == &quot;bob&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-57</span><span class="test-name">Members with no @ in mail excluded</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>User has <code>mail=&quot;notanemail&quot;</code> (no @ sign).</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-58</span><span class="test-name">PS returns None gives empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_group_members(&quot;Team-Backend&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-59</span><span class="test-name">PS returns invalid JSON gives empty list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> returns <code>&quot;bad json&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>; JSON error swallowed.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_group_members(&quot;Team-Backend&quot;) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-60</span><span class="test-name">-Recursive flag present in PS command</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_run_ps</code> patched to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Backend&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The PS command string contains <code>-Recursive</code> so nested group members are included.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;-Recursive&quot; in cmd</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">AI-61</span><span class="test-name">Multiple users all returned</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>JSON array with three valid user objects (Alice, Bob, Carol).</div>
+          <div class="block"><div class="block-label">Run</div><code>get_group_members(&quot;Team-Big&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns list of length 3; usernames are <code>alice</code>, <code>bob</code>, <code>carol</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 3</code><br><code>assert {r[&quot;username&quot;] for r in result} == {&quot;alice&quot;, &quot;bob&quot;, &quot;carol&quot;}</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

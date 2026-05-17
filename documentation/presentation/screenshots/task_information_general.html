@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Task Information – General</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#2b3a50;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center;height:100vh}
+
+/* backdrop dimming simulating app behind dialog */
+.app-bg{position:fixed;inset:0;background:rgba(30,40,60,.55);display:flex;align-items:center;justify-content:center;z-index:10}
+
+/* dialog window */
+.dlg{background:#fff;border-radius:5px;box-shadow:0 12px 40px rgba(0,0,0,.5);width:560px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #7090b0}
+
+/* title bar */
+.dlg-title{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:6px 12px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.dlg-close{color:#fff;font-size:16px;cursor:default;opacity:.8;background:none;border:none;font-family:inherit;padding:0 2px}
+
+/* tab bar */
+.dlg-tabs{display:flex;background:#E4EDF8;border-bottom:2px solid #2B579A;padding-top:3px}
+.dt{padding:5px 16px;font-size:12px;font-weight:700;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;background:#E4EDF8;cursor:default;margin-right:1px}
+.dt.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+/* body */
+.dlg-body{padding:18px 20px 14px;background:#fff}
+
+.form-row{display:flex;align-items:center;margin-bottom:12px;gap:10px}
+.form-row label{width:130px;flex-shrink:0;font-size:12px;font-weight:600;color:#2B3A6A;text-align:right}
+.form-row .ctrl{flex:1}
+input[type=text]{width:100%;padding:4px 7px;border:1px solid #a0b8d0;border-radius:3px;font-size:12px;font-family:"Segoe UI",Arial,sans-serif;background:#f8fbff;color:#1a1a2e;outline:none}
+input[type=text]:focus{border-color:#2B579A;background:#fff}
+select{padding:4px 6px;border:1px solid #a0b8d0;border-radius:3px;font-size:12px;font-family:"Segoe UI",Arial,sans-serif;background:#f8fbff;color:#1a1a2e;cursor:default}
+
+/* progress row */
+.prog-row{display:flex;align-items:center;gap:8px}
+.prog-bar{flex:1;height:14px;background:#e0e8f0;border-radius:7px;overflow:hidden}
+.prog-fill{height:100%;background:#2B579A;border-radius:7px}
+
+/* constraint info box */
+.info-box{background:#f0f5ff;border:1px solid #c0d4f0;border-radius:4px;padding:8px 12px;font-size:11px;color:#3a5080;margin-top:4px}
+.info-box strong{color:#2B579A}
+
+/* separator */
+.sep-line{border:none;border-top:1px solid #D0DDF0;margin:10px 0}
+
+/* footer */
+.dlg-footer{background:#f0f4f8;border-top:1px solid #D0DDF0;padding:8px 16px;display:flex;justify-content:flex-end;gap:8px}
+.btn{padding:5px 20px;border-radius:3px;font-size:12px;font-family:"Segoe UI",Arial,sans-serif;font-weight:700;cursor:default;border:1px solid}
+.btn-ok{background:#2B579A;color:#fff;border-color:#1A3F7A}
+.btn-ok:hover{background:#3A6EBC}
+.btn-cancel{background:#fff;color:#2B579A;border-color:#a0b8d0}
+</style>
+</head>
+<body>
+<div class="app-bg">
+  <div class="dlg">
+    <div class="dlg-title">
+      Task Information
+      <button class="dlg-close">✕</button>
+    </div>
+    <div class="dlg-tabs">
+      <div class="dt active">General</div>
+      <div class="dt">Predecessors</div>
+      <div class="dt">Resources</div>
+      <div class="dt">Notes</div>
+      <div class="dt">Custom Fields</div>
+      <div class="dt">Jira</div>
+    </div>
+    <div class="dlg-body">
+
+      <div class="form-row">
+        <label>Task Name:</label>
+        <div class="ctrl"><input type="text" value="Component design" readonly/></div>
+      </div>
+
+      <div class="form-row">
+        <label>Duration:</label>
+        <div class="ctrl" style="display:flex;gap:8px">
+          <input type="text" value="5" style="width:70px" readonly/>
+          <select disabled><option>Days</option></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Start:</label>
+        <div class="ctrl" style="display:flex;gap:8px">
+          <input type="text" value="09 Apr 2026" style="width:140px" readonly/>
+          <label style="width:auto;font-size:12px;font-weight:600;color:#2B3A6A">Finish:</label>
+          <input type="text" value="15 Apr 2026" style="width:140px" readonly/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>% Complete:</label>
+        <div class="ctrl">
+          <div class="prog-row">
+            <div class="prog-bar"><div class="prog-fill" style="width:40%"></div></div>
+            <span style="font-size:12px;font-weight:700;color:#2B579A;width:34px;flex-shrink:0;text-align:right">40%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Priority:</label>
+        <div class="ctrl" style="display:flex;gap:8px;align-items:center">
+          <select disabled>
+            <option>High</option>
+            <option>Normal</option>
+            <option>Low</option>
+          </select>
+          <span style="font-size:11px;color:#666">800 / 1000</span>
+        </div>
+      </div>
+
+      <hr class="sep-line"/>
+
+      <div class="form-row">
+        <label>Constraint Type:</label>
+        <div class="ctrl">
+          <select disabled><option selected>As Soon As Possible</option></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Constraint Date:</label>
+        <div class="ctrl"><input type="text" value="—" style="width:160px;color:#888" readonly/></div>
+      </div>
+
+      <div class="info-box">
+        <strong>As Soon As Possible</strong> — The task will start as early as scheduling allows.<br/>
+        Assigned to: <strong>Carol Jensen</strong> · WBS: <strong>1.2.2</strong>
+      </div>
+    </div>
+    <div class="dlg-footer">
+      <button class="btn btn-cancel">Cancel</button>
+      <button class="btn btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

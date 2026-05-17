@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Commit Log – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:740px;height:560px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* header */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* split layout */
+.dlg-body{flex:1;display:flex;overflow:hidden}
+
+/* left — commit list */
+.log-panel{width:290px;flex-shrink:0;border-right:1px solid #d0dce8;display:flex;flex-direction:column}
+.log-toolbar{padding:8px 10px;border-bottom:1px solid #e0e8f0;display:flex;gap:6px;align-items:center;background:#f5f7fb}
+.log-toolbar button{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:3px 9px;font-size:11px;cursor:default;font-weight:600}
+.log-toolbar button.danger{background:#fef2f2;border-color:#f87171;color:#b91c1c}
+.log-list{flex:1;overflow:auto}
+.log-item{padding:8px 10px;border-bottom:1px solid #edf2f7;cursor:default}
+.log-item.selected{background:#dce8f8}
+.log-item:hover:not(.selected){background:#f0f5fb}
+.log-hash{font-family:monospace;font-size:10.5px;color:#6a8ab0;margin-bottom:1px}
+.log-msg{font-size:11.5px;color:#1a1a2e;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-meta{font-size:10.5px;color:#888}
+
+/* right — diff panel */
+.diff-panel{flex:1;display:flex;flex-direction:column}
+.diff-toolbar{padding:8px 10px;border-bottom:1px solid #e0e8f0;font-size:11px;color:#444;background:#f5f7fb;display:flex;align-items:center;justify-content:space-between}
+.diff-toolbar strong{color:#1a3f7a}
+.diff-body{flex:1;overflow:auto;padding:10px 12px;background:#fafbfc;font-family:monospace;font-size:11px;line-height:1.6;white-space:pre}
+.diff-add{color:#107C10;background:#f0fff4;display:block}
+.diff-del{color:#C0392B;background:#fff5f5;display:block}
+.diff-hunk{color:#888;background:#f0f4fb;display:block}
+.diff-ctx{color:#555;display:block}
+
+/* footer */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.footer-info{font-size:11px;color:#666}
+.footer-btns{display:flex;gap:8px}
+.btn-restore{background:#E07B1A;color:#fff;border:none;border-radius:3px;padding:6px 16px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <div class="dlg-header">
+    <h2>Commit Log — my_project.xml</h2>
+    <p>Git · branch: main · repository: C:\Projects\road-extension</p>
+  </div>
+
+  <div class="dlg-body">
+
+    <!-- left: commit list -->
+    <div class="log-panel">
+      <div class="log-toolbar">
+        <button>↻ Refresh</button>
+        <button class="danger">Restore…</button>
+      </div>
+      <div class="log-list">
+
+        <div class="log-item selected">
+          <div class="log-hash">a3f91c2</div>
+          <div class="log-msg">Auto-commit: my_project.xml saved at 2026-05-11 14:32</div>
+          <div class="log-meta">jsmith · 2 minutes ago</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">8b4d07e</div>
+          <div class="log-msg">Auto-commit: my_project.xml saved at 2026-05-11 09:15</div>
+          <div class="log-meta">jsmith · 5 hours ago</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">2c9a8f1</div>
+          <div class="log-msg">Auto-commit: my_project.xml saved at 2026-05-10 17:48</div>
+          <div class="log-meta">jsmith · yesterday</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">f1e302a</div>
+          <div class="log-msg">Auto-commit: my_project.xml saved at 2026-05-09 16:20</div>
+          <div class="log-meta">jsmith · 2 days ago</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">70c5d8b</div>
+          <div class="log-msg">Add phase 2 milestones and resource assignments</div>
+          <div class="log-meta">jsmith · 3 days ago</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">9d4e12c</div>
+          <div class="log-msg">Auto-commit: my_project.xml saved at 2026-05-07 11:03</div>
+          <div class="log-meta">jsmith · 4 days ago</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-hash">3b8a54f</div>
+          <div class="log-msg">Initial project structure — baseline set</div>
+          <div class="log-meta">jsmith · 1 week ago</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- right: diff preview -->
+    <div class="diff-panel">
+      <div class="diff-toolbar">
+        <span>Diff for <strong>a3f91c2</strong> — my_project.xml</span>
+        <span style="color:#107C10;font-weight:600">+12 / -8 lines</span>
+      </div>
+      <div class="diff-body"><span class="diff-hunk">@@ -142,8 +142,12 @@ &lt;Task&gt;</span>
+<span class="diff-ctx">   &lt;UID&gt;42&lt;/UID&gt;</span>
+<span class="diff-ctx">   &lt;Name&gt;Design Review&lt;/Name&gt;</span>
+<span class="diff-del">-  &lt;Duration&gt;PT40H0M0S&lt;/Duration&gt;</span>
+<span class="diff-add">+  &lt;Duration&gt;PT48H0M0S&lt;/Duration&gt;</span>
+<span class="diff-del">-  &lt;Finish&gt;2026-06-12T17:00:00&lt;/Finish&gt;</span>
+<span class="diff-add">+  &lt;Finish&gt;2026-06-15T17:00:00&lt;/Finish&gt;</span>
+<span class="diff-ctx">   &lt;PercentComplete&gt;0&lt;/PercentComplete&gt;</span>
+<span class="diff-ctx">   &lt;Priority&gt;500&lt;/Priority&gt;</span>
+<span class="diff-hunk">@@ -187,6 +191,10 @@ &lt;Task&gt;</span>
+<span class="diff-ctx">   &lt;UID&gt;55&lt;/UID&gt;</span>
+<span class="diff-del">-  &lt;Name&gt;Integration Test&lt;/Name&gt;</span>
+<span class="diff-add">+  &lt;Name&gt;System Integration Test&lt;/Name&gt;</span>
+<span class="diff-add">+  &lt;Notes&gt;Extended scope — includes HW validation&lt;/Notes&gt;</span>
+<span class="diff-ctx">   &lt;Duration&gt;PT80H0M0S&lt;/Duration&gt;</span>
+<span class="diff-ctx">   &lt;Start&gt;2026-06-16T08:00:00&lt;/Start&gt;</span></div>
+    </div>
+
+  </div>
+
+  <div class="dlg-footer">
+    <span class="footer-info">7 commits · Git · branch main</span>
+    <div class="footer-btns">
+      <button class="btn-restore">Restore selected…</button>
+      <button class="btn-default">Close</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Schedule Overview",
+  "subject": "Project Schedule: {project_name} ({date})",
+  "body": "Dear Team,\n\nPlease find attached the latest Gantt chart for the {project_name} project as of {date}.\n\nThe chart provides a complete overview of all tasks, milestones, dependencies, and current progress. Please review your assigned tasks and notify {project_manager} of any concerns.\n\nKey points to note:\n  - Tasks shown in red are on the critical path\n  - Progress bars indicate percentage completion\n  - Dashed bars indicate baselined dates where available\n\nIf you have any questions please contact {project_manager}.\n\nKind regards,\n{project_manager}",
+  "body_html": "<html><body style='font-family:Arial,sans-serif;font-size:14px;color:#222;'>\n<p>Dear Team,</p>\n<p>Please find below the latest Gantt chart for the <strong>{project_name}</strong> project as of <strong>{date}</strong>. The chart is also attached as an SVG file for offline use.</p>\n<p>{svg_inline}</p>\n<p>Key points to note:</p>\n<ul>\n  <li>Tasks shown in red are on the <strong>critical path</strong></li>\n  <li>Progress bars indicate percentage completion</li>\n  <li>Dashed bars indicate baselined dates where available</li>\n</ul>\n<p>If you have any questions please contact <strong>{project_manager}</strong>.</p>\n<p>Kind regards,<br/>{project_manager}</p>\n</body></html>"
+}

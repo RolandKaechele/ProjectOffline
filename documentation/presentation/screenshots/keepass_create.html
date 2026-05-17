@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>KeePass – Create new database – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:600px;height:520px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ────────────────────────────── */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* ── Dialog body ─────────────────────────────── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:16px 18px;overflow:auto;background:#fff;gap:10px}
+
+/* ── Radio-mode selector ─────────────────────── */
+.mode-row{display:flex;gap:20px;padding:8px 10px;background:#f0f4fb;border:1px solid #c8d8f0;border-radius:4px}
+.mode-radio{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;font-weight:400;cursor:default}
+.mode-radio.active{color:#1a3f7a;font-weight:600}
+.mode-radio input{accent-color:#2B579A}
+
+/* ── Form rows ───────────────────────────────── */
+.form-section{background:#fafbfc;border:1px solid #d8e4f0;border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.form-row{display:flex;align-items:center;gap:8px}
+.form-label{width:130px;font-size:11.5px;color:#444;flex-shrink:0;text-align:right}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff}
+.form-input.placeholder{color:#888}
+.btn-small{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:3px 9px;font-size:11px;cursor:default;white-space:nowrap}
+
+/* ── Status line ─────────────────────────────── */
+.status-info{color:#555;font-size:11.5px;display:flex;align-items:center;gap:5px}
+
+/* ── Bottom buttons ──────────────────────────── */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Dialog header -->
+  <div class="dlg-header">
+    <h2>KeePass Configuration</h2>
+    <p>Create a new KeePass database</p>
+  </div>
+
+  <!-- Dialog body -->
+  <div class="dlg-body">
+
+    <!-- Mode radio buttons -->
+    <div class="mode-row">
+      <label class="mode-radio"><input type="radio" name="mode"> Open existing database</label>
+      <label class="mode-radio active"><input type="radio" name="mode" checked> Create new database</label>
+    </div>
+
+    <!-- Create-mode form -->
+    <div class="form-section">
+      <div class="form-row">
+        <span class="form-label">New database file</span>
+        <input class="form-input" type="text" value="C:\Users\jsmith\Documents\project.kdbx" readonly>
+        <button class="btn-small">Browse…</button>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Key file</span>
+        <input class="form-input placeholder" type="text" value="(optional)" readonly>
+        <button class="btn-small">Browse…</button>
+        <button class="btn-small">Generate…</button>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Password</span>
+        <input class="form-input" type="password" value="••••••••••" readonly>
+        <button class="btn-small">Show</button>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Confirm password</span>
+        <input class="form-input" type="password" value="••••••••••" readonly>
+        <button class="btn-small">Show</button>
+      </div>
+      <div class="form-row" style="align-items:center;gap:6px;padding-left:134px">
+        <input type="checkbox" checked style="accent-color:#2B579A"> <span style="font-size:11.5px;color:#333">Save password for automatic unlock</span>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-info">Enter a save path and at least one of: password or key file.</div>
+
+  </div><!-- /.dlg-body -->
+
+  <!-- Footer buttons -->
+  <div class="dlg-footer">
+    <button class="btn-primary">OK</button>
+    <button class="btn-default">Cancel</button>
+  </div>
+
+</div><!-- /.window -->
+
+</body>
+</html>

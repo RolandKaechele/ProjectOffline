@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dependencies — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html" class="active">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Dependencies</h1>
+    <p>Create and manage task predecessor relationships — Finish-to-Start, Finish-to-Finish, Start-to-Start, and Start-to-Finish.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Dependencies</div>
+
+    <h2>The Dependency View</h2>
+    <p>Open the <strong>Dependencies</strong> tab to see every predecessor relationship
+    in the project.  Each row represents one link between two tasks.</p>
+    <table>
+      <thead><tr><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Task ID</td><td>ID of the successor task (the task that depends on another)</td></tr>
+        <tr><td>Task Name</td><td>Name of the successor task</td></tr>
+        <tr><td>Predecessor ID</td><td>ID of the task that must progress first</td></tr>
+        <tr><td>Predecessor Name</td><td>Name of the predecessor task</td></tr>
+        <tr><td>Link Type</td><td>Relationship type: <code>FS</code>, <code>FF</code>, <code>SS</code>, or <code>SF</code></td></tr>
+        <tr><td>Lag</td><td>Additional delay (positive) or overlap (negative) e.g. <code>2.0d</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Relationship Types</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Name</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FS</strong></td><td>Finish-to-Start</td><td>Successor starts after predecessor <em>finishes</em>. Most common type.</td></tr>
+        <tr><td><strong>FF</strong></td><td>Finish-to-Finish</td><td>Successor finishes no earlier than predecessor finishes.</td></tr>
+        <tr><td><strong>SS</strong></td><td>Start-to-Start</td><td>Successor starts no earlier than predecessor starts.</td></tr>
+        <tr><td><strong>SF</strong></td><td>Start-to-Finish</td><td>Successor finishes no earlier than predecessor starts.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Adding a Dependency</h2>
+    <ol>
+      <li>In the Dependencies tab, right-click &rarr; <strong>Insert Dependency</strong>
+          (or press <code>Insert</code>).</li>
+      <li>The <strong>Dependency</strong> dialog opens — select the <em>successor task</em>
+          and the <em>predecessor task</em> from the drop-down lists.</li>
+      <li>Choose the <strong>Link Type</strong> and enter an optional <strong>Lag</strong> (days).</li>
+      <li>Click <strong>OK</strong>.  The relationship is stored and the Gantt chart
+          automatically redraws.</li>
+    </ol>
+
+    <h2>Editing a Dependency</h2>
+    <p>Double-click any row in the Dependencies tab to re-open the dialog and change
+    the link type or lag.  Predecessor and successor tasks cannot be changed in-place —
+    delete the row and create a new one instead.</p>
+
+    <h2>Deleting a Dependency</h2>
+    <p>Select the row and press <code>Delete</code>, or right-click &rarr;
+    <strong>Delete Dependency</strong>.  Use <strong>Undo</strong> to reverse.</p>
+
+    <h2>Viewing in the Gantt Chart</h2>
+    <p>Dependency arrows are not drawn on the Gantt chart in the current release.
+    The <em>Predecessors</em> column in the task sheet shows each predecessor as
+    <code>ID — Task Name</code> (e.g. <code>6 — Component design</code>).
+    Multiple predecessors are separated by commas.</p>
+  </div>
+</div>
+
+</body>
+</html>

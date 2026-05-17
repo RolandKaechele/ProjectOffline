@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Email Configuration – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:620px;height:480px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ────────────────────────────── */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* ── Dialog body ─────────────────────────────── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:16px 18px;overflow:auto;background:#fff;gap:14px}
+
+/* ── Section title ────────────────────────────── */
+.section-title{font-size:12px;font-weight:700;color:#222;margin:0 0 4px;padding:0 4px}
+.section-sep{height:1px;background:#ddd;margin:-6px 0 6px}
+
+/* ── KeePass status box ──────────────────────── */
+.keepass-status{background:#e8f6e8;border:1px solid #107C10;border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.status-line{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#107C10}
+.status-line::before{content:"✓"}
+.entry-row{display:flex;align-items:center;gap:8px;margin-left:20px}
+.entry-label{font-size:11px;color:#555;font-weight:400}
+.entry-combo{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:11px;color:#222;background:#fff;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232B579A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;max-width:280px}
+
+/* ── SMTP settings form ──────────────────────── */
+.form-section{display:flex;flex-direction:column;gap:10px;padding:8px 12px}
+.form-row{display:flex;align-items:center;gap:8px}
+.form-label{width:130px;font-size:11.5px;color:#444;flex-shrink:0}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:11.5px;color:#222;background:#fff;max-width:320px}
+.form-input-port{flex:0 0 80px;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:11.5px;color:#222;background:#fff;text-align:center}
+.btn-small{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:4px 10px;font-size:11px;cursor:default}
+.btn-small:hover{background:#d0e4f8}
+
+/* ── Checkbox ────────────────────────────────── */
+.check-row{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#333;margin-left:138px}
+.check-row input{accent-color:#2B579A}
+
+/* ── Button row ──────────────────────────────── */
+.btn-row{display:flex;gap:10px;margin-top:6px;padding-left:12px}
+.btn-test{border:1px solid #2B579A;background:#fff;color:#2B579A;border-radius:3px;padding:6px 16px;font-size:11.5px;cursor:default;font-weight:600}
+.btn-test:hover{background:#f0f6ff}
+
+/* ── Bottom buttons ──────────────────────────── */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Dialog header -->
+  <div class="dlg-header">
+    <h2>Email Configuration</h2>
+    <p>Select email account and configure sender details for this project</p>
+  </div>
+
+  <!-- Dialog body -->
+  <div class="dlg-body">
+
+    <!-- KeePass Section -->
+    <div>
+      <div class="section-title">KeePass Credentials</div>
+      <div class="section-sep"></div>
+      <div class="keepass-status">
+        <div class="status-line">KeePass Database Unlocked</div>
+        <div class="entry-row">
+          <span class="entry-label">Entry:</span>
+          <select class="entry-combo">
+            <option selected>Email/SMTP Credentials</option>
+            <option>Other/Credentials</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Account Section -->
+    <div>
+      <div class="section-title">Email Account</div>
+      <div class="section-sep"></div>
+      <div class="form-section">
+        <div class="form-row">
+          <span class="form-label">Account:</span>
+          <input class="form-input" type="text" value="Work ★ — mail.corp.com" readonly>
+          <button class="btn-small">Manage Accounts&hellip;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sender (Per-Project) Section -->
+    <div>
+      <div class="section-title">Sender (Per-Project)</div>
+      <div class="section-sep"></div>
+      <div class="form-section">
+        <div class="form-row">
+          <span class="form-label">Sender Address:</span>
+          <input class="form-input" type="text" value="alice@corp.com" readonly>
+          <button class="btn-small">From KeePass&hellip;</button>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Sender Name:</span>
+          <input class="form-input" type="text" value="Alice Smith" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test buttons -->
+    <div class="btn-row">
+      <button class="btn-test">Test Connection</button>
+      <button class="btn-test">Send Test Email</button>
+    </div>
+
+  </div>
+
+  <!-- Dialog footer -->
+  <div class="dlg-footer">
+    <button class="btn-primary">Save</button>
+    <button class="btn-default">Cancel</button>
+  </div>
+
+</div>
+
+</body>
+</html>

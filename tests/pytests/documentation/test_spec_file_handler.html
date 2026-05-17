@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: File Handler, Export & Import &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; File Handler, Export & Import</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#export_gantt">export gantt</a>
+  <a href="#file_handler">file handler</a>
+  <a href="#icons">icons</a>
+  <a href="#import_plantuml">import plantuml</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">74</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">74</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">4</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="export_gantt">
+  <div class="module-header"><h2>export_gantt.py</h2><span class="badge">15 tests</span></div>
+  <div class="module-desc">Gantt export helpers: safe filename sanitisation, SVG rendering, PlantUML text generation for empty and non-empty projects.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-01</span>
+          <span class="test-name">Safe filename basic</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _safe_filename</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _safe_filename(&quot;John Smith&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>&quot;John Smith&quot;  # Spaces are not replaced</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == &quot;John Smith&quot;  # Spaces are not replaced</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-02</span>
+          <span class="test-name">Safe filename special chars</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _safe_filename</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _safe_filename(&quot;Test/File\\Name:With*Special?Chars&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;/&quot; not</code> is contained in <code>result</code>. <code>&quot;\\&quot; not</code> is contained in <code>result</code>. <code>&quot;:&quot; not</code> is contained in <code>result</code>. … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;/&quot; not in result</code><br><code>assert &quot;\\&quot; not in result</code><br><code>assert &quot;:&quot; not in result</code><br><code>assert &quot;*&quot; not in result</code><br><code>assert &quot;?&quot; not in result</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-03</span>
+          <span class="test-name">Safe filename empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _safe_filename</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _safe_filename(&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>&quot;resource&quot;  # Default fallback</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == &quot;resource&quot;  # Default fallback</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-04</span>
+          <span class="test-name">Write text</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _write_text</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.txt&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>_write_text(path, &quot;test content&quot;)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>content</code> equals <code>&quot;test content&quot;</code>. finally: if os.path.exists(path): … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert content == &quot;test content&quot;</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-05</span>
+          <span class="test-name">Export gantt svg calls render</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_svg</code><br><code>with patch(&#x27;export_gantt._render_gantt_svg&#x27;) as mock_render:</code><br><code>export_gantt_svg(mock_canvas, &quot;output.svg&quot;)</code><br><code>mock_render.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>call_args = mock_render.call_args</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>call_args[1][&#x27;path&#x27;]</code> equals <code>&quot;output.svg&quot;</code>. <code>call_args[1][&#x27;tasks&#x27;]</code> equals <code>[]</code>. <code>call_args[1][&#x27;title&#x27;]</code> equals <code>&quot;Gantt Chart&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert call_args[1][&#x27;path&#x27;] == &quot;output.svg&quot;</code><br><code>assert call_args[1][&#x27;tasks&#x27;] == []</code><br><code>assert call_args[1][&#x27;title&#x27;] == &quot;Gantt Chart&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-06</span>
+          <span class="test-name">Export resource gantt svg no tasks</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_resource_gantt_svg</code></div>
+          <div class="block"><div class="block-label">Run</div><code>count = export_resource_gantt_svg(mock_canvas, &quot;output_dir&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>count</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert count == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-07</span>
+          <span class="test-name">Export resource gantt svg no resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_resource_gantt_svg</code><br><code>mock_canvas.tasks = [mock_task]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>count = export_resource_gantt_svg(mock_canvas, &quot;output_dir&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>count</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert count == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-08</span>
+          <span class="test-name">Export resource gantt svg with resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_resource_gantt_svg</code><br><code>mock_resource = MagicMock()</code><br><code>mock_resource.getName.return_value = &quot;John Smith&quot;</code><br><code>mock_assignment = MagicMock()</code><br><code>mock_assignment.getResource.return_value = mock_resource</code><br><code>mock_date = MagicMock()</code><br><code>mock_date.getYear.return_value = 2024</code><br><code>mock_date.getMonthValue.return_value = 1</code><br><code>mock_date.getDayOfMonth.return_value = 1</code><br><code>mock_finish = MagicMock()</code><br><code>mock_finish.getYear.return_value = 2024</code><br><code>mock_finish.getMonthValue.return_value = 1</code><br><code>mock_finish.getDayOfMonth.return_value = 10</code><br><code>mock_task.getResourceAssignments.return_value = [mock_assignment]</code><br><code>mock_task.getStart.return_value = mock_date</code><br><code>mock_task.getFinish.return_value = mock_finish</code><br><code>mock_canvas.tasks = [mock_task]</code><br><code>with tempfile.TemporaryDirectory() as tmpdir, \</code><br><code>patch(&#x27;export_gantt._render_gantt_svg&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>count = export_resource_gantt_svg(mock_canvas, tmpdir)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>count</code> is = <code>0  # May be 0 if _to_qdate fails with mock</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert count &gt;= 0  # May be 0 if _to_qdate fails with mock</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-09</span>
+          <span class="test-name">Export gantt plantuml empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_plantuml</code><br><code>mock_canvas.tasks = []</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.puml&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>export_gantt_plantuml(mock_canvas, path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;@startgantt&quot;</code> is contained in <code>content</code>. <code>&quot;@endgantt&quot;</code> is contained in <code>content</code>. finally: … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;@startgantt&quot; in content</code><br><code>assert &quot;@endgantt&quot; in content</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-10</span>
+          <span class="test-name">Export gantt plantuml with tasks</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_plantuml</code><br><code>mock_task.getName.return_value = &quot;Task 1&quot;</code><br><code>mock_task.getID.return_value = 1</code><br><code>mock_date = MagicMock()</code><br><code>mock_date.getYear.return_value = 2024</code><br><code>mock_date.getMonthValue.return_value = 1</code><br><code>mock_date.getDayOfMonth.return_value = 5</code><br><code>mock_task.getStart.return_value = mock_date</code><br><code>mock_duration = MagicMock()</code><br><code>mock_duration.getDuration.return_value = 5.0</code><br><code>mock_task.getDuration.return_value = mock_duration</code><br><code>mock_canvas.tasks = [mock_task]</code><br><code>mock_canvas.total_days = 30</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.puml&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>export_gantt_plantuml(mock_canvas, path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;@startgantt&quot;</code> is contained in <code>content</code>. <code>&quot;@endgantt&quot;</code> is contained in <code>content</code>. <code>&quot;Project starts&quot;</code> is contained in <code>content</code>. … and 4 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;@startgantt&quot; in content</code><br><code>assert &quot;@endgantt&quot; in content</code><br><code>assert &quot;Project starts&quot; in content</code><br><code>assert &quot;printscale&quot; in content</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-11</span>
+          <span class="test-name">Export gantt plantuml long project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_plantuml</code><br><code>mock_task.getName.return_value = &quot;Task 1&quot;</code><br><code>mock_task.getID.return_value = 1</code><br><code>mock_date = MagicMock()</code><br><code>mock_date.getYear.return_value = 2024</code><br><code>mock_date.getMonthValue.return_value = 1</code><br><code>mock_date.getDayOfMonth.return_value = 1</code><br><code>mock_task.getStart.return_value = mock_date</code><br><code>mock_duration = MagicMock()</code><br><code>mock_duration.getDuration.return_value = 10.0</code><br><code>mock_task.getDuration.return_value = mock_duration</code><br><code>mock_canvas.tasks = [mock_task]</code><br><code>mock_canvas.total_days = 400  # &gt; 365 days</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.puml&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>export_gantt_plantuml(mock_canvas, path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;printscale monthly&quot;</code> is contained in <code>content</code>. finally: if os.path.exists(path): … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;printscale monthly&quot; in content</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-12</span>
+          <span class="test-name">Export gantt plantuml medium project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_plantuml</code><br><code>mock_task.getName.return_value = &quot;Task 1&quot;</code><br><code>mock_task.getID.return_value = 1</code><br><code>mock_date = MagicMock()</code><br><code>mock_date.getYear.return_value = 2024</code><br><code>mock_date.getMonthValue.return_value = 1</code><br><code>mock_date.getDayOfMonth.return_value = 1</code><br><code>mock_task.getStart.return_value = mock_date</code><br><code>mock_duration = MagicMock()</code><br><code>mock_duration.getDuration.return_value = 10.0</code><br><code>mock_task.getDuration.return_value = mock_duration</code><br><code>mock_canvas.tasks = [mock_task]</code><br><code>mock_canvas.total_days = 150  # 90 &lt; days &lt;= 365</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.puml&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>export_gantt_plantuml(mock_canvas, path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;printscale weekly&quot;</code> is contained in <code>content</code>. finally: if os.path.exists(path): … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;printscale weekly&quot; in content</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-13</span>
+          <span class="test-name">Export gantt plantuml dependencies</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import export_gantt_plantuml</code><br><code>task1 = MagicMock()</code><br><code>task1.getName.return_value = &quot;Task 1&quot;</code><br><code>task1.getID.return_value = 1</code><br><code>task1.getOutlineLevel.return_value = 1</code><br><code>task1.getPredecessors.return_value = []</code><br><code>mock_date1 = MagicMock()</code><br><code>mock_date1.getYear.return_value = 2024</code><br><code>mock_date1.getMonthValue.return_value = 1</code><br><code>mock_date1.getDayOfMonth.return_value = 1</code><br><code>task1.getStart.return_value = mock_date1</code><br><code>mock_duration1 = MagicMock()</code><br><code>mock_duration1.getDuration.return_value = 5.0</code><br><code>task1.getDuration.return_value = mock_duration1</code><br><code>task2 = MagicMock()</code><br><code>task2.getName.return_value = &quot;Task 2&quot;</code><br><code>task2.getID.return_value = 2</code><br><code>task2.getOutlineLevel.return_value = 1</code><br><code>pred_rel = MagicMock()</code><br><code>pred_rel.getTargetTask.return_value = task1</code><br><code>pred_rel.getType.return_value = MagicMock()  # FS type</code><br><code>task2.getPredecessors.return_value = [pred_rel]</code><br><code>mock_date2 = MagicMock()</code><br><code>mock_date2.getYear.return_value = 2024</code><br><code>mock_date2.getMonthValue.return_value = 1</code><br><code>mock_date2.getDayOfMonth.return_value = 10</code><br><code>task2.getStart.return_value = mock_date2</code><br><code>mock_duration2 = MagicMock()</code><br><code>mock_duration2.getDuration.return_value = 5.0</code><br><code>task2.getDuration.return_value = mock_duration2</code><br><code>mock_canvas.tasks = [task1, task2]</code><br><code>mock_canvas.total_days = 30</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, delete=False, suffix=&#x27;.puml&#x27;) as f:</code><br><code>path = f.name</code><br><code>try:</code><br><code>export_gantt_plantuml(mock_canvas, path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>content = f.read()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;@startgantt&quot;</code> is contained in <code>content</code>. <code>&quot;@endgantt&quot;</code> is contained in <code>content</code>. finally: … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;@startgantt&quot; in content</code><br><code>assert &quot;@endgantt&quot; in content</code><br><code>finally:</code><br><code>if os.path.exists(path):</code><br><code>os.remove(path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-14</span>
+          <span class="test-name">Render gantt svg creates file</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _render_gantt_svg</code><br><code>from PyQt5.QtCore import QDate</code><br><code>with tempfile.TemporaryDirectory() as tmpdir:</code><br><code>path = os.path.join(tmpdir, &#x27;test.svg&#x27;)</code><br><code>_render_gantt_svg(</code><br><code>path=path,</code><br><code>tasks=[],</code><br><code>project_start=QDate(2024, 1, 1),</code><br><code>total_days=30,</code><br><code>day_width=20,</code><br><code>show_sundays=True,</code><br><code>non_working_dates=set(),</code><br><code>critical_ids=set(),</code><br><code>show_resource_units=False,</code><br><code>title=&quot;Test Chart&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>os.path.exists(path)</code> is truthy. with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f: content = f.read() … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.path.exists(path)</code><br><code>with open(path, &#x27;r&#x27;, encoding=&#x27;utf-8&#x27;) as f:</code><br><code>content = f.read()</code><br><code>assert len(content) &gt; 0</code><br><code>assert &#x27;&lt;svg&#x27; in content or &#x27;svg&#x27; in content.lower()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">EG-15</span>
+          <span class="test-name">Safe filename unicode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from export_gantt import _safe_filename</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _safe_filename(&quot;Müller &amp; Söhne&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> is greater than <code>0</code>. <code>&quot;/&quot; not</code> is contained in <code>result</code>. <code>&quot;\\&quot; not</code> is contained in <code>result</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) &gt; 0</code><br><code>assert &quot;/&quot; not in result</code><br><code>assert &quot;\\&quot; not in result</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="file_handler">
+  <div class="module-header"><h2>file_handler.py</h2><span class="badge">21 tests</span></div>
+  <div class="module-desc">MPXJ file open/save via JPype: JVM lifecycle, project data storage in logic, XML semicolon normalisation before write, sidecar JSON sidecar expansion on save (JSON-object strings → nested dicts) and re-serialisation on load (nested dicts → JSON strings).</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestConstructor — Constructor</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-01</span>
+          <span class="test-name">Does not start jvm if already running</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>with patch.object(jpype, &#x27;isJVMStarted&#x27;, return_value=True) as mock_running, \</code><br><code>patch.object(jpype, &#x27;startJVM&#x27;) as mock_start:</code><br><code>fh_mod.ProjectFileHandler(logic)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_start.assert_not_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>does not start jvm if already running</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-02</span>
+          <span class="test-name">Starts jvm if not running</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>with patch.object(jpype, &#x27;isJVMStarted&#x27;, return_value=False), \</code><br><code>patch.object(jpype, &#x27;startJVM&#x27;) as mock_start:</code><br><code>fh_mod.ProjectFileHandler(logic)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_start.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>starts jvm if not running</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-03</span>
+          <span class="test-name">Jvm started with log4j arg</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>logic = ProjectLogic()</code><br><code>with patch.object(jpype, &#x27;isJVMStarted&#x27;, return_value=False), \</code><br><code>patch.object(jpype, &#x27;startJVM&#x27;) as mock_start:</code><br><code>fh_mod.ProjectFileHandler(logic)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = mock_start.call_args[0]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>any(&quot;log4j&quot;</code> is contained in <code>str(a) for a in args)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert any(&quot;log4j&quot; in str(a) for a in args)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-04</span>
+          <span class="test-name">Logic reference stored</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>handler, logic = _handler()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>handler.logic is logic</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert handler.logic is logic</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestOpenProject — Open Project</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-05</span>
+          <span class="test-name">Open project success stores data in logic</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code><br><code>mock_project = MagicMock()</code><br><code>mock_reader  = MagicMock()</code><br><code>mock_reader.read.return_value = mock_project</code><br><code>xml_file = tmp_path / &quot;test.xml&quot;</code><br><code>xml_file.write_text(&quot;&lt;xml/&gt;&quot;)</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.reader&#x27;: MagicMock(),</code><br><code>}):</code><br><code>with patch(&#x27;file_handler.UniversalProjectReader&#x27;, mock_reader, create=True):</code><br><code>import importlib</code><br><code>pass</code><br><code>mock_upj_module = MagicMock()</code><br><code>mock_upj_module.UniversalProjectReader.return_value = mock_reader</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.reader&#x27;: mock_upj_module,</code><br><code>}):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = handler.open_project(str(xml_file))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. <code>logic.get_data() is mock_project</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>assert logic.get_data() is mock_project</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-06</span>
+          <span class="test-name">Open project returns false on exception</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.reader&#x27;: MagicMock(),</code><br><code>}):</code><br><code>mock_upj_module = MagicMock()</code><br><code>mock_upj_module.UniversalProjectReader.return_value.read.side_effect = \</code><br><code>RuntimeError(&quot;bad file&quot;)</code><br><code>with patch.dict(sys.modules, {&#x27;org.mpxj.reader&#x27;: mock_upj_module}):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = handler.open_project(&quot;/nonexistent/file.xml&quot;, parent=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-07</span>
+          <span class="test-name">Open project returns false logic unchanged on failure</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code><br><code>logic.load_data(&quot;original&quot;)</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.reader&#x27;: MagicMock(),</code><br><code>}):</code><br><code>mock_upj_module = MagicMock()</code><br><code>mock_upj_module.UniversalProjectReader.return_value.read.side_effect = \</code><br><code>RuntimeError(&quot;corrupt&quot;)</code><br><code>with patch.dict(sys.modules, {&#x27;org.mpxj.reader&#x27;: mock_upj_module}):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler.open_project(&quot;/bad/path.mpp&quot;, parent=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>logic.get_data()</code> equals <code>&quot;original&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert logic.get_data() == &quot;original&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSaveProject — Save Project</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-08</span>
+          <span class="test-name">Save project returns false when no project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = handler.save_project(str(tmp_path / &quot;out.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-09</span>
+          <span class="test-name">Save project calls writer</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code><br><code>mock_project = MagicMock()</code><br><code>logic.load_data(mock_project)</code><br><code>mock_writer = MagicMock()</code><br><code>mock_mspdi_module = MagicMock()</code><br><code>mock_mspdi_module.MSPDIWriter.return_value = mock_writer</code><br><code>out_path = str(tmp_path / &quot;out.xml&quot;)</code><br><code>mock_java_lang = MagicMock()</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.mspdi&#x27;: mock_mspdi_module,</code><br><code>&#x27;java&#x27;: MagicMock(),</code><br><code>&#x27;java.lang&#x27;: mock_java_lang,</code><br><code>}):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = handler.save_project(out_path)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. mock_writer.write.assert_called_once_with(mock_project, out_path)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>mock_writer.write.assert_called_once_with(mock_project, out_path)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-10</span>
+          <span class="test-name">Save project returns false on exception</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, logic = _handler()</code><br><code>mock_project = MagicMock()</code><br><code>logic.load_data(mock_project)</code><br><code>mock_mspdi_module = MagicMock()</code><br><code>mock_mspdi_module.MSPDIWriter.return_value.write.side_effect = RuntimeError(&quot;disk full&quot;)</code><br><code>with patch.dict(sys.modules, {</code><br><code>&#x27;org&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj&#x27;: MagicMock(),</code><br><code>&#x27;org.mpxj.mspdi&#x27;: mock_mspdi_module,</code><br><code>}):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = handler.save_project(str(tmp_path / &quot;out.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestXmlSemicolonNormalisation — Xml Semicolon Normalisation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-11</span>
+          <span class="test-name">Semicolon in resource name replaced in saved xml</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>xml_content = _minimal_xml(resource_names=[&quot;Smith; John&quot;, &quot;Doe, Jane&quot;])</code><br><code>dest = tmp_path / &quot;out.xml&quot;</code><br><code>dest.write_text(</code><br><code>&#x27;&lt;?xml version=\&#x27;1.0\&#x27; encoding=\&#x27;UTF-8\&#x27;?&gt;\n&#x27; + xml_content,</code><br><code>encoding=&#x27;utf-8&#x27;,</code><br><code>)</code><br><code>handler, _ = self._handler_with_xml(tmp_path, xml_content)</code><br><code>mock_project = MagicMock()</code><br><code>mock_project.getCustomFields.return_value = []</code><br><code>handler._patch_enterprise_cf_values(mock_project, str(dest))</code><br><code>import xml.etree.ElementTree as ET</code><br><code>tree = ET.parse(str(dest))</code><br><code>names = [</code><br><code>el.text</code><br><code>for el in tree.getroot().findall(f&#x27;.//{{{_MSPDI_NS}}}Name&#x27;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Smith, John&quot;</code> is contained in <code>names</code>. <code>&quot;Smith; John&quot; not</code> is contained in <code>names</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Smith, John&quot; in names</code><br><code>assert &quot;Smith; John&quot; not in names</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-12</span>
+          <span class="test-name">Comma resource name unchanged</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>xml_content = _minimal_xml(resource_names=[&quot;Doe, Jane&quot;])</code><br><code>dest = tmp_path / &quot;out.xml&quot;</code><br><code>dest.write_text(</code><br><code>&#x27;&lt;?xml version=\&#x27;1.0\&#x27; encoding=\&#x27;UTF-8\&#x27;?&gt;\n&#x27; + xml_content,</code><br><code>encoding=&#x27;utf-8&#x27;,</code><br><code>)</code><br><code>handler, _ = self._handler_with_xml(tmp_path, xml_content)</code><br><code>mock_project = MagicMock()</code><br><code>mock_project.getCustomFields.return_value = []</code><br><code>handler._patch_enterprise_cf_values(mock_project, str(dest))</code><br><code>import xml.etree.ElementTree as ET</code><br><code>tree = ET.parse(str(dest))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>names = [el.text for el in tree.getroot().findall(f&#x27;.//{{{_MSPDI_NS}}}Name&#x27;)]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Doe, Jane&quot;</code> is contained in <code>names</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Doe, Jane&quot; in names</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-13</span>
+          <span class="test-name">Multiple semicolons all replaced</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>xml_content = _minimal_xml(resource_names=[&quot;A; B; C&quot;])</code><br><code>dest = tmp_path / &quot;out.xml&quot;</code><br><code>dest.write_text(</code><br><code>&#x27;&lt;?xml version=\&#x27;1.0\&#x27; encoding=\&#x27;UTF-8\&#x27;?&gt;\n&#x27; + xml_content,</code><br><code>encoding=&#x27;utf-8&#x27;,</code><br><code>)</code><br><code>handler, _ = self._handler_with_xml(tmp_path, xml_content)</code><br><code>mock_project = MagicMock()</code><br><code>mock_project.getCustomFields.return_value = []</code><br><code>handler._patch_enterprise_cf_values(mock_project, str(dest))</code><br><code>import xml.etree.ElementTree as ET</code><br><code>tree = ET.parse(str(dest))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>names = [el.text for el in tree.getroot().findall(f&#x27;.//{{{_MSPDI_NS}}}Name&#x27;)]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;A, B, C&quot;</code> is contained in <code>names</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;A, B, C&quot; in names</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-14</span>
+          <span class="test-name">No resources no error</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>xml_content = _minimal_xml(task_uids=[1])</code><br><code>dest = tmp_path / &quot;out.xml&quot;</code><br><code>dest.write_text(</code><br><code>&#x27;&lt;?xml version=\&#x27;1.0\&#x27; encoding=\&#x27;UTF-8\&#x27;?&gt;\n&#x27; + xml_content,</code><br><code>encoding=&#x27;utf-8&#x27;,</code><br><code>)</code><br><code>handler, _ = self._handler_with_xml(tmp_path, xml_content)</code><br><code>mock_project = MagicMock()</code><br><code>mock_project.getCustomFields.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_enterprise_cf_values(mock_project, str(dest))</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no resources no error</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSaveCustomProperties &mdash; Save Custom Properties (Sidecar)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-15</span>
+          <span class="test-name">Json string value expanded to nested dict in sidecar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>payload = {&quot;filter&quot;: &quot;project = TEST&quot;, &quot;filter_type&quot;: &quot;jql&quot;}</code><br><code>project = _make_mock_project_with_props({&quot;jira2project&quot;: json.dumps(payload)})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_save_custom_properties(project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div>Sidecar JSON contains <code>data[&quot;jira2project&quot;]</code> as a <code>dict</code> with <code>filter == &quot;project = TEST&quot;</code> and <code>filter_type == &quot;jql&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(data[&quot;jira2project&quot;], dict)</code><br><code>assert data[&quot;jira2project&quot;][&quot;filter&quot;] == &quot;project = TEST&quot;</code><br><code>assert data[&quot;jira2project&quot;][&quot;filter_type&quot;] == &quot;jql&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-16</span>
+          <span class="test-name">Plain string value stored as string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>project = _make_mock_project_with_props({&quot;My Key&quot;: &quot;my value&quot;})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_save_custom_properties(project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data[&quot;My Key&quot;]</code> equals <code>&quot;my value&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data[&quot;My Key&quot;] == &quot;my value&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-17</span>
+          <span class="test-name">Invalid json starting with brace stored as string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>project = _make_mock_project_with_props({&quot;bad&quot;: &quot;{not json&quot;})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_save_custom_properties(project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data[&quot;bad&quot;]</code> equals <code>&quot;{not json&quot;</code> (stored as-is, not expanded).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data[&quot;bad&quot;] == &quot;{not json&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-18</span>
+          <span class="test-name">No sidecar created when custom properties empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>mock_cp.size.return_value = 0</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_save_custom_properties(mock_project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div>No sidecar file <code>proj.xml.custom-props.json</code> is created.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not (tmp_path / &quot;proj.xml.custom-props.json&quot;).exists()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestLoadCustomProperties &mdash; Load Custom Properties (Sidecar)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-19</span>
+          <span class="test-name">Nested dict in sidecar loaded as json string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>payload = {&quot;filter&quot;: &quot;project = X&quot;, &quot;filter_type&quot;: &quot;jql&quot;}</code><br><code>sidecar.write_text(json.dumps({&quot;jira2project&quot;: payload}))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_load_custom_properties(mock_project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div>HashMap receives <code>&quot;jira2project&quot;</code> mapped to a JSON string; parsed value has <code>filter == &quot;project = X&quot;</code> and <code>filter_type == &quot;jql&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;jira2project&quot; in captured</code><br><code>loaded = json.loads(captured[&quot;jira2project&quot;])</code><br><code>assert loaded[&quot;filter&quot;] == &quot;project = X&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-20</span>
+          <span class="test-name">Plain string in sidecar passed through</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>sidecar.write_text(json.dumps({&quot;My Key&quot;: &quot;my value&quot;}))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_load_custom_properties(mock_project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div>HashMap <code>put</code> receives <code>&quot;My Key&quot;</code> → <code>&quot;my value&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert captured.get(&quot;My Key&quot;) == &quot;my value&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">FH-21</span>
+          <span class="test-name">Missing sidecar is no op</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>handler, _ = _handler()</code><br><code>mock_project = MagicMock()  # no sidecar written</code></div>
+          <div class="block"><div class="block-label">Run</div><code>handler._patch_load_custom_properties(mock_project, str(tmp_path / &quot;proj.xml&quot;))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>setCustomProperties</code> is never called.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_project.getProjectProperties.return_value.setCustomProperties.assert_not_called()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="icons">
+  <div class="module-header"><h2>icons.py</h2><span class="badge">20 tests</span></div>
+  <div class="module-desc">Icon factory functions: return type (QIcon/QPixmap), custom colour/size parameters, standard-icon lookup.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-01</span>
+          <span class="test-name">Gantt chart icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import gantt_chart</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = gantt_chart()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-02</span>
+          <span class="test-name">Resource sheet icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import resource_sheet</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = resource_sheet()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-03</span>
+          <span class="test-name">Paste icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import paste</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = paste()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-04</span>
+          <span class="test-name">Cut icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import cut</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = cut()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-05</span>
+          <span class="test-name">Copy icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import copy</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = copy()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-06</span>
+          <span class="test-name">Insert task icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import insert_task</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = insert_task()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-07</span>
+          <span class="test-name">Delete task icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import delete_task</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = delete_task()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-08</span>
+          <span class="test-name">Add resource icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import add_resource</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-09</span>
+          <span class="test-name">Delete resource icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import delete_resource</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = delete_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-10</span>
+          <span class="test-name">Export svg icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import export_svg</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = export_svg()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-11</span>
+          <span class="test-name">Export plantuml icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import export_plantuml</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = export_plantuml()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-12</span>
+          <span class="test-name">Dependencies icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import dependencies</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = dependencies()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-13</span>
+          <span class="test-name">Baseline icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import baseline</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = baseline()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-14</span>
+          <span class="test-name">Team planner icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import team_planner</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = team_planner()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-15</span>
+          <span class="test-name">Sync calendar icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import sync_calendar</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = sync_calendar()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-16</span>
+          <span class="test-name">Confluence settings icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import confluence_settings</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = confluence_settings()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-17</span>
+          <span class="test-name">Icon from glyph default</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import _icon_from_glyph</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = _icon_from_glyph(&quot;?&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-18</span>
+          <span class="test-name">Icon from glyph custom color</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import _icon_from_glyph</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = _icon_from_glyph(&quot;?&quot;, color=&quot;#FF0000&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-19</span>
+          <span class="test-name">Icon from glyph custom size</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from icons import _icon_from_glyph</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = _icon_from_glyph(&quot;?&quot;, size=48)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IC-20</span>
+          <span class="test-name">Std icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtWidgets import QStyle</code><br><code>from icons import _std</code></div>
+          <div class="block"><div class="block-label">Run</div><code>icon = _std(QStyle.SP_DialogOkButton)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(icon, QIcon)</code> is truthy. <code>icon.isNull()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(icon, QIcon)</code><br><code>assert not icon.isNull()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="import_plantuml">
+  <div class="module-header"><h2>import_plantuml.py</h2><span class="badge">18 tests</span></div>
+  <div class="module-desc">PlantUML import parser: task/milestone/dependency/project-start parsing, percentage complete, error handling.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestBasicTaskParsing — Basic Task Parsing</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-01</span>
+          <span class="test-name">Single task calls addTask</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-06</code><br><code>[Design] as [T1] starts 2025-01-06 and lasts 5 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.addTask.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>single task calls addtask</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-02</span>
+          <span class="test-name">Multiple tasks adds correct count</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-06</code><br><code>[Task A] as [A] starts 2025-01-06 and lasts 3 days</code><br><code>[Task B] as [B] starts 2025-01-10 and lasts 2 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addTask.call_count</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert project.addTask.call_count == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-03</span>
+          <span class="test-name">Task name is set</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-02-01</code><br><code>[My Task] as [MT] starts 2025-02-01 and lasts 1 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.setName.assert_called_with(&quot;My Task&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>task name is set</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-04</span>
+          <span class="test-name">Task duration is set</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-02-01</code><br><code>[Work] as [W] starts 2025-02-01 and lasts 7 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.setDuration.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>task duration is set</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-05</span>
+          <span class="test-name">Blank lines and comments are ignored</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>&#x27; this is a comment</code><br><code>Project starts 2025-01-01</code><br><code>[A] as [A1] starts 2025-01-01 and lasts 1 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.addTask.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>blank lines and comments are ignored</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestMilestoneParsing — Milestone Parsing</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-06</span>
+          <span class="test-name">Milestone calls addTask</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-03-01</code><br><code>[Kickoff] as [KO] happens at 2025-03-01</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.addTask.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>milestone calls addtask</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-07</span>
+          <span class="test-name">Milestone sets milestone flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-03-01</code><br><code>[Delivery] as [D] happens at 2025-03-15</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.setMilestone.assert_called_with(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>milestone sets milestone flag</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-08</span>
+          <span class="test-name">Milestone and task both parsed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[Task A] as [A] starts 2025-01-01 and lasts 5 days</code><br><code>[Gate] as [G] happens at 2025-01-06</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addTask.call_count</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert project.addTask.call_count == 2</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPercentageParsing — Percentage Parsing</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-09</span>
+          <span class="test-name">Pct complete is set</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[Work] as [W] starts 2025-01-01 and lasts 10 days</code><br><code>[W] is 40% completed</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.setPercentageComplete.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>pct complete is set</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-10</span>
+          <span class="test-name">Zero pct complete skips call</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[Task] as [T] starts 2025-01-01 and lasts 3 days</code><br><code>[T] is 0% completed</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.setPercentageComplete.assert_not_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>zero pct complete skips call</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDependencyParsing — Dependency Parsing</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-11</span>
+          <span class="test-name">Dependency adds predecessor</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[A] as [A1] starts 2025-01-01 and lasts 3 days</code><br><code>[B] as [B1] starts 2025-01-04 and lasts 2 days</code><br><code>[B1] starts after [A1]&#x27;s end</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, task = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.addPredecessor.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>dependency adds predecessor</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-12</span>
+          <span class="test-name">Colored lines are ignored</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[Task] as [T] starts 2025-01-01 and lasts 1 days</code><br><code>[T] is colored in LightBlue/Red</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.addTask.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>colored lines are ignored</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestProjectStart — Project Start</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-13</span>
+          <span class="test-name">No project start line still parses</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>[Task] as [T] starts 2025-01-01 and lasts 1 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.addTask.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no project start line still parses</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-14</span>
+          <span class="test-name">Project start sets project start date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-06-01</code><br><code>[T] as [T1] starts 2025-06-01 and lasts 1 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>_, project, _ = _call_import(puml)</code><br><code>props = project.getProjectProperties()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>props.setStartDate.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>project start sets project start date</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-15</span>
+          <span class="test-name">Returns project file object</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[T] as [T1] starts 2025-01-01 and lasts 1 days</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is project</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is project</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestErrorHandling — Error Handling</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-16</span>
+          <span class="test-name">No tasks raises value error</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>&#x27; Only comments, no tasks</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>mods, _, _ = _java_mocks()</code><br><code>import tempfile</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, suffix=&#x27;.puml&#x27;,</code><br><code>delete=False, encoding=&#x27;utf-8&#x27;) as f:</code><br><code>f.write(puml)</code><br><code>path = f.name</code><br><code>with patch.dict(sys.modules, mods):</code><br><code>from import_plantuml import import_plantuml</code><br><code>with pytest.raises(ValueError, match=&quot;No tasks found&quot;):</code><br><code>import_plantuml(path)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>os.unlink(path)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no tasks raises value error</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-17</span>
+          <span class="test-name">Dependency with invalid alias continues</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[A] as [A1] starts 2025-01-01 and lasts 3 days</code><br><code>[B] as [B1] starts 2025-01-04 and lasts 2 days</code><br><code>[B1] starts after [INVALID]&#x27;s end</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result, project, _ = _call_import(puml)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">IP-18</span>
+          <span class="test-name">Dependency exception is caught</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>puml = textwrap.dedent(&quot;&quot;&quot;\</code><br><code>@startgantt</code><br><code>Project starts 2025-01-01</code><br><code>[A] as [A1] starts 2025-01-01 and lasts 3 days</code><br><code>[B] as [B1] starts 2025-01-04 and lasts 2 days</code><br><code>[B1] starts after [A1]&#x27;s end</code><br><code>@endgantt</code><br><code>&quot;&quot;&quot;)</code><br><code>mods, project, task = _java_mocks()</code><br><code>task.addPredecessor.side_effect = Exception(&quot;Test exception&quot;)</code><br><code>import tempfile</code><br><code>with tempfile.NamedTemporaryFile(mode=&#x27;w&#x27;, suffix=&#x27;.puml&#x27;,</code><br><code>delete=False, encoding=&#x27;utf-8&#x27;) as f:</code><br><code>f.write(puml)</code><br><code>path = f.name</code><br><code>with patch.dict(sys.modules, mods):</code><br><code>from import_plantuml import import_plantuml</code><br><code>with patch(&#x27;builtins.print&#x27;) as mock_print:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = import_plantuml(path)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>any(&#x27;[WARN]&#x27;</code> is contained in <code>str(call) for call in mock_print.call_args_list)</code>. os.unlink(path)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert any(&#x27;[WARN]&#x27; in str(call) for call in mock_print.call_args_list)</code><br><code>os.unlink(path)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jira Integration – Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html" class="active">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Jira Integration</h1>
+    <p>Connect to Jira Cloud or Jira Server/Data Center to synchronize project tasks with Jira issues using API Token, Password, or Personal Access Token authentication.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>›</span> Jira Integration</div>
+
+    <h2>What Is Jira Integration?</h2>
+    <p>Project Offline includes <strong>Jira API connectivity</strong> that allows you to configure multiple Jira servers and synchronize project tasks with Jira issues. The integration supports three authentication methods to accommodate different Jira deployment types:</p>
+    
+    <ul>
+      <li><strong>API Token</strong> – For Jira Cloud instances (username + token via <code>basic_auth</code>)</li>
+      <li><strong>Password</strong> – For legacy Jira servers that allow basic authentication (username + password via <code>basic_auth</code>)</li>
+      <li><strong>Personal Access Token (PAT)</strong> – For Jira Server/Data Center with disabled basic authentication (token-only via <code>token_auth</code>)</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Secure Credential Storage</strong>
+      Jira credentials can be stored manually in Windows Registry (QSettings) or retrieved securely from your <strong>KeePass database</strong>. Credentials are automatically stripped of whitespace to prevent HTTP header validation errors.
+    </div>
+
+    <!-- ── Prerequisites ── -->
+    <h2>Prerequisites</h2>
+    <table>
+      <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Jira Server Access</td>
+          <td>A Jira Cloud instance or Jira Server/Data Center installation with API access enabled.</td>
+        </tr>
+        <tr>
+          <td>Credentials</td>
+          <td>Valid credentials for the Jira server:
+            <ul style="margin: 5px 0; padding-left: 20px;">
+              <li><strong>Jira Cloud:</strong> Your email address and an API Token generated from <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">Atlassian Account Settings</a></li>
+              <li><strong>Jira Server/Data Center with PAT:</strong> A Personal Access Token generated from your Jira profile settings</li>
+              <li><strong>Legacy Jira Server:</strong> Your username and password (if basic auth is enabled)</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>KeePass Database (Optional)</td>
+          <td>A configured and unlocked KeePass database to store credentials securely. See <a href="13_keepass.html">KeePass Credentials</a> for setup.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Configuration ── -->
+    <h2>Step 1 – Open Jira Sync Configuration</h2>
+    <p>Open the <strong>Jira Sync Configuration</strong> dialog from:</p>
+    <ul>
+      <li><strong>TASK ribbon tab</strong> → Click <strong>Jira Sync Config</strong> button</li>
+      <li><strong>Project menu</strong> → Select <strong>Jira</strong> → <strong>Jira Sync Configuration...</strong></li>
+    </ul>
+    
+    <figure class="screenshot">
+      <iframe title="Jira Sync Configuration" src="../presentation/screenshots/jira_sync_config.html" width="580" height="660" style="border:none;display:block;margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.15)"></iframe>
+      <figcaption>Jira Sync Configuration Dialog – Select a server, configure a filter, and choose which fields to import</figcaption>
+    </figure>
+
+    <p>The dialog is divided into a server selector at the top and a tab panel below:</p>
+
+    <h3>Server Selection</h3>
+    <ul>
+      <li><strong>Select a Jira server</strong> from the dropdown. The dropdown is disabled until at least one server is configured.</li>
+      <li>Click <strong>Add...</strong> to open the Jira Servers management dialog. The dropdown refreshes automatically when you return.</li>
+    </ul>
+
+    <h3>Tab: Jira → Project</h3>
+    <p>This tab controls how data is imported from Jira into your project.</p>
+
+    <h4>JQL Filter</h4>
+    <ul>
+      <li>Choose <strong>JQL</strong> to enter a raw Jira Query Language string (e.g., <code>project = MYPROJECT AND status = 'In Progress'</code>).</li>
+      <li>Choose <strong>Saved Filter (ID or URL)</strong> to reference a filter already saved in Jira — enter its numeric ID (e.g., <code>66111</code>) or paste the full filter URL.</li>
+      <li>Click <strong>Test Filter</strong> to preview matching issues before saving. The test fetches up to 50 issues and shows a summary of the first 10. For saved filters, the resolved JQL is also displayed.</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>Project-Specific Filters</strong>
+      The filter is stored in the project's custom properties (in the <code>.custom-props.json</code> sidecar file). Each project can have its own independent filter. You must have a project open to edit and save a filter — the controls are disabled otherwise.
+    </div>
+
+    <h4>Field Selection</h4>
+    <p>The <strong>Fields to Import from Jira</strong> section shows a scrollable list of individual field checkboxes organised into 8 groups. Essential fields (issue key, summary, project key, issue type) are always imported — only the additional fields below are configurable.</p>
+    <table>
+      <thead><tr><th>Group</th><th>Available Fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Core Information</strong></td>
+          <td>Project Name, Description</td>
+        </tr>
+        <tr>
+          <td><strong>Status and Resolution</strong></td>
+          <td>Status, Status Progress %, Resolution, Resolution Date, Security Level</td>
+        </tr>
+        <tr>
+          <td><strong>Assignment and Reporter</strong></td>
+          <td>Assignee, Assignee Display Name, Reporter, Reporter Display Name</td>
+        </tr>
+        <tr>
+          <td><strong>Priority and Dates</strong></td>
+          <td>Priority, Due Date, Created Date, Updated Date</td>
+        </tr>
+        <tr>
+          <td><strong>Versions and Components</strong></td>
+          <td>Components, Fix Versions, Affects Versions, Fix Version Description, Fix Version Released, Fix Version Start Date, Fix Version Release Date</td>
+        </tr>
+        <tr>
+          <td><strong>Labels and Metadata</strong></td>
+          <td>Labels, Environment, Votes, Comments</td>
+        </tr>
+        <tr>
+          <td><strong>Time Tracking</strong></td>
+          <td>Time Spent, Remaining Estimate, Original Estimate, Time Spent (seconds), Worklog Entries</td>
+        </tr>
+        <tr>
+          <td><strong>Hierarchy and Relationships</strong></td>
+          <td>Parent Key, Epic Link, Parent Link, Sub-task Parent, Issue Links</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Tick or untick individual fields as needed. The selection is saved per project in the <code>.custom-props.json</code> sidecar file.</p>
+
+    <div class="callout tip">
+      <strong>First Time Setup</strong>
+      If you haven't configured any Jira servers yet, the dropdown will be disabled. Click the <strong>Add...</strong> button to configure your first server. Once you return from the server configuration, the dropdown will update automatically.
+    </div>
+
+    <p>Click <strong>OK</strong> to save. The selected server is saved to your user settings and the filter and field selections are saved to the project's custom properties for all future synchronization operations.</p>
+
+    <h2>Step 2 – Manage Jira Servers</h2>
+    <p>To configure multiple Jira servers or modify existing ones, access the <strong>Jira Servers</strong> dialog from:</p>
+    <ul>
+      <li><strong>Project menu</strong> → Select <strong>Jira</strong> → <strong>Jira Servers...</strong></li>
+      <li><strong>Jira Sync Configuration</strong> dialog → Click <strong>Add...</strong> button</li>
+    </ul>
+    
+    <p>In the Jira Servers dialog, you can:</p>
+    <ul>
+      <li><strong>Add</strong> a new Jira server configuration</li>
+      <li><strong>Edit</strong> an existing server configuration</li>
+      <li><strong>Remove</strong> a server from the list</li>
+      <li><strong>Reorder</strong> servers using up/down buttons (for dropdown priority)</li>
+    </ul>
+
+    <h2>Step 3 – Add or Edit a Jira Server</h2>
+    <p>Click <strong>Add</strong> or <strong>Edit</strong> to open the <strong>Edit Jira Server</strong> dialog. Configure the following settings:</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 680 720" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <!-- Window chrome -->
+        <rect width="680" height="720" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="660" height="700" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="660" height="54" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="14" font-weight="bold">Edit Jira Server</text>
+        <text x="26" y="52" fill="#b8d0f0" font-size="11">Configure Jira server connection and authentication</text>
+        
+        <!-- Server Details Section -->
+        <text x="30" y="88" fill="#1a3f7a" font-size="12" font-weight="700">Server Details</text>
+        <rect x="30" y="96" width="620" height="1" fill="#ddd"/>
+        
+        <!-- Server Name -->
+        <rect x="30" y="108" width="620" height="96" fill="#fafbfc" stroke="#d8e4f0" rx="3"/>
+        <text x="50" y="130" fill="#444" font-size="11">Server Name:</text>
+        <rect x="210" y="118" width="420" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="133" fill="#222" font-size="11">EB Jira Production</text>
+        
+        <!-- Server URL -->
+        <text x="50" y="162" fill="#444" font-size="11">Server URL:</text>
+        <rect x="210" y="150" width="420" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="165" fill="#222" font-size="11">https://jira.example.com</text>
+        
+        <!-- JQL Query -->
+        <text x="50" y="194" fill="#444" font-size="11">JQL Query:</text>
+        <rect x="210" y="182" width="420" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="197" fill="#222" font-size="10">project = MYPROJECT AND status IN ('In Progress', 'Open')</text>
+        
+        <!-- Authentication Section -->
+        <text x="30" y="234" fill="#1a3f7a" font-size="12" font-weight="700">Authentication</text>
+        <rect x="30" y="242" width="620" height="1" fill="#ddd"/>
+        
+        <!-- Radio buttons for auth mode -->
+        <rect x="30" y="254" width="620" height="36" fill="#f0f4fb" stroke="#c8d8f0" rx="3"/>
+        <circle cx="50" cy="272" r="6" fill="white" stroke="#2B579A" stroke-width="2"/>
+        <circle cx="50" cy="272" r="3" fill="#2B579A"/>
+        <text x="64" y="276" fill="#1a3f7a" font-size="12" font-weight="600">Manual (username + credential)</text>
+        <circle cx="300" cy="272" r="6" fill="white" stroke="#2B579A" stroke-width="2"/>
+        <text x="314" y="276" fill="#1a3f7a" font-size="12" font-weight="600">From KeePass entry</text>
+        
+        <!-- Credentials Groupbox -->
+        <rect x="30" y="306" width="620" height="156" fill="#fafbfc" stroke="#2B579A" rx="3"/>
+        <rect x="40" y="299" width="86" height="18" fill="white"/>
+        <text x="46" y="311" fill="#2B579A" font-size="11" font-weight="700">Credentials</text>
+        
+        <!-- Credential Type dropdown -->
+        <text x="50" y="332" fill="#444" font-size="11">Credential Type:</text>
+        <rect x="210" y="320" width="420" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="335" fill="#1a3f7a" font-size="11">Personal Access Token (Server/Data Center)</text>
+        <polygon points="620,328 614,322 626,322" fill="#2B579A"/>
+        
+        <!-- Username field -->
+        <text x="50" y="364" fill="#444" font-size="11">Username:</text>
+        <rect x="210" y="352" width="420" height="22" fill="#f0f0f0" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="367" fill="#888" font-size="10" font-style="italic">Not required for PAT</text>
+        
+        <!-- Token/Password field -->
+        <text x="50" y="396" fill="#444" font-size="11">Personal Access Token:</text>
+        <rect x="210" y="384" width="370" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="220" y="399" fill="#222" font-size="11" letter-spacing="2">••••••••••••••••••••••••••</text>
+        <rect x="590" y="384" width="40" height="22" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="610" y="399" fill="#1a3f7a" font-size="10" font-weight="600" text-anchor="middle">Show</text>
+        
+        <!-- Info text -->
+        <text x="50" y="428" fill="#555" font-size="10">PAT mode uses token-based authentication (token_auth) and does not require a username.</text>
+        <text x="50" y="444" fill="#555" font-size="10">For Jira Cloud, select "API Token" and provide your email as username.</text>
+        
+        <!-- Test Connection button -->
+        <rect x="530" y="480" width="120" height="26" fill="#2B579A" rx="2"/>
+        <text x="590" y="498" fill="white" font-size="12" font-weight="600" text-anchor="middle">Test Connection</text>
+        
+        <!-- Success message (shown after test) -->
+        <rect x="30" y="520" width="620" height="36" fill="#e8f6e8" stroke="#107C10" rx="3"/>
+        <text x="50" y="542" fill="#107C10" font-size="11" font-weight="600">✓ Connection successful! Authenticated as: john.smith@example.com</text>
+        
+        <!-- Footer -->
+        <rect x="10" y="670" width="660" height="40" fill="#f0f4fb" stroke="#d0dce8" stroke-width="1"/>
+        <rect x="536" y="680" width="56" height="20" fill="#2B579A" rx="2"/>
+        <text x="564" y="694" fill="white" font-size="11" font-weight="600" text-anchor="middle">OK</text>
+        <rect x="600" y="680" width="60" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="630" y="694" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Edit Jira Server dialog showing Personal Access Token (PAT) authentication mode</figcaption>
+    </figure>
+
+    <h3>Server Details Fields</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Server Name</strong></td>
+          <td>A friendly display name for the server (e.g., "EB Jira Production")</td>
+        </tr>
+        <tr>
+          <td><strong>Server URL</strong></td>
+          <td>The full HTTPS URL of your Jira instance (e.g., <code>https://jira.company.com</code> or <code>https://company.atlassian.net</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>JQL Query</strong></td>
+          <td>A Jira Query Language (JQL) filter to limit which issues are synchronized (e.g., <code>project = MYPROJECT AND status = 'In Progress'</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Authentication Modes</h3>
+    <p>Choose between <strong>Manual</strong> (enter credentials directly) or <strong>From KeePass entry</strong> (retrieve from KeePass database).</p>
+
+    <h3>Credential Types</h3>
+    <table>
+      <thead><tr><th>Type</th><th>When to Use</th><th>Required Fields</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>API Token (Jira Cloud)</strong></td>
+          <td>For Atlassian Cloud instances (e.g., <code>*.atlassian.net</code>)</td>
+          <td>Username (email address) + API Token</td>
+        </tr>
+        <tr>
+          <td><strong>Password</strong></td>
+          <td>For legacy Jira Server/Data Center with basic authentication enabled</td>
+          <td>Username + Password</td>
+        </tr>
+        <tr>
+          <td><strong>Personal Access Token (Server/Data Center)</strong></td>
+          <td>For Jira Server/Data Center with basic authentication disabled</td>
+          <td>Token only (username not required)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warning">
+      <strong>HTTP 403 "Basic Authentication has been disabled"</strong>
+      <p>If you receive this error, your Jira server requires a <strong>Personal Access Token (PAT)</strong>. Generate a PAT from your Jira profile settings, select "Personal Access Token (Server/Data Center)" in the Credential Type dropdown, and paste the token into the credential field. Username is not required for PAT mode.</p>
+    </div>
+
+    <!-- ── Test Connection ── -->
+    <h2>Step 4 – Test the Connection</h2>
+    <p>After configuring the server details and credentials, click <strong>Test Connection</strong> to verify:</p>
+    <ul>
+      <li>Server URL is reachable</li>
+      <li>Credentials are valid and authentication succeeds</li>
+      <li>The JIRA API client can retrieve user information (<code>myself()</code> call)</li>
+    </ul>
+
+    <p>If the connection test succeeds, you will see a green success message with the authenticated username. If it fails, you will see an error message with details about what went wrong (e.g., "Invalid credentials", "Server not reachable", "Basic authentication disabled").</p>
+
+    <div class="callout note">
+      <strong>Debug Mode</strong>
+      Launch the application with the <code>--debug</code> flag to see detailed connection test output in the console, including authentication method used (<code>basic_auth</code> vs <code>token_auth</code>), credential retrieval status, and full exception tracebacks for troubleshooting.
+    </div>
+
+    <!-- ── KeePass Mode ── -->
+    <h2>Using KeePass for Credential Storage</h2>
+    <p>To store Jira credentials in KeePass instead of QSettings:</p>
+    <ol>
+      <li>Configure and unlock your KeePass database (see <a href="13_keepass.html">KeePass Credentials</a>)</li>
+      <li>Create an entry in KeePass with:
+        <ul style="margin: 5px 0; padding-left: 20px;">
+          <li><strong>Username:</strong> Your Jira username or email (for API Token or Password modes)</li>
+          <li><strong>Password:</strong> Your API Token, Password, or Personal Access Token</li>
+        </ul>
+      </li>
+      <li>In the Edit Jira Server dialog, select <strong>From KeePass entry</strong></li>
+      <li>Choose the <strong>Credential Type</strong> dropdown (API Token, Password, or PAT)</li>
+      <li>Select your KeePass entry from the dropdown</li>
+      <li>Click <strong>Test Connection</strong> to verify</li>
+    </ol>
+
+    <div class="callout note">
+      <strong>Credential Stripping</strong>
+      The application automatically strips whitespace (including trailing newlines) from usernames and credentials retrieved from KeePass to prevent HTTP header validation errors like "invalid header value b'Bearer XXXXXX\n'".
+    </div>
+
+    <!-- ── Technical Details ── -->
+    <h2>Technical Details</h2>
+    
+    <h3>Authentication Methods</h3>
+    <table>
+      <thead><tr><th>Credential Type</th><th>JIRA Library Method</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>API Token<br>Password</td>
+          <td><code>basic_auth=(username, credential)</code></td>
+          <td>Uses HTTP Basic Authentication with username and token/password</td>
+        </tr>
+        <tr>
+          <td>Personal Access Token (PAT)</td>
+          <td><code>token_auth=credential</code></td>
+          <td>Uses Bearer token authentication (token only, no username required)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>QSettings Storage</h3>
+    <p>Server configurations are stored in the Windows Registry under <code>HKEY_CURRENT_USER\Software\ProjectOffline\ProjectManager\jira\servers</code> as a JSON array. Each server object contains:</p>
+    <ul>
+      <li><code>name</code> – Display name</li>
+      <li><code>url</code> – Server URL</li>
+      <li><code>jql_query</code> – JQL filter (optional)</li>
+      <li><code>auth_mode</code> – "manual" or "keepass"</li>
+      <li><code>credential_type</code> – "token", "password", or "pat"</li>
+      <li><code>username</code> – Username (manual mode, token/password types)</li>
+      <li><code>token</code> – Credential (manual mode)</li>
+      <li><code>keepass_entry</code> – Entry path (keepass mode)</li>
+      <li><code>keepass_credential_type</code> – Credential type (keepass mode)</li>
+    </ul>
+
+    <h3>Module Reference</h3>
+    <p>The Jira integration is implemented in <code>src/integrations/jira_integration.py</code> with the following public functions:</p>
+    <ul>
+      <li><code>test_connection(server: dict) → tuple[bool, str]</code> – Tests connectivity and authentication</li>
+      <li><code>get_jira_client(server: dict) → tuple[JIRA | None, str]</code> – Returns authenticated JIRA client</li>
+      <li><code>get_config_summary() → dict</code> – Returns non-sensitive config for debug dumps</li>
+    </ul>
+
+    <!-- ── Best Practices ── -->
+    <h2>Best Practices</h2>
+    <ul>
+      <li><strong>Use KeePass for production credentials</strong> – Avoid storing tokens/passwords in QSettings for better security</li>
+      <li><strong>Generate dedicated API tokens</strong> – Create separate tokens for each application to enable easy revocation</li>
+      <li><strong>Use restrictive JQL queries</strong> – Limit synchronized issues to reduce API load and improve performance</li>
+      <li><strong>Test connections after credential changes</strong> – Always verify connectivity when rotating tokens or passwords</li>
+      <li><strong>Prefer PAT for Jira Server</strong> – Personal Access Tokens are more secure than passwords and work with disabled basic auth</li>
+    </ul>
+
+    <!-- ── Troubleshooting ── -->
+    <h2>Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Issue</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>HTTP 403: Basic Authentication has been disabled</strong></td>
+          <td>Your Jira server requires a Personal Access Token (PAT). Generate a PAT from your Jira profile and select "Personal Access Token (Server/Data Center)" as the credential type.</td>
+        </tr>
+        <tr>
+          <td><strong>HTTP 401: Unauthorized</strong></td>
+          <td>Invalid credentials. Verify your username and token/password are correct. For Jira Cloud, ensure you're using your email address (not username) with an API Token.</td>
+        </tr>
+        <tr>
+          <td><strong>Connection timeout or "Server not reachable"</strong></td>
+          <td>Check the Server URL is correct and accessible from your network. Verify firewall settings and VPN connection if required.</td>
+        </tr>
+        <tr>
+          <td><strong>Invalid header value error</strong></td>
+          <td>This is usually caused by trailing whitespace in the credential. The application automatically strips whitespace, but if the error persists, manually check your KeePass entry or manual credential field.</td>
+        </tr>
+        <tr>
+          <td><strong>KeePass entry not showing up</strong></td>
+          <td>Ensure your KeePass database is unlocked and the entry exists. The dropdown only shows entries from the currently unlocked database.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Next Steps ── -->
+    <h2>Related Topics</h2>
+    <ul>
+      <li><a href="13_keepass.html">KeePass Credentials</a> – Set up KeePass database for secure credential storage</li>
+    </ul>
+
+  </div>
+</div>
+
+</body>
+</html>

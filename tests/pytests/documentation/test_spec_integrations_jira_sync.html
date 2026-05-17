@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Jira Sync (J→P & P→J) &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Jira Sync (J→P & P→J)</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#jira_sync">jira sync</a>
+  <a href="#jira_sync_push">jira sync push</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">108</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">108</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">2</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="jira_sync">
+  <div class="module-header"><h2>integrations/jira_sync.py — Jira → Project (run_sync)</h2><span class="badge">61 tests</span></div>
+  <div class="module-desc">Jira &rarr; Project sync execution engine. Fetches Jira issues matching a configured filter and creates or updates MPXJ tasks in the in-memory project. Epics become summary+rollup container tasks; sub-tickets are wired as MPXJ child tasks via <code>setParentTask</code>. Per-task Jira metadata is persisted in a <code>task_jira</code> key in the <code>.custom-props.json</code> sidecar. All MPXJ/Java calls and Jira API interactions are mocked &mdash; no JVM or real Jira server required. Covers sidecar I/O, helper functions (<code>_issue_type_label</code>, <code>_status_to_percent</code>, <code>_build_jira_key_lookup</code>), and the full <code>run_sync</code> flow including early-exit paths, task creation, task update, epic hierarchy, result counters, <code>[CREATE]</code>/<code>[UPDATE]</code> debug log tokens, task name = bare summary (no bracket prefix), and paginated issue fetching (page count, startAt, field list, empty page).</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestLoadSidecarTaskData &#8212; load_sidecar_task_data</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-01</span><span class="test-name">Returns empty dict when path is empty string</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No file setup needed.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data("")</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-02</span><span class="test-name">Returns empty dict when file is missing</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Temporary directory with a nonexistent path.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data(str(tmp_path / "nonexistent.json"))</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-03</span><span class="test-name">Returns empty dict when task_jira key absent</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar JSON with no <code>task_jira</code> key.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data(sidecar)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>{}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-04</span><span class="test-name">Returns task_jira dict when present</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar JSON with <code>task_jira: {"1": {"jira_key": "PROJ-1"}}</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data(sidecar)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns the task_jira dict.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == {"1": {"jira_key": "PROJ-1"}}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-05</span><span class="test-name">Returns empty dict on malformed JSON</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar file contains non-JSON text.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data(sidecar)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>{}</code> without raising.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-06</span><span class="test-name">Returns multiple entries</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar with two task_jira entries.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = load_sidecar_task_data(sidecar)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result) == 2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 2</code><br><code>assert result["2"]["jira_key"] == "A-2"</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestSaveSidecarTaskData &#8212; save_sidecar_task_data</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-07</span><span class="test-name">Creates new file when absent</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty tmp directory.</div>
+          <div class="block"><div class="block-label">Run</div><code>save_sidecar_task_data(sidecar, {"1": {"jira_key": "X-1"}})</code></div>
+          <div class="block"><div class="block-label">Expect</div>File created with correct task_jira.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert sidecar.exists()</code><br><code>assert data["task_jira"]["1"]["jira_key"] == "X-1"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-08</span><span class="test-name">Merges with existing sidecar data</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar with <code>{"other": "value"}</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>save_sidecar_task_data(sidecar, {"2": {"jira_key": "X-2"}})</code></div>
+          <div class="block"><div class="block-label">Expect</div>Existing keys preserved; task_jira written.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data["other"] == "value"</code><br><code>assert data["task_jira"]["2"]["jira_key"] == "X-2"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-09</span><span class="test-name">Overwrites existing task_jira</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Sidecar with old jira_key value.</div>
+          <div class="block"><div class="block-label">Run</div><code>save_sidecar_task_data(sidecar, {"1": {"jira_key": "NEW-1"}})</code></div>
+          <div class="block"><div class="block-label">Expect</div>Old value replaced.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data["task_jira"]["1"]["jira_key"] == "NEW-1"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-10</span><span class="test-name">Saves empty dict</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty tmp directory.</div>
+          <div class="block"><div class="block-label">Run</div><code>save_sidecar_task_data(sidecar, {})</code></div>
+          <div class="block"><div class="block-label">Expect</div>task_jira key is an empty dict.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data["task_jira"] == {}</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGetLastResult &#8212; get_last_result</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-11</span><span class="test-name">Returns None before any sync</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div>Reset <code>_last_result = None</code>.</div><div class="block"><div class="block-label">Run</div><code>get_last_result()</code></div><div class="block"><div class="block-label">Expect</div><code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_result() is None</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-12</span><span class="test-name">Returns result after being set</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div>Set <code>_last_result</code> to a fake result dict.</div><div class="block"><div class="block-label">Run</div><code>result = get_last_result()</code></div><div class="block"><div class="block-label">Expect</div>Returns the same object.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_result() is fake</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-13</span><span class="test-name">Result has all expected keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div>Set <code>_last_result</code> to a dict with all five keys.</div><div class="block"><div class="block-label">Run</div><code>res = get_last_result()</code></div><div class="block"><div class="block-label">Expect</div>All of created, updated, skipped, errors, log present.</div><div class="block"><div class="block-label">Check</div><code>for key in ("created", "updated", "skipped", "errors", "log"): assert key in res</code></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestIssueTypeLabel &#8212; _issue_type_label</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-14</span><span class="test-name">Returns configured label</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>labels = {"Bug": "DEFECT"}</code>.</div><div class="block"><div class="block-label">Run</div><code>_issue_type_label("Bug", labels)</code></div><div class="block"><div class="block-label">Expect</div><code>"DEFECT"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == "DEFECT"</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-15</span><span class="test-name">Falls back to default for known type</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty labels dict.</div><div class="block"><div class="block-label">Run</div><code>_issue_type_label("Epic", {})</code></div><div class="block"><div class="block-label">Expect</div><code>"Epic"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == "Epic"</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-16</span><span class="test-name">Falls back to raw name for unknown type</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty labels dict.</div><div class="block"><div class="block-label">Run</div><code>_issue_type_label("CustomType", {})</code></div><div class="block"><div class="block-label">Expect</div><code>"CustomType"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == "CustomType"</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-17</span><span class="test-name">Config override takes precedence over default</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>labels = {"Epic": "EPIC_OVERRIDE"}</code>.</div><div class="block"><div class="block-label">Run</div><code>_issue_type_label("Epic", labels)</code></div><div class="block"><div class="block-label">Expect</div><code>"EPIC_OVERRIDE"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == "EPIC_OVERRIDE"</code></div></div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">JS-18</span><span class="test-name">Empty string config returns empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>labels = {"Task": ""}</code>.</div><div class="block"><div class="block-label">Run</div><code>_issue_type_label("Task", labels)</code></div><div class="block"><div class="block-label">Expect</div><code>""</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == ""</code></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestStatusToPercent &#8212; _status_to_percent</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-19</span><span class="test-name">open returns 0</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("open")</code></div><div class="block"><div class="block-label">Expect</div><code>0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-20</span><span class="test-name">to do returns 0</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("to do")</code></div><div class="block"><div class="block-label">Expect</div><code>0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-21</span><span class="test-name">in progress returns 50</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("in progress")</code></div><div class="block"><div class="block-label">Expect</div><code>50</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 50</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-22</span><span class="test-name">in review returns 75</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("in review")</code></div><div class="block"><div class="block-label">Expect</div><code>75</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 75</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-23</span><span class="test-name">done returns 100</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("done")</code></div><div class="block"><div class="block-label">Expect</div><code>100</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 100</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-24</span><span class="test-name">closed returns 100</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("closed")</code></div><div class="block"><div class="block-label">Expect</div><code>100</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 100</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-25</span><span class="test-name">resolved returns 100</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("resolved")</code></div><div class="block"><div class="block-label">Expect</div><code>100</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 100</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-26</span><span class="test-name">Case-insensitive in progress returns 50</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("IN PROGRESS")</code></div><div class="block"><div class="block-label">Expect</div><code>50</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 50</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-27</span><span class="test-name">Unknown status returns 0</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No setup.</div><div class="block"><div class="block-label">Run</div><code>_status_to_percent("something completely unknown")</code></div><div class="block"><div class="block-label">Expect</div><code>0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestBuildJiraKeyLookup &#8212; _build_jira_key_lookup</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-28</span><span class="test-name">Empty project returns empty dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Project with empty task list.</div><div class="block"><div class="block-label">Run</div><code>_build_jira_key_lookup(project, {})</code></div><div class="block"><div class="block-label">Expect</div><code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-29</span><span class="test-name">Matches UID to jira_key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=5; sidecar entry <code>{"5": {"jira_key": "PROJ-5"}}</code>.</div><div class="block"><div class="block-label">Run</div><code>result = _build_jira_key_lookup(project, task_jira)</code></div><div class="block"><div class="block-label">Expect</div><code>result["PROJ-5"] is task</code>.</div><div class="block"><div class="block-label">Check</div><code>assert "PROJ-5" in result</code><br><code>assert result["PROJ-5"] is task</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-30</span><span class="test-name">Skips entries without matching UID</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty task list; sidecar references UID 99.</div><div class="block"><div class="block-label">Run</div><code>result = _build_jira_key_lookup(project, task_jira)</code></div><div class="block"><div class="block-label">Expect</div><code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-31</span><span class="test-name">Skips entries without jira_key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=3; sidecar entry has no jira_key field.</div><div class="block"><div class="block-label">Run</div><code>result = _build_jira_key_lookup(project, task_jira)</code></div><div class="block"><div class="block-label">Expect</div><code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result == {}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-32</span><span class="test-name">Multiple entries all matched</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two tasks (uid 1 and 2); two sidecar entries.</div><div class="block"><div class="block-label">Run</div><code>result = _build_jira_key_lookup(project, task_jira)</code></div><div class="block"><div class="block-label">Expect</div><code>len(result) == 2</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(result) == 2</code><br><code>assert result["A-1"] is t1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncEarlyExit &#8212; run_sync early-exit branches</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-33</span><span class="test-name">No filter returns error</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Project with empty jira2project config.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, "")</code></div><div class="block"><div class="block-label">Expect</div>Errors non-empty; created/updated 0.</div><div class="block"><div class="block-label">Check</div><code>assert len(result["errors"]) &ge; 1</code><br><code>assert result["created"] == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-34</span><span class="test-name">No filter sets last_result</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Project with no filter; <code>_last_result = None</code>.</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, "")</code></div><div class="block"><div class="block-label">Expect</div><code>get_last_result()</code> is not None.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_result() is not None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-35</span><span class="test-name">API error returns error entry</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Jira client raises on search_issues.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, "")</code></div><div class="block"><div class="block-label">Expect</div>Errors list non-empty.</div><div class="block"><div class="block-label">Check</div><code>assert len(result["errors"]) &ge; 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-36</span><span class="test-name">Filter resolution failure returns error</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>resolve_filter_to_jql returns ("", "bad filter").</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, "")</code></div><div class="block"><div class="block-label">Expect</div>Errors contain filter-related message.</div><div class="block"><div class="block-label">Check</div><code>assert any("filter" in e.lower() for e in result["errors"])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncCreateTask &#8212; run_sync task creation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-37</span><span class="test-name">Creates one task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty project; Jira client returns one Task issue.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>result["created"] == 1</code>, no errors.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 1</code><br><code>assert result["errors"] == []</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-38</span><span class="test-name">Task name includes issue summary</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue summary "My feature summary".</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div>setName called with string containing the summary.</div><div class="block"><div class="block-label">Check</div><code>assert any("My feature summary" in n for n in set_name_calls)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-39</span><span class="test-name">Sidecar written with jira_key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue PROJ-3.</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar created; contains jira_key "PROJ-3".</div><div class="block"><div class="block-label">Check</div><code>assert sidecar.exists()</code><br><code>assert "PROJ-3" in all_keys</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-40</span><span class="test-name">Log entry contains issue key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue PROJ-4.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div>Log list contains "PROJ-4".</div><div class="block"><div class="block-label">Check</div><code>assert any("PROJ-4" in l for l in result["log"])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncUpdateTask &#8212; run_sync task update</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-41</span><span class="test-name">Updates existing task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=10; sidecar maps "10" to PROJ-10; same issue returned.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>updated==1, created==0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["updated"] == 1</code><br><code>assert result["created"] == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-42</span><span class="test-name">Update calls setName with new summary</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue summary "Updated name from Jira".</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div>setName called with the new summary.</div><div class="block"><div class="block-label">Check</div><code>assert any("Updated name from Jira" in n for n in calls)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-43</span><span class="test-name">No addTask called on update</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Existing task matching the issue.</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>project.addTask</code> never called.</div><div class="block"><div class="block-label">Check</div><code>project.addTask.assert_not_called()</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncEpicHierarchy &#8212; Epic container task creation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-44</span><span class="test-name">Epic and subtask both created</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Epic + Story (parent=Epic) in Jira response.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>result["created"] == 2</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 2</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-45</span><span class="test-name">Epic gets setSummary and setRollup</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One Epic issue; addTask returns epic_task.</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>setSummary(True)</code> and <code>setRollup(True)</code> called.</div><div class="block"><div class="block-label">Check</div><code>epic_task.setSummary.assert_called_with(True)</code><br><code>epic_task.setRollup.assert_called_with(True)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-46</span><span class="test-name">Subtask gets setParentTask pointing to Epic</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Epic PROJ-300 and Story PROJ-301 (parent=PROJ-300).</div><div class="block"><div class="block-label">Run</div><code>run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div><code>sub_task.setParentTask(epic_task)</code> called.</div><div class="block"><div class="block-label">Check</div><code>sub_task.setParentTask.assert_called_with(epic_task)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-47</span><span class="test-name">Epics processed before subtasks even when sub comes first</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Sub-ticket appears before Epic in Jira API response list.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(project, {}, jira_client, sidecar)</code></div><div class="block"><div class="block-label">Expect</div>Both created; sub wired to epic parent.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 2</code><br><code>sub_task.setParentTask.assert_called_with(epic_task)</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncResultCounters &#8212; result dict and _last_result</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-48</span><span class="test-name">Result has all five expected keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One issue; standard project mock.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>Keys: created, updated, skipped, errors, log.</div><div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-49</span><span class="test-name">get_last_result equals returned dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One issue.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>get_last_result() is result</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_result() is result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-50</span><span class="test-name">Zero issues returns zero counts</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Jira client returns empty list.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>created=updated=skipped=0.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 0</code><br><code>assert result["updated"] == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-51</span><span class="test-name">Debug log contains [CREATE] token with issue key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Debug mode on; issue T-50.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>Log contains "[CREATE]" and "T-50".</div><div class="block"><div class="block-label">Check</div><code>assert any("[CREATE]" in l and "T-50" in l for l in result["log"])</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-52</span><span class="test-name">Debug log contains [UPDATE] token with issue key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Debug mode on; existing task for T-60 in sidecar.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>Log contains "[UPDATE]" and "T-60".</div><div class="block"><div class="block-label">Check</div><code>assert any("[UPDATE]" in l and "T-60" in l for l in result["log"])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncTaskNameNoPrefix &#8212; task name is plain summary</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-53</span><span class="test-name">Story name is bare summary</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue type "Story", summary "Implement login screen".</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>setName</code> called with exactly <code>"Implement login screen"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert any(n == "Implement login screen" for n in names)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-54</span><span class="test-name">Bug name has no bracket prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue type "Bug", summary "Fix null pointer".</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>Final <code>setName</code> argument does not start with <code>[</code>.</div><div class="block"><div class="block-label">Check</div><code>assert not final.startswith("[")</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-55</span><span class="test-name">Sub-task name has no bracket prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue type "Sub-task", summary "Write unit tests".</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div>None of the <code>setName</code> arguments contain <code>[</code>.</div><div class="block"><div class="block-label">Check</div><code>assert all("[" not in n for n in names)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-56</span><span class="test-name">Change request name is summary only</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Issue type "Change Request", summary "Adjust API contract".</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>setName</code> called with exactly <code>"Adjust API contract"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert any(n == "Adjust API contract" for n in names)</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncPagination &#8212; paginated fetching of all issues</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-57</span><span class="test-name">Single partial page fetched once</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Jira client returns 3 issues (less than page_size=100).</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>search_issues</code> called exactly once; <code>created == 3</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 3</code><br><code>assert jira_client.search_issues.call_count == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-58</span><span class="test-name">Two full then partial page</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Pages: 100, 100, 50 issues.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>search_issues</code> called 3 times; <code>created == 250</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 250</code><br><code>assert jira_client.search_issues.call_count == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-59</span><span class="test-name">Pagination uses correct startAt</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two pages: 100 + 2 issues.</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code>; inspect call args.</div><div class="block"><div class="block-label">Expect</div>First call: <code>startAt=0</code>; second call: <code>startAt=100</code>.</div><div class="block"><div class="block-label">Check</div><code>assert calls[0][1]["startAt"] == 0</code><br><code>assert calls[1][1]["startAt"] == 100</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-60</span><span class="test-name">Empty first page creates nothing</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Jira client returns empty list.</div><div class="block"><div class="block-label">Run</div><code>result = run_sync(...)</code></div><div class="block"><div class="block-label">Expect</div><code>created == 0</code>; <code>search_issues</code> called once.</div><div class="block"><div class="block-label">Check</div><code>assert result["created"] == 0</code><br><code>assert jira_client.search_issues.call_count == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-61</span><span class="test-name">Pagination requests specific fields not star-all</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Jira client returns empty list.</div><div class="block"><div class="block-label">Run</div><code>run_sync(...)</code>; inspect call kwargs.</div><div class="block"><div class="block-label">Expect</div><code>fields</code> kwarg is not <code>"*all"</code> and contains <code>"summary"</code> and <code>"issuetype"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert fields_arg != "*all"</code><br><code>assert "summary" in fields_arg</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="jira_sync_push">
+  <div class="module-header"><h2>integrations/jira_sync.py — Project → Jira (run_push_to_jira)</h2><span class="badge">47 tests</span></div>
+  <div class="module-desc">Project &rarr; Jira push engine. Reads the <code>project2jira</code> config from the MPXJ project custom properties, maps tasks to Jira field payloads, and performs create/update/transition operations via the authenticated Jira client. Covers: <code>get_last_push_result</code>, <code>_task_status_string</code>, <code>_task_to_jira_payload</code>, <code>_with_retry</code>, and <code>run_push_to_jira</code> (dry-run preview, create, update, transition, skip, conflict detection, included-UIDs filter, hierarchy parent link, auditability session).</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGetLastPushResult &mdash; get_last_push_result</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-62</span><span class="test-name">Returns None before any push</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Set <code>_last_push_result = None</code>.</div><div class="block"><div class="block-label">Run</div><code>res = get_last_push_result()</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_push_result() is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-63</span><span class="test-name">Returns dict after push</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; mock jira_client.create_issue returns new issue.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code> then <code>get_last_push_result()</code></div><div class="block"><div class="block-label">Expect</div>Returns a <code>dict</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(result, dict)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-64</span><span class="test-name">Result has all expected keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; standard push.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>Keys: created, updated, transitioned, skipped, errors, log, preview_actions, dry_run.</div><div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in result</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestTaskStatusString &mdash; _task_status_string</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-65</span><span class="test-name">0 % complete returns &ldquo;To Do&rdquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=0</code>.</div><div class="block"><div class="block-label">Run</div><code>_task_status_string(task)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;To Do&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;To Do&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-66</span><span class="test-name">50 % complete returns &ldquo;In Progress&rdquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=50</code>.</div><div class="block"><div class="block-label">Run</div><code>_task_status_string(task)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;In Progress&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;In Progress&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-67</span><span class="test-name">100 % complete returns &ldquo;Done&rdquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=100</code>.</div><div class="block"><div class="block-label">Run</div><code>_task_status_string(task)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;Done&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;Done&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-68</span><span class="test-name">Small non-zero % returns &ldquo;In Progress&rdquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=1</code>.</div><div class="block"><div class="block-label">Run</div><code>_task_status_string(task)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;In Progress&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;In Progress&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-69</span><span class="test-name">99 % returns &ldquo;In Progress&rdquo;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=99</code>.</div><div class="block"><div class="block-label">Run</div><code>_task_status_string(task)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;In Progress&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;In Progress&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestTaskToJiraPayload &mdash; _task_to_jira_payload</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-70</span><span class="test-name">Summary always present in payload</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task name &ldquo;My Task&rdquo;; summary field enabled.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>payload[&quot;summary&quot;] == &quot;My Task&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert payload.get(&quot;summary&quot;) == &quot;My Task&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-71</span><span class="test-name">Disabled description not in payload</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task has notes; jira_description.enabled=False.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;description&quot;</code> not in payload.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;description&quot; not in payload</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-72</span><span class="test-name">Enabled description added to payload</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task notes=&ldquo;Note text&rdquo;; jira_description.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>payload[&quot;description&quot;] == &quot;Note text&quot;</code></div><div class="block"><div class="block-label">Check</div><code>assert payload.get(&quot;description&quot;) == &quot;Note text&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-73</span><span class="test-name">Assignee uses resource name</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task has one assignment with resource name &ldquo;Alice&rdquo;; jira_assignee.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>payload[&quot;assignee&quot;] == {&quot;name&quot;: &quot;Alice&quot;}</code></div><div class="block"><div class="block-label">Check</div><code>assert payload.get(&quot;assignee&quot;) == {&quot;name&quot;: &quot;Alice&quot;}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-74</span><span class="test-name">Disabled assignee not in payload</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task has resource; jira_assignee.enabled=False.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;assignee&quot;</code> not in payload.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;assignee&quot; not in payload</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-75</span><span class="test-name">Empty task name omits summary key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task name=&ldquo;&rdquo;.</div><div class="block"><div class="block-label">Run</div><code>payload = _task_to_jira_payload(task, p2j)</code></div><div class="block"><div class="block-label">Expect</div><code>&quot;summary&quot;</code> not in payload.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;summary&quot; not in payload</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestWithRetry &mdash; _with_retry</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-76</span><span class="test-name">Returns result on first try</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Callable returns &ldquo;ok&rdquo; immediately.</div><div class="block"><div class="block-label">Run</div><code>_with_retry(fn, max_retries=3, backoff_seconds=0.0)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;ok&rdquo;; fn called once.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;ok&quot;</code><br><code>assert fn.call_count == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-77</span><span class="test-name">Retries on transient error and succeeds</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Callable raises <code>Exception(&quot;timeout&quot;)</code> twice then returns &ldquo;success&rdquo;.</div><div class="block"><div class="block-label">Run</div><code>_with_retry(fn, max_retries=3, backoff_seconds=0.0)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;success&rdquo;; fn called 3 times.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;success&quot;</code><br><code>assert fn.call_count == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-78</span><span class="test-name">Raises after max_retries exceeded</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Callable always raises <code>Exception(&quot;timeout&quot;)</code>; max_retries=2.</div><div class="block"><div class="block-label">Run</div><code>_with_retry(fn, max_retries=2, backoff_seconds=0.0)</code></div><div class="block"><div class="block-label">Expect</div>Raises <code>Exception</code>; fn called 3 times (1 + 2 retries).</div><div class="block"><div class="block-label">Check</div><code>with pytest.raises(Exception)</code><br><code>assert fn.call_count == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-79</span><span class="test-name">Raises immediately on non-transient error</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Callable raises <code>ValueError(&quot;not transient&quot;)</code>; max_retries=5.</div><div class="block"><div class="block-label">Run</div><code>_with_retry(fn, max_retries=5, backoff_seconds=0.0)</code></div><div class="block"><div class="block-label">Expect</div>Raises <code>ValueError</code>; fn called once.</div><div class="block"><div class="block-label">Check</div><code>with pytest.raises(ValueError)</code><br><code>assert fn.call_count == 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraResultKeys &mdash; run_push_to_jira result structure</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-80</span><span class="test-name">Result has all expected keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty project; valid p2j config.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>Keys: created, updated, transitioned, skipped, errors, log, preview_actions, dry_run.</div><div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-81</span><span class="test-name">get_last_push_result equals returned dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty project.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div><code>get_last_push_result() is result</code>.</div><div class="block"><div class="block-label">Check</div><code>assert get_last_push_result() is result</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-82</span><span class="test-name">Empty project returns zero counts</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No tasks in project.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>created=updated=transitioned=0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;created&quot;] == 0</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraDryRun &mdash; run_push_to_jira dry-run</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-83</span><span class="test-name">dry_run flag set in result</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; dry_run=True in config.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div><code>result[&quot;dry_run&quot;] is True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;dry_run&quot;] is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-84</span><span class="test-name">preview_actions populated in dry-run</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task &ldquo;Alpha&rdquo;; dry_run=True.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>preview_actions has one entry with action=&quot;create&quot; and task_name=&quot;Alpha&quot;.</div><div class="block"><div class="block-label">Check</div><code>assert len(result[&quot;preview_actions&quot;]) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-85</span><span class="test-name">create_issue not called during dry-run</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; dry_run=True.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>jira_client.create_issue never called.</div><div class="block"><div class="block-label">Check</div><code>jira_client.create_issue.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-86</span><span class="test-name">jira_key is &ldquo;NEW&rdquo; for unlinked in dry-run</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; dry_run=True.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div><code>preview_actions[0][&quot;jira_key&quot;] == &quot;NEW&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;preview_actions&quot;][0][&quot;jira_key&quot;] == &quot;NEW&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraCreate &mdash; run_push_to_jira create</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-87</span><span class="test-name">Creates one Jira issue for unlinked task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; create_issue returns mock issue with key=&quot;P-10&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;created&quot;] == 1; create_issue called once.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;created&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-88</span><span class="test-name">create_issue receives summary field</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task name=&ldquo;Summary Here&rdquo;.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>create_issue called with fields[&quot;summary&quot;]=&quot;Summary Here&quot;.</div><div class="block"><div class="block-label">Check</div><code>assert call_fields.get(&quot;summary&quot;) == &quot;Summary Here&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-89</span><span class="test-name">Sidecar written with new Jira key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task uid=12; create_issue returns key=&quot;P-12&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar task_jira[&quot;12&quot;][&quot;jira_key&quot;] == &quot;P-12&quot;.</div><div class="block"><div class="block-label">Check</div><code>assert data[&quot;task_jira&quot;][&quot;12&quot;][&quot;jira_key&quot;] == &quot;P-12&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-90</span><span class="test-name">Log contains [CREATE] token</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>At least one log entry contains &ldquo;[CREATE]&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert any(&quot;[CREATE]&quot; in l for l in result[&quot;log&quot;])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraUpdate &mdash; run_push_to_jira update</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-91</span><span class="test-name">Updates linked Jira issue</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=20 linked to &quot;P-20&quot; in sidecar.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;updated&quot;] == 1.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;updated&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-92</span><span class="test-name">issue.update() called once</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=21 linked to &quot;P-21&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>issue_obj.update called once.</div><div class="block"><div class="block-label">Check</div><code>issue_obj.update.assert_called_once()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-93</span><span class="test-name">create_issue not called for update path</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=22 linked to &quot;P-22&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>create_issue never called.</div><div class="block"><div class="block-label">Check</div><code>jira_client.create_issue.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-94</span><span class="test-name">Log contains [UPDATE] token</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=23 linked to &quot;P-23&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>At least one log entry contains &ldquo;[UPDATE]&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert any(&quot;[UPDATE]&quot; in l for l in result[&quot;log&quot;])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraSkip &mdash; run_push_to_jira skip</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-95</span><span class="test-name">Skips unlinked task when behavior=skip</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; unlinked_task_behavior=&quot;skip&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] == 1; result[&quot;created&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-96</span><span class="test-name">create_issue not called when skipping</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; unlinked_task_behavior=&quot;skip&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>create_issue never called.</div><div class="block"><div class="block-label">Check</div><code>jira_client.create_issue.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-97</span><span class="test-name">Log contains [SKIP] token</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; unlinked_task_behavior=&quot;skip&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>At least one log entry contains &ldquo;[SKIP]&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert any(&quot;[SKIP]&quot; in l for l in result[&quot;log&quot;])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraTransition &mdash; run_push_to_jira transition</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-98</span><span class="test-name">Transition applied when mapped</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task 100 % done; transition_map[&quot;Done&quot;]=&quot;Close&quot;; jira transitions returns id=&quot;5&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;transitioned&quot;] == 1; transition_issue(&quot;P-40&quot;, &quot;5&quot;) called.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;transitioned&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-99</span><span class="test-name">Transition not applied without mapping</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task 100 % done; transition_map={}.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;transitioned&quot;] == 0; transition_issue never called.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;transitioned&quot;] == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-100</span><span class="test-name">Log contains [TRANSITION] token</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task 100 % done; transition mapped.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>At least one log entry contains &ldquo;[TRANSITION]&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert any(&quot;[TRANSITION]&quot; in l for l in result[&quot;log&quot;])</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraConflict &mdash; run_push_to_jira conflict detection</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-101</span><span class="test-name">prefer_jira skips update on concurrent remote edit</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Sidecar last_pushed_at=&quot;2024-01-01&quot;; remote.fields.updated=&quot;2024-06-01&quot;; conflict_policy=&quot;prefer_jira&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] == 1; issue.update never called.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-102</span><span class="test-name">No conflict when remote not newer than last push</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Sidecar last_pushed_at=&quot;2024-06-02&quot;; remote.fields.updated=&quot;2024-06-01&quot;.</div><div class="block"><div class="block-label">Run</div><code>result = run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;updated&quot;] == 1.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;updated&quot;] == 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraIncludedUids &mdash; run_push_to_jira included_task_uids filter</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-103</span><span class="test-name">Only included task processed</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two tasks uid=60, uid=61; included_task_uids={&quot;60&quot;}.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(..., included_task_uids={&quot;60&quot;})</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;created&quot;] == 1; create_issue called once.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;created&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-104</span><span class="test-name">Excluded task not created</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two tasks uid=62, uid=63; included_task_uids={&quot;62&quot;}.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(..., included_task_uids={&quot;62&quot;})</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;created&quot;] == 1 (only task 62).</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;created&quot;] == 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraHierarchy &mdash; run_push_to_jira hierarchy parent link</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-105</span><span class="test-name">Parent link set for child task when hierarchy enabled</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Parent task uid=70 linked to &quot;P-70&quot;; child uid=71 linked to &quot;P-71&quot;; hierarchy_export.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>issue(&quot;P-71&quot;).update(fields={&quot;parent&quot;: {&quot;key&quot;: &quot;P-70&quot;}}) called.</div><div class="block"><div class="block-label">Check</div>Assert at least one update call contains <code>parent</code> field.</div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunPushToJiraAuditability &mdash; run_push_to_jira auditability</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-106</span><span class="test-name">Audit session written to sidecar when enabled</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; auditability.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar jira_push_meta.audit_sessions has one entry.</div><div class="block"><div class="block-label">Check</div><code>assert len(sessions) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-107</span><span class="test-name">Audit session has required keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; auditability.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>Session dict has keys: run_at, created, updated, skipped, failed.</div><div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in session</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-108</span><span class="test-name">No audit session when auditability disabled</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One unlinked task; auditability.enabled=False.</div><div class="block"><div class="block-label">Run</div><code>run_push_to_jira(...)</code></div><div class="block"><div class="block-label">Expect</div>audit_sessions is empty list.</div><div class="block"><div class="block-label">Check</div><code>assert len(sessions) == 0</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestNormalizeJiraDatetime &mdash; _normalize_jira_datetime timezone conversion</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-109</span><span class="test-name">UTC Z passthrough</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;2024-01-15T10:30:00Z&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;2024-01-15T10:30:00Z&rdquo; unchanged.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;2024-01-15T10:30:00Z&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-110</span><span class="test-name">Converts positive offset +0200 to UTC</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;2024-01-15T10:30:00+0200&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;2024-01-15T08:30:00Z&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;2024-01-15T08:30:00Z&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-111</span><span class="test-name">Converts negative offset -0500 to UTC</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;2024-01-15T10:00:00-0500&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;2024-01-15T15:00:00Z&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;2024-01-15T15:00:00Z&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-112</span><span class="test-name">Strips milliseconds before converting</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;2024-01-15T10:30:00.000+0200&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;2024-01-15T08:30:00Z&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;2024-01-15T08:30:00Z&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-113</span><span class="test-name">Date-only string passes through unchanged</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;2024-01-15&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;2024-01-15&rdquo; unchanged (no &lsquo;T&rsquo; in string).</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;2024-01-15&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-114</span><span class="test-name">Empty string returns empty</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state required.</div><div class="block"><div class="block-label">Run</div><code>_normalize_jira_datetime(&quot;&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Returns &ldquo;&rdquo;.</div><div class="block"><div class="block-label">Check</div><code>assert result == &quot;&quot;</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestParseJiraDateNormalize &mdash; _parse_jira_date normalize flag</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-115</span><span class="test-name">normalize=False uses raw date prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state; jpype mocked by conftest.</div><div class="block"><div class="block-label">Run</div><code>_parse_jira_date(&quot;2024-01-15T01:00:00+0200&quot;, normalize=False)</code></div><div class="block"><div class="block-label">Expect</div>LocalDateTime.of called with y=2024, m=1, d=15.</div><div class="block"><div class="block-label">Check</div><code>assert captured[0] == (2024, 1, 15)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-116</span><span class="test-name">normalize=True shifts date to UTC</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>No external state; jpype mocked by conftest.</div><div class="block"><div class="block-label">Run</div><code>_parse_jira_date(&quot;2024-01-15T01:00:00+0200&quot;, normalize=True)</code></div><div class="block"><div class="block-label">Expect</div>UTC equivalent 2024-01-14T23:00Z &rarr; LocalDateTime.of called with y=2024, m=1, d=14.</div><div class="block"><div class="block-label">Check</div><code>assert captured[0] == (2024, 1, 14)</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncRelinkCallback &mdash; run_sync relink_callback dispatch</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-117</span><span class="test-name">Callback called on Jira ID change</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task uid=1 linked jira_id=&quot;OLD_ID&quot;; incoming issue id=&quot;NEW_ID&quot;; relink.enabled=True, behavior=&quot;messagebox&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., relink_callback=cb)</code></div><div class="block"><div class="block-label">Expect</div>cb called with (&quot;PROJ-1&quot;, &quot;OLD_ID&quot;, &quot;NEW_ID&quot;).</div><div class="block"><div class="block-label">Check</div><code>assert calls[0] == (&quot;PROJ-1&quot;, &quot;OLD_ID&quot;, &quot;NEW_ID&quot;)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-118</span><span class="test-name">Callback returns &lsquo;skip&rsquo; skips task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-117.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., relink_callback=lambda ...: &quot;skip&quot;)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] &ge; 1; result[&quot;updated&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] &gt;= 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-119</span><span class="test-name">Callback returns &lsquo;relink&rsquo; updates task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-117; relink.enabled=True.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., relink_callback=lambda ...: &quot;relink&quot;)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;updated&quot;] == 1; result[&quot;skipped&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;updated&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-120</span><span class="test-name">No callback with messagebox defaults to skip</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-117; no callback provided.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., relink_callback=None)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] &ge; 1; result[&quot;updated&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] &gt;= 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncConflictCallback &mdash; run_sync conflict_callback dispatch</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-121</span><span class="test-name">Callback called on local edit</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task name=&quot;Modified Name&quot;; snapshot.name=&quot;Original Name&quot;; conflict.enabled=True, policy=&quot;messagebox&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., conflict_callback=cb)</code></div><div class="block"><div class="block-label">Expect</div>cb called with (&quot;PROJ-1&quot;, &quot;Modified Name&quot;).</div><div class="block"><div class="block-label">Check</div><code>assert calls[0][0] == &quot;PROJ-1&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-122</span><span class="test-name">Callback &lsquo;prefer_jira&rsquo; updates task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-121.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., conflict_callback=lambda ...: &quot;prefer_jira&quot;)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;updated&quot;] == 1; result[&quot;skipped&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;updated&quot;] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-123</span><span class="test-name">Callback &lsquo;skip&rsquo; skips task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-121.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., conflict_callback=lambda ...: &quot;skip&quot;)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] &ge; 1; result[&quot;updated&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] &gt;= 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-124</span><span class="test-name">No callback with messagebox defaults to skip</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-121; no callback provided.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., conflict_callback=None)</code></div><div class="block"><div class="block-label">Expect</div>result[&quot;skipped&quot;] &ge; 1; result[&quot;updated&quot;] == 0.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;skipped&quot;] &gt;= 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRunSyncOrphanCallback &mdash; run_sync orphan_callback dispatch</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-125</span><span class="test-name">Callback called for each orphaned task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Sidecar task linked to &quot;PROJ-GONE&quot;; Jira returns empty list; orphan.enabled=True, behavior=&quot;messagebox&quot;.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., orphan_callback=cb)</code></div><div class="block"><div class="block-label">Expect</div>cb called once with (&quot;PROJ-GONE&quot;, task_name).</div><div class="block"><div class="block-label">Check</div><code>assert calls[0][0] == &quot;PROJ-GONE&quot;</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-126</span><span class="test-name">Callback &lsquo;keep&rsquo; leaves sidecar unchanged</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-125.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., orphan_callback=lambda ...: &quot;keep&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar entry &quot;1&quot; still present after run.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;1&quot; in data[&quot;task_jira&quot;]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-127</span><span class="test-name">Callback &lsquo;unlink&rsquo; removes sidecar entry</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-125.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., orphan_callback=lambda ...: &quot;unlink&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar entry &quot;1&quot; absent after run.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;1&quot; not in data[&quot;task_jira&quot;]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-128</span><span class="test-name">Callback &lsquo;delete&rsquo; removes task from project</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-125.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., orphan_callback=lambda ...: &quot;delete&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar entry removed; result[&quot;orphans&quot;][&quot;handled&quot;] &ge; 1.</div><div class="block"><div class="block-label">Check</div><code>assert result[&quot;orphans&quot;][&quot;handled&quot;] &gt;= 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">JS-129</span><span class="test-name">No callback with messagebox defaults to keep</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Same as JS-125; no callback provided.</div><div class="block"><div class="block-label">Run</div><code>run_sync(..., orphan_callback=None)</code></div><div class="block"><div class="block-label">Expect</div>Sidecar entry &quot;1&quot; still present after run.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;1&quot; in data[&quot;task_jira&quot;]</code></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

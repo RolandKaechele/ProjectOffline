@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <Project_Offline depth="0">
+    <Confluence_Integration depth="1">
+      <GROUP_TYPES>
+        <TYPES Name="teRequirementObjectType" Basetype="Enumeration" minValue="" maxValue="" Strings="functional requirement,non functional requirement,information" Values="" Colors=""/>
+        <TYPES Name="t_Status_Sup" Basetype="Enumeration" minValue="" maxValue="" Strings="open,clarify,approved,to be deleted" Values="" Colors=""/>
+        <TYPES Name="t_Status_ZF" Basetype="Enumeration" minValue="" maxValue="" Strings="new,modified,to be clarified,aligned,to be deleted" Values="" Colors=""/>
+        <TYPES Name="teVariant" Basetype="Enumeration" minValue="" maxValue="" Strings="" Values="" Colors=""/>
+      </GROUP_TYPES>
+      <GROUP_ATTRIBUTES>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="aRequirementObjectType" Type="teRequirementObjectType"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Text" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Heading" Type="String"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_Variant" Type="teVariant"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_PO_Status" Type="t_Status_Sup"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF_PO_Status" Type="t_Status_ZF"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_RequestedInCR_PO" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB4ZF_PO_Comment" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF4EB_PO_Comment" Type="Text"/>
+      </GROUP_ATTRIBUTES>
+      <GROUP_ATTRIBUTEVALUES/>
+      <GROUP_FILEINFO>
+        <FILEINFO Annotation="-" Creation_Date="1777892400" Creator="Project Offline" Description="Project Offline – Confluence Calendar Integration Requirements" Encoding="65001" Export_type="6.1" Internal_links_module="" Module="PO_09_ConfluenceIntegration" Prefix="PO-CONF-" Scriptversion="1.0" Steps="0" Suffix="-" Version_number="1.0"/>
+      </GROUP_FILEINFO>
+      <GROUP_FORMALMODULES/>
+      <GROUP_LINKMODULES/>
+      <GROUP_PASSEDATTRIBUTES/>
+      <GROUP_PICTURES/>
+      <GROUP_OBJECT_IDS/>
+      <GROUP_OBJECTS>
+        <OBJECTS ID.Status="1_Heading.0" Object_Heading="1 Confluence Calendar Sync" Object_Text="" Section_number="1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1.0" Object_Heading="" Object_Text="Requirements for importing public holidays and team vacations from a Confluence Team Calendar via Playwright SSO." Section_number="1.1" aRequirementObjectType="information" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1_1_Heading.0" Object_Heading="1.1 Confluence Sync Requirements" Object_Text="" Section_number="1.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2.0" Object_Heading="" Object_Text="The system shall import public holiday and vacation blocks from a Confluence Team Calendar into the project and resource calendars." Section_number="1.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="3.0" Object_Heading="" Object_Text="The sync shall authenticate with Confluence via Playwright-driven SSO without requiring manual credential entry during sync." Section_number="1.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="4.0" Object_Heading="" Object_Text="The sync shall automatically create project resources for Confluence calendar members who do not yet exist in the resource sheet." Section_number="1.1.3" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="5.0" Object_Heading="" Object_Text="The sync shall remove stale calendar entries that were cancelled in Confluence on every sync run." Section_number="1.1.4" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="6.0" Object_Heading="" Object_Text="The sync shall prune calendar exceptions older than 30 days from all resource calendars." Section_number="1.1.5" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="7.0" Object_Heading="" Object_Text="The entire Confluence Calendar Sync operation shall be fully undoable with a single Ctrl+Z." Section_number="1.1.6" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="8.0" Object_Heading="" Object_Text="The system shall provide a Confluence Calendar Config dialog allowing the user to configure: Confluence Base URL, Space Key, Timezone (IANA zone, editable QComboBox with all 598 zones, default Europe/Berlin), and Days Ahead." Section_number="1.1.7" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="9.0" Object_Heading="" Object_Text="The Confluence Calendar Config dialog shall include a KeePass/Auth section offering a choice between Manual SSO and KeePass entry auto-fill." Section_number="1.1.8" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="10.0" Object_Heading="" Object_Text="Confluence calendar configuration (Base URL, Space Key, Timezone, Days Ahead) shall be stored as enterprise custom fields on the project summary task (UID=0)." Section_number="1.1.9" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="11.0" Object_Heading="" Object_Text="The ribbon shall include a Confluence Calendar Config button (always enabled) and a Confluence Sync button (enabled when a project is open)." Section_number="1.1.10" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="12.0" Object_Heading="" Object_Text="The Confluence calendar enterprise custom fields shall include at minimum: CALENDAR Base URL, CALENDAR Space Key, CALENDAR Timezone, and CALENDAR Days Ahead." Section_number="1.1.11" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="13.0" Object_Heading="" Object_Text="When writing public-holiday events from Confluence to the project default calendar, the system shall skip any event whose end date differs from its start date (event duration &gt; 0 days). Only events where start == end (single calendar day) shall be written as calendar exceptions. Multi-day spans such as school-holiday blocks (&quot;Schulferien&quot;) and collective closures shall not be applied to the project default calendar; writing them would grey out entire weeks for all resources in the Team Planner." Section_number="1.1.12" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+      </GROUP_OBJECTS>
+    </Confluence_Integration>
+  </Project_Offline>
+</root>

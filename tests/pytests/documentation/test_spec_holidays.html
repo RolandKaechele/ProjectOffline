@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Holidays &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Holidays</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#holidays">holidays</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">43</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">43</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="holidays">
+  <div class="module-header"><h2>holidays.py</h2><span class="badge">43 tests</span></div>
+  <div class="module-desc">Public holiday computation for new-project calendar setup. Internal helpers (_easter, _buss_und_bettag, _nth_weekday), default_holiday_years(), german_national_holidays(), german_state_extra_holidays() for all 15 states, and country functions for France, India, Romania, China, Japan. add_holidays_to_calendar() inserts computed exceptions into an MPXJ ProjectCalendar mock.</div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestEasterCalculation &mdash; Easter Calculation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-01</span><span class="test-name">Known Easter 2025</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._easter(2025)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>datetime.date(2025, 4, 20)</code>.</div><div class="block"><div class="block-label">Check</div><code>assert hol._easter(2025) == datetime.date(2025, 4, 20)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-02</span><span class="test-name">Easter is Sunday</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._easter(year).weekday()</code> for years 2020-2026.</div><div class="block"><div class="block-label">Expect</div>Result is always 6 (Sunday).</div><div class="block"><div class="block-label">Check</div><code>assert hol._easter(year).weekday() == 6</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-03</span><span class="test-name">Easter in March or April</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._easter(year).month</code> for years 2020-2030.</div><div class="block"><div class="block-label">Expect</div>Month is always 3 or 4.</div><div class="block"><div class="block-label">Check</div><code>assert m in (3, 4)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestBussUndBettag &mdash; Bu&szlig;- und Bettag</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-04</span><span class="test-name">Result is Wednesday</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._buss_und_bettag(year).weekday()</code> for years 2020-2029.</div><div class="block"><div class="block-label">Expect</div>Always 2 (Wednesday).</div><div class="block"><div class="block-label">Check</div><code>assert d.weekday() == 2</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-05</span><span class="test-name">On or before Nov 23</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._buss_und_bettag(year)</code> for years 2020-2029.</div><div class="block"><div class="block-label">Expect</div>Date is &le; Nov 23 and &ge; Nov 16.</div><div class="block"><div class="block-label">Check</div><code>assert d &lt;= datetime.date(year, 11, 23)</code><br><code>assert d &gt;= datetime.date(year, 11, 16)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestNthWeekday &mdash; Nth Weekday Helper</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-06</span><span class="test-name">First Monday January 2025</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._nth_weekday(2025, 1, 1, 0)</code></div><div class="block"><div class="block-label">Expect</div><code>datetime.date(2025, 1, 6)</code>.</div><div class="block"><div class="block-label">Check</div><code>assert hol._nth_weekday(2025, 1, 1, 0) == datetime.date(2025, 1, 6)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-07</span><span class="test-name">Second Monday January 2025</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol._nth_weekday(2025, 1, 2, 0)</code></div><div class="block"><div class="block-label">Expect</div><code>datetime.date(2025, 1, 13)</code>.</div><div class="block"><div class="block-label">Check</div><code>assert hol._nth_weekday(2025, 1, 2, 0) == datetime.date(2025, 1, 13)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestDefaultHolidayYears &mdash; Default Holiday Years</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-08</span><span class="test-name">Returns range</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.default_holiday_years()</code></div><div class="block"><div class="block-label">Expect</div>Result is an instance of <code>range</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(result, range)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-09</span><span class="test-name">Starts at current year minus 2</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.default_holiday_years().start</code></div><div class="block"><div class="block-label">Expect</div>Equals <code>today.year &minus; 2</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result.start == cy - 2</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-10</span><span class="test-name">Ends at current year plus 12</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>(cy + 12) in hol.default_holiday_years()</code></div><div class="block"><div class="block-label">Expect</div><code>cy + 12</code> is included in the range.</div><div class="block"><div class="block-label">Check</div><code>assert (cy + 12) in result</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGermanNationalHolidays &mdash; German National Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-11</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_national_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(result, list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-12</span><span class="test-name">Nine holidays per year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>len(hol.german_national_holidays([2025]))</code></div><div class="block"><div class="block-label">Expect</div>Returns exactly 9 holidays for one year.</div><div class="block"><div class="block-label">Check</div><code>assert len(result) == 9</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-13</span><span class="test-name">Neujahr is Jan 1</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_national_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Entry &ldquo;Neujahr&rdquo; has date <code>2025-01-01</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["Neujahr"] == datetime.date(2025, 1, 1)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-14</span><span class="test-name">Tag der Deutschen Einheit is Oct 3</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_national_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Entry has date <code>2025-10-03</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["Tag der Deutschen Einheit"] == datetime.date(2025, 10, 3)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-15</span><span class="test-name">Entries are date-str tuples</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div>Iterate <code>german_national_holidays([2025])</code>.</div><div class="block"><div class="block-label">Expect</div>Each entry is a <code>(datetime.date, str)</code> tuple.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(item[0], datetime.date)</code><br><code>assert isinstance(item[1], str)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGermanStateExtraHolidays &mdash; German State Extra Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-16</span><span class="test-name">BW has Fronleichnam</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_state_extra_holidays("Baden-W&uuml;rttemberg", [2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Fronleichnam&rdquo; is in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "Fronleichnam" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-17</span><span class="test-name">BW has Heilige Drei K&ouml;nige</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_state_extra_holidays("Baden-W&uuml;rttemberg", [2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Heilige Drei K&ouml;nige&rdquo; is in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "Heilige Drei K&ouml;nige" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-18</span><span class="test-name">BY has Mari&auml; Himmelfahrt</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_state_extra_holidays("Bayern", [2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Mari&auml; Himmelfahrt&rdquo; is in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "Mari&auml; Himmelfahrt" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-19</span><span class="test-name">Sachsen has Bu&szlig;- und Bettag</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_state_extra_holidays("Sachsen", [2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Bu&szlig;- und Bettag&rdquo; is in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "Bu&szlig;- und Bettag" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-20</span><span class="test-name">Th&uuml;ringen Weltkindertag from 2019</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div>Check Weltkindertag absent for 2018, present from 2019.</div><div class="block"><div class="block-label">Expect</div>Not in 2018 list; in 2019 list.</div><div class="block"><div class="block-label">Check</div><code>assert "Weltkindertag" not in names_before</code><br><code>assert "Weltkindertag" in names_after</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-21</span><span class="test-name">Unknown state returns empty</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.german_state_extra_holidays("Atlantis", [2025])</code></div><div class="block"><div class="block-label">Expect</div>Returns empty list.</div><div class="block"><div class="block-label">Check</div><code>assert result == []</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestFranceHolidays &mdash; France Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-22</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.france_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(hol.france_holidays([2025]), list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-23</span><span class="test-name">Eleven holidays per year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>len(hol.france_holidays([2025]))</code></div><div class="block"><div class="block-label">Expect</div>Returns exactly 11 holidays.</div><div class="block"><div class="block-label">Check</div><code>assert len(result) == 11</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-24</span><span class="test-name">F&ecirc;te Nationale July 14</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.france_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;F&ecirc;te Nationale&rdquo; date is <code>2025-07-14</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["F&ecirc;te Nationale"] == datetime.date(2025, 7, 14)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestIndiaHolidays &mdash; India Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-25</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.india_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(hol.india_holidays([2025]), list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-26</span><span class="test-name">Republic Day Jan 26</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.india_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Republic Day&rdquo; date is <code>2025-01-26</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["Republic Day"] == datetime.date(2025, 1, 26)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-27</span><span class="test-name">Diwali present for known year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.india_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Diwali&rdquo; is in the result names.</div><div class="block"><div class="block-label">Check</div><code>assert "Diwali" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-28</span><span class="test-name">Only fixed holidays for out-of-range year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.india_holidays([2050])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Diwali&rdquo; absent; &ldquo;Republic Day&rdquo; present.</div><div class="block"><div class="block-label">Check</div><code>assert "Diwali" not in names</code><br><code>assert "Republic Day" in names</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestRomaniaHolidays &mdash; Romania Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-29</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.romania_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(hol.romania_holidays([2025]), list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-30</span><span class="test-name">Ziua Na&#x21B;ional&#x103; Dec 1</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.romania_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>National Day date is <code>2025-12-01</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["Ziua Na&#x21B;ional&#x103;"] == datetime.date(2025, 12, 1)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-31</span><span class="test-name">Contains Cr&#x103;ciun</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.romania_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Cr&#x103;ciun (1)&rdquo; is in the result names.</div><div class="block"><div class="block-label">Check</div><code>assert "Cr&#x103;ciun (1)" in names</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestChinaHolidays &mdash; China Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-32</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.china_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(hol.china_holidays([2025]), list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-33</span><span class="test-name">National Day Oct 1</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.china_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;National Day (Day 1)&rdquo; date is <code>2025-10-01</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["National Day (Day 1)"] == datetime.date(2025, 10, 1)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-34</span><span class="test-name">Spring Festival present for known year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.china_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Spring Festival (Day 1)&rdquo; is in the result.</div><div class="block"><div class="block-label">Check</div><code>assert "Spring Festival (Day 1)" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-35</span><span class="test-name">Only fixed holidays for out-of-range year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.china_holidays([2050])</code></div><div class="block"><div class="block-label">Expect</div>Spring Festival absent; National Day present.</div><div class="block"><div class="block-label">Check</div><code>assert "Spring Festival (Day 1)" not in names</code><br><code>assert "National Day (Day 1)" in names</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJapanHolidays &mdash; Japan Holidays</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-36</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.japan_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>Result is a <code>list</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(hol.japan_holidays([2025]), list)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-37</span><span class="test-name">New Year&rsquo;s Day</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.japan_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>New Year&rsquo;s Day is <code>2025-01-01</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dates_names["New Year's Day"] == datetime.date(2025, 1, 1)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-38</span><span class="test-name">Vernal Equinox for known year</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.japan_holidays([2025])</code></div><div class="block"><div class="block-label">Expect</div>&ldquo;Vernal Equinox Day&rdquo; is in the result.</div><div class="block"><div class="block-label">Check</div><code>assert "Vernal Equinox Day" in names</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-39</span><span class="test-name">Coming of Age Day is second Monday January</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Module imported.</div><div class="block"><div class="block-label">Run</div><code>hol.japan_holidays([2025])</code>; read &ldquo;Coming of Age Day&rdquo; date.</div><div class="block"><div class="block-label">Expect</div>Weekday is 0 (Monday) and day is between 8 and 14.</div><div class="block"><div class="block-label">Check</div><code>assert d.weekday() == 0</code><br><code>assert 8 &lt;= d.day &lt;= 14</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestAddHolidaysToCalendar &mdash; Add Holidays To Calendar</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-40</span><span class="test-name">Calls addCalendarException</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock MPXJ calendar; <code>java.time</code> patched.</div><div class="block"><div class="block-label">Run</div><code>hol.add_holidays_to_calendar(cal, [(datetime.date(2025, 1, 1), "Neujahr")])</code></div><div class="block"><div class="block-label">Expect</div><code>cal.addCalendarException</code> called once.</div><div class="block"><div class="block-label">Check</div><code>cal.addCalendarException.assert_called_once()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-41</span><span class="test-name">Sets exception name</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock MPXJ calendar; exception mock returned.</div><div class="block"><div class="block-label">Run</div><code>hol.add_holidays_to_calendar(cal, [(date, "Tag der Deutschen Einheit")])</code></div><div class="block"><div class="block-label">Expect</div><code>ex.setName</code> called with the holiday name string.</div><div class="block"><div class="block-label">Check</div><code>mock_ex.setName.assert_called_once_with("Tag der Deutschen Einheit")</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-42</span><span class="test-name">Skips duplicate dates</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Calendar already has exception for <code>2025-01-01</code>.</div><div class="block"><div class="block-label">Run</div><code>hol.add_holidays_to_calendar(cal, [(date_dup, ...), (date_new, ...)])</code></div><div class="block"><div class="block-label">Expect</div>Only the non-duplicate is added; <code>addCalendarException</code> called once.</div><div class="block"><div class="block-label">Check</div><code>assert cal.addCalendarException.call_count == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">HOL-43</span><span class="test-name">Empty holiday list adds nothing</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock MPXJ calendar.</div><div class="block"><div class="block-label">Run</div><code>hol.add_holidays_to_calendar(cal, [])</code></div><div class="block"><div class="block-label">Expect</div><code>addCalendarException</code> never called.</div><div class="block"><div class="block-label">Check</div><code>cal.addCalendarException.assert_not_called()</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

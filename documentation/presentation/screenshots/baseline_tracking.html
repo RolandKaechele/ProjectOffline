@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Baseline Tracking – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1200px;height:640px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Menu / Ribbon ── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:26px;font-size:13px}
+.menubar span{padding:4px 12px;cursor:default}.menubar span:hover{background:#3A6EBC}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column;flex-shrink:0}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:2px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:52px;padding:3px 6px 0;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn.on{background:#dce8f8;border-color:#8ab0d8}
+.rbtn-icon{font-size:17px;line-height:1.1}
+.rgroup-lbl{font-size:9px;color:#5a6070;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:auto}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:5px 5px;align-self:stretch}
+
+/* ── Ref / vs. combos ── */
+.combo-row{display:flex;align-items:center;gap:4px;font-size:11px;color:#2B579A;font-weight:700}
+.combo{border:1px solid #8ab0d8;border-radius:3px;padding:2px 6px;background:#fff;color:#1a2a5e;font-size:11px;min-width:110px}
+
+/* ── Tab bar ── */
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 14px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+/* ── Grid layout ── */
+.grid-wrap{display:flex;flex:1;overflow:hidden;flex-direction:column}
+.col-hdr{display:flex;height:32px;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A;flex-shrink:0;align-items:center}
+.ch{font-size:11px;font-weight:700;color:#1A3F7A;border-right:1px solid #B0C8E0;padding:0 6px;display:flex;align-items:center;height:100%;overflow:hidden;white-space:nowrap}
+.grid-body{flex:1;overflow:hidden}
+.row{display:flex;height:26px;align-items:center;border-bottom:1px solid #D0DDF0}
+.row.even{background:#fff}.row.odd{background:#F0F5FF}
+.row.summary{background:#E8EFF8;font-weight:700}
+.row.summary.odd{background:#DDE8F5}
+.row.sel{background:#BDD7EE}
+.cell{font-size:11.5px;border-right:1px solid #D0DDF0;padding:0 7px;height:100%;display:flex;align-items:center;overflow:hidden;white-space:nowrap}
+/* task name cell with indent */
+.cell.name{min-width:0;flex:1}
+.cell.name .tri{font-size:9px;color:#555;margin-right:3px}
+.cell.name .i1{margin-left:16px}
+.cell.name .i2{margin-left:28px}
+.cell.name .icon{width:11px;height:11px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;margin-right:2px;flex-shrink:0}
+.ic-crit{background:#c0392b;color:#fff}
+/* variance cells */
+.cell.delta{min-width:62px;width:62px;justify-content:flex-end}
+.cell.date{min-width:82px;width:82px;font-size:11px;color:#3a3a3a}
+.cell.dur{min-width:60px;width:60px;font-size:11px;color:#3a3a3a;justify-content:flex-end}
+/* colour coding */
+.yellow{background:#FFFFA0}
+.orange{background:#FFD278}
+.red{background:#FF9696}
+
+/* Gantt strip on right */
+.gantt-strip{width:340px;flex-shrink:0;border-left:2px solid #B8CBE4;display:flex;flex-direction:column;overflow:hidden}
+.gantt-hdr{height:32px;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#1A3F7A;gap:8px}
+.gantt-body{flex:1;position:relative;overflow:hidden;background:#fff}
+.we-stripe{position:absolute;top:0;bottom:0;background:rgba(190,200,215,.35)}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:10}
+.g-row{position:absolute;left:0;right:0;height:26px}
+.g-row.even{background:#fff}.g-row.odd{background:#F0F5FF}
+.g-row.summary{background:#E8EFF8}.g-row.summary.odd{background:#DDE8F5}
+.g-row.sel{background:#BDD7EE}
+.bar{position:absolute;height:13px;top:1px;border-radius:2px;overflow:hidden}
+.bar-bl{position:absolute;height:5px;bottom:1px;border-radius:1px;opacity:.75}
+.bar-fill{position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,.28)}
+.bar.blue{background:#4476C0}
+.bar.crit{background:#c04040}
+.bar.done{background:#2e8b57}
+.bar.summary-bar{background:#1A3F7A;height:11px;top:4px}
+.bar-bl.bl-blue{background:#9ab8e0}
+.bar-bl.bl-crit{background:#e09090}
+.ms{position:absolute;width:12px;height:12px;top:7px;transform:rotate(45deg);background:#7030A0}
+.bar-lbl{position:absolute;right:4px;top:0;height:13px;display:flex;align-items:center;font-size:8.5px;color:rgba(255,255,255,.9);font-weight:600;white-space:nowrap}
+
+/* ── Status bar ── */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 10px;display:flex;gap:14px;height:20px;align-items:center;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab">TASK</button>
+      <button class="rtab">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab active">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn on"><div class="rbtn-icon">&#128208;</div>Set<br>Baseline</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128465;</div>Clear<br>Baseline</div>
+        </div>
+        <div class="rgroup-lbl">Baseline</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn on"><div class="rbtn-icon">&#128311;</div>Show<br>Bars</div>
+          <div class="rbtn on"><div class="rbtn-icon">&#8592;</div>Start Δ</div>
+          <div class="rbtn on"><div class="rbtn-icon">&#8594;</div>Finish Δ</div>
+          <div class="rbtn on"><div class="rbtn-icon">&#8943;</div>Duration %</div>
+        </div>
+        <div class="rgroup-lbl">Gantt Diff</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns" style="gap:8px;padding:8px 4px 0;align-items:center">
+          <div class="combo-row">
+            Ref:&nbsp;<select class="combo"><option>Baseline 0 — 2026-03-01</option></select>
+          </div>
+          <div class="combo-row">
+            vs.:&nbsp;<select class="combo"><option selected>Current</option></select>
+          </div>
+        </div>
+        <div class="rgroup-lbl">Compare</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab active">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+  </div>
+
+  <div class="grid-wrap" style="display:flex;flex-direction:row;flex:1;overflow:hidden">
+    <!-- Left variance grid -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+      <!-- Column headers -->
+      <div class="col-hdr">
+        <div class="ch" style="width:200px">Task Name</div>
+        <div class="ch" style="width:82px">BL Start</div>
+        <div class="ch" style="width:82px">Ref Start</div>
+        <div class="ch delta">Start Δ (d)</div>
+        <div class="ch" style="width:82px">BL Finish</div>
+        <div class="ch" style="width:82px">Ref Finish</div>
+        <div class="ch delta">Fin Δ (d)</div>
+        <div class="ch" style="width:60px">BL Dur</div>
+        <div class="ch" style="width:60px">Ref Dur</div>
+        <div class="ch delta" style="width:70px">Dur Δ %</div>
+      </div>
+      <!-- Grid rows -->
+      <div class="grid-body">
+        <!-- 1 summary -->
+        <div class="row summary">
+          <div class="cell name" style="width:200px"><span class="tri">&#9660;</span>&#128193; Requirements</div>
+          <div class="cell date">01 Mar 2026</div>
+          <div class="cell date">01 Mar 2026</div>
+          <div class="cell delta">0d</div>
+          <div class="cell date">14 Mar 2026</div>
+          <div class="cell date">14 Mar 2026</div>
+          <div class="cell delta">0d</div>
+          <div class="cell dur">10d</div>
+          <div class="cell dur">10d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 2 -->
+        <div class="row odd">
+          <div class="cell name" style="width:200px"><span class="i1">Stakeholder interviews</span></div>
+          <div class="cell date">01 Mar</div>
+          <div class="cell date">01 Mar</div>
+          <div class="cell delta">0d</div>
+          <div class="cell date">04 Mar</div>
+          <div class="cell date">04 Mar</div>
+          <div class="cell delta">0d</div>
+          <div class="cell dur">2d</div>
+          <div class="cell dur">2d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 3 -->
+        <div class="row even">
+          <div class="cell name" style="width:200px"><span class="i1">Requirements document</span></div>
+          <div class="cell date">05 Mar</div>
+          <div class="cell date">05 Mar</div>
+          <div class="cell delta">0d</div>
+          <div class="cell date">11 Mar</div>
+          <div class="cell date">14 Mar</div>
+          <div class="cell delta yellow">+2d</div>
+          <div class="cell dur">5d</div>
+          <div class="cell dur">7d</div>
+          <div class="cell delta yellow" style="width:70px">+40%</div>
+        </div>
+        <!-- 4 summary -->
+        <div class="row summary odd">
+          <div class="cell name" style="width:200px"><span class="tri">&#9660;</span>&#128193; Design</div>
+          <div class="cell date">15 Mar</div>
+          <div class="cell date">17 Mar</div>
+          <div class="cell delta yellow">+2d</div>
+          <div class="cell date">28 Mar</div>
+          <div class="cell date">04 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell dur">10d</div>
+          <div class="cell dur">13d</div>
+          <div class="cell delta orange" style="width:70px">+30%</div>
+        </div>
+        <!-- 5 -->
+        <div class="row even">
+          <div class="cell name" style="width:200px"><span class="i1">Architecture review</span></div>
+          <div class="cell date">15 Mar</div>
+          <div class="cell date">17 Mar</div>
+          <div class="cell delta yellow">+2d</div>
+          <div class="cell date">16 Mar</div>
+          <div class="cell date">18 Mar</div>
+          <div class="cell delta yellow">+2d</div>
+          <div class="cell dur">1d</div>
+          <div class="cell dur">1d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 6 selected row -->
+        <div class="row odd sel">
+          <div class="cell name" style="width:200px"><span class="i1">Component design</span></div>
+          <div class="cell date">17 Mar</div>
+          <div class="cell date">19 Mar</div>
+          <div class="cell delta yellow">+2d</div>
+          <div class="cell date">28 Mar</div>
+          <div class="cell date">04 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell dur">8d</div>
+          <div class="cell dur">11d</div>
+          <div class="cell delta orange" style="width:70px">+38%</div>
+        </div>
+        <!-- 7 summary -->
+        <div class="row summary even">
+          <div class="cell name" style="width:200px"><span class="tri">&#9660;</span>&#128193; Implementation</div>
+          <div class="cell date">29 Mar</div>
+          <div class="cell date">07 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell date">30 Apr</div>
+          <div class="cell date">14 May</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell dur">23d</div>
+          <div class="cell dur">26d</div>
+          <div class="cell delta red" style="width:70px">+13%</div>
+        </div>
+        <!-- 8 crit -->
+        <div class="row odd">
+          <div class="cell name" style="width:200px"><span class="ic-crit icon">!</span><span class="i1">Module A coding</span></div>
+          <div class="cell date">29 Mar</div>
+          <div class="cell date">07 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell date">09 Apr</div>
+          <div class="cell date">18 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell dur">8d</div>
+          <div class="cell dur">8d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 9 -->
+        <div class="row even">
+          <div class="cell name" style="width:200px"><span class="i1">Module B coding</span></div>
+          <div class="cell date">10 Apr</div>
+          <div class="cell date">19 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell date">17 Apr</div>
+          <div class="cell date">26 Apr</div>
+          <div class="cell delta orange">+5d</div>
+          <div class="cell dur">6d</div>
+          <div class="cell dur">6d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 10 -->
+        <div class="row odd">
+          <div class="cell name" style="width:200px"><span class="i1">Unit tests</span></div>
+          <div class="cell date">18 Apr</div>
+          <div class="cell date">28 Apr</div>
+          <div class="cell delta red">+7d</div>
+          <div class="cell date">30 Apr</div>
+          <div class="cell date">14 May</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell dur">9d</div>
+          <div class="cell dur">12d</div>
+          <div class="cell delta red" style="width:70px">+33%</div>
+        </div>
+        <!-- 11 summary -->
+        <div class="row summary even">
+          <div class="cell name" style="width:200px"><span class="tri">&#9660;</span>&#128193; Integration &amp; QA</div>
+          <div class="cell date">01 May</div>
+          <div class="cell date">15 May</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell date">20 May</div>
+          <div class="cell date">03 Jun</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell dur">14d</div>
+          <div class="cell dur">14d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 12 -->
+        <div class="row odd">
+          <div class="cell name" style="width:200px"><span class="i1">Integration testing</span></div>
+          <div class="cell date">01 May</div>
+          <div class="cell date">15 May</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell date">16 May</div>
+          <div class="cell date">30 May</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell dur">10d</div>
+          <div class="cell dur">10d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+        <!-- 13 milestone -->
+        <div class="row even">
+          <div class="cell name" style="width:200px"><span class="i1">&#9670; Release sign-off</span></div>
+          <div class="cell date">20 May</div>
+          <div class="cell date">03 Jun</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell date">20 May</div>
+          <div class="cell date">03 Jun</div>
+          <div class="cell delta red">+8d</div>
+          <div class="cell dur">0d</div>
+          <div class="cell dur">0d</div>
+          <div class="cell delta" style="width:70px">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right mini-Gantt strip -->
+    <div class="gantt-strip">
+      <div class="gantt-hdr">
+        Mar&nbsp;2026
+        &nbsp;|&nbsp;
+        Apr&nbsp;2026
+        &nbsp;|&nbsp;
+        May&nbsp;2026
+        &nbsp;|&nbsp;
+        Jun
+      </div>
+      <div class="gantt-body">
+        <!-- weekend stripes (approximate, evenly spaced) -->
+        <div class="we-stripe" style="left:3.5%;width:2.8%"></div>
+        <div class="we-stripe" style="left:13%;width:2.8%"></div>
+        <div class="we-stripe" style="left:22.5%;width:2.8%"></div>
+        <div class="we-stripe" style="left:32%;width:2.8%"></div>
+        <div class="we-stripe" style="left:41.5%;width:2.8%"></div>
+        <div class="we-stripe" style="left:51%;width:2.8%"></div>
+        <div class="we-stripe" style="left:60.5%;width:2.8%"></div>
+        <div class="we-stripe" style="left:70%;width:2.8%"></div>
+        <div class="we-stripe" style="left:79.5%;width:2.8%"></div>
+        <div class="we-stripe" style="left:89%;width:2.8%"></div>
+        <!-- Today line ≈ 8 May (in ~72% of Mar–Jun span) -->
+        <div class="today-line" style="left:72%"></div>
+        <!-- row backgrounds -->
+        <div class="g-row summary" style="top:0"></div>
+        <div class="g-row odd" style="top:26px"></div>
+        <div class="g-row even" style="top:52px"></div>
+        <div class="g-row summary odd" style="top:78px"></div>
+        <div class="g-row even" style="top:104px"></div>
+        <div class="g-row sel" style="top:130px"></div>
+        <div class="g-row summary even" style="top:156px"></div>
+        <div class="g-row odd" style="top:182px"></div>
+        <div class="g-row even" style="top:208px"></div>
+        <div class="g-row odd" style="top:234px"></div>
+        <div class="g-row summary even" style="top:260px"></div>
+        <div class="g-row odd" style="top:286px"></div>
+        <div class="g-row even" style="top:312px"></div>
+        <!-- Bars: current (top) + baseline strip (bottom) -->
+        <!-- row 0 Requirements summary -->
+        <div class="bar summary-bar" style="top:8px;left:2%;width:17%"></div>
+        <div class="bar-bl bl-blue" style="bottom:2px;top:21px;left:2%;width:15%"></div>
+        <!-- row 1 Stakeholder -->
+        <div class="bar done" style="top:27px;left:2%;width:6%"></div>
+        <div class="bar-bl bl-blue" style="top:39px;left:2%;width:6%"></div>
+        <!-- row 2 Requirements doc -->
+        <div class="bar done" style="top:53px;left:8%;width:11%"></div>
+        <div class="bar-bl bl-blue" style="top:65px;left:8%;width:8%"><span class="bar-lbl">+2d</span></div>
+        <!-- row 3 Design summary -->
+        <div class="bar summary-bar" style="top:82px;left:19%;width:27%"></div>
+        <div class="bar-bl bl-blue" style="top:93px;left:17%;width:20%"></div>
+        <!-- row 4 Architecture -->
+        <div class="bar done" style="top:105px;left:19%;width:3%"></div>
+        <div class="bar-bl bl-blue" style="top:117px;left:17%;width:3%"></div>
+        <!-- row 5 Component design (selected) -->
+        <div class="bar blue" style="top:131px;left:22%;width:23%"></div>
+        <div class="bar-bl bl-blue" style="top:143px;left:20%;width:17%"></div>
+        <!-- row 6 Implementation summary -->
+        <div class="bar summary-bar" style="top:160px;left:43%;width:42%"></div>
+        <div class="bar-bl bl-crit" style="top:171px;left:37%;width:32%"></div>
+        <!-- row 7 Module A (crit) -->
+        <div class="bar crit" style="top:183px;left:43%;width:16%"></div>
+        <div class="bar-bl bl-crit" style="top:195px;left:37%;width:16%"></div>
+        <!-- row 8 Module B (crit) -->
+        <div class="bar crit" style="top:209px;left:59%;width:12%"></div>
+        <div class="bar-bl bl-crit" style="top:221px;left:53%;width:12%"></div>
+        <!-- row 9 Unit tests (crit) -->
+        <div class="bar crit" style="top:235px;left:70%;width:15%"></div>
+        <div class="bar-bl bl-crit" style="top:247px;left:61%;width:11%"></div>
+        <!-- row 10 QA summary -->
+        <div class="bar summary-bar" style="top:264px;left:83%;width:17%"></div>
+        <div class="bar-bl bl-blue" style="top:275px;left:72%;width:14%"></div>
+        <!-- row 11 Integration testing (crit) -->
+        <div class="bar crit" style="top:287px;left:83%;width:15%"></div>
+        <div class="bar-bl bl-crit" style="top:299px;left:72%;width:12%"></div>
+        <!-- row 12 Milestone -->
+        <div class="ms" style="left:98%;top:316px"></div>
+        <div class="ms" style="left:88%;top:316px;background:#9ab8e0;width:10px;height:10px;top:318px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>Baseline 0 — captured 2026-03-01</span>
+    <span>vs. Current schedule</span>
+    <span style="margin-left:auto;color:#FFD700;font-weight:700">⚠ 7 tasks with variance &gt; 3 days</span>
+  </div>
+
+</div>
+</body>
+</html>

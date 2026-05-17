@@ -1,0 +1,69 @@
+﻿<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_05_GanttChart	PO-GANTT-	Project Offline – Gantt Chart Requirements	1777892400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Gantt Chart			1	1_Heading.0	Not relevant		
+	Requirements for the Gantt Chart view including rendering, interaction, zoom, and navigation.	information	1.1	PO-GANTT-INFO-001.0	Not relevant		
+1.1 Task Bar Rendering			1.1	1_1_Heading.0	Not relevant		
+	The Gantt Chart shall display a horizontal bar for each non-summary task spanning from the task start date to the finish date.	functional requirement	1.1.1	PO-GANTT-001.0	Not relevant	approved	aligned
+	Summary tasks shall be rendered as a distinct summary bar (thicker, darker) spanning the rolled-up date range.	functional requirement	1.1.2	PO-GANTT-002.0	Not relevant	approved	aligned
+	Each task bar shall display a progress overlay showing the % complete as a filled darker segment on the left.	functional requirement	1.1.3	PO-GANTT-003.0	Not relevant	approved	aligned
+	Milestone tasks shall be rendered as a diamond shape at their finish date.	functional requirement	1.1.4	PO-GANTT-004.0	Not relevant	approved	aligned
+	Critical path tasks shall be highlighted in a distinct colour (e.g. red).	functional requirement	1.1.5	PO-GANTT-005.0	Not relevant	approved	aligned
+	Overallocated resources shall be indicated with an orange border on the task bar.	functional requirement	1.1.6	PO-GANTT-006.0	Not relevant	approved	aligned
+	The Gantt Chart shall display a two-row calendar header: top row shows months, bottom row shows day numbers. Saturdays/holidays shown in light grey, Sundays in blue tint.	functional requirement	1.1.7	PO-GANTT-007.0	Not relevant	approved	aligned
+	A bold green today indicator line with a downward triangle shall be displayed in the calendar header.	functional requirement	1.1.8	PO-GANTT-008.0	Not relevant	approved	aligned
+1.2 Baseline Strip			1.2	1_2_Heading.0	Not relevant		
+	When a baseline is active, the Gantt Chart shall render a thin baseline strip below each task bar showing the baselined start–finish dates.	functional requirement	1.2.1	PO-GANTT-009.0	Not relevant	approved	aligned
+	Gantt baseline diff mode shall colour task bars to indicate whether they have slipped, are ahead of plan, or are on schedule relative to the active baseline.	functional requirement	1.2.2	PO-GANTT-010.0	Not relevant	approved	aligned
+1.3 Dependency Arrows			1.3	1_3_Heading.0	Not relevant		
+	The Gantt Chart shall draw predecessor dependency arrows connecting task bars.	functional requirement	1.3.1	PO-GANTT-011.0	Not relevant	approved	aligned
+	Dependency arrows shall be rendered correctly for Finish-to-Start, Start-to-Start, Finish-to-Finish, and Start-to-Finish link types.	functional requirement	1.3.2	PO-GANTT-012.0	Not relevant	approved	aligned
+1.4 Drag to Reschedule			1.4	1_4_Heading.0	Not relevant		
+	The user shall be able to drag a task bar horizontally to reschedule the task to a new start date.	functional requirement	1.4.1	PO-GANTT-013.0	Not relevant	approved	aligned
+	In hourly zoom mode, drag-to-reschedule shall use work-hour arithmetic to preserve cross-day durations.	functional requirement	1.4.2	PO-GANTT-014.0	Not relevant	approved	aligned
+	After dragging a task, the Gantt view shall maintain the current scroll position and not jump to an unknown time.	functional requirement	1.4.3	PO-GANTT-015.0	Not relevant	approved	aligned
+1.5 Zoom Controls			1.5	1_5_Heading.0	Not relevant		
+	The Gantt Chart shall support four zoom modes: day mode (default, 22 px/day), a wider day mode, week mode, and hourly mode.	functional requirement	1.5.1	PO-GANTT-016.0	Not relevant	approved	aligned
+	Zoom in / zoom out shall be triggered via Ctrl++ / Ctrl+-, the ribbon zoom buttons, and the toolbar overlay in the bottom-right corner of the canvas.	functional requirement	1.5.2	PO-GANTT-017.0	Not relevant	approved	aligned
+	After a zoom operation, the Gantt view shall maintain the current viewport time position and not jump to an unknown time.	functional requirement	1.5.3	PO-GANTT-018.0	Not relevant	approved	aligned
+	The day width shall be clamped between DAY_WIDTH_MIN (4 px) and DAY_WIDTH_MAX (80 px).	functional requirement	1.5.4	PO-GANTT-019.0	Not relevant	approved	aligned
+1.6 Navigation			1.6	1_6_Heading.0	Not relevant		
+	A navigation bar above the calendar header shall provide three buttons: First (scroll to first task), Today (scroll to today), Last (scroll to last task).	functional requirement	1.6.1	PO-GANTT-020.0	Not relevant	approved	aligned
+	The Task Sheet context menu shall provide a 'Show in Gantt Chart' action that scrolls the Gantt Canvas horizontally to the selected task's start date (all zoom modes including hourly).	functional requirement	1.6.2	PO-GANTT-021.0	Not relevant	approved	aligned
+1.7 Context Menu			1.7	1_7_Heading.0	Not relevant		
+	Right-clicking a task bar in the Gantt Chart shall display a context menu with actions: Split Task, Task Information, Add to Timeline, Remove from Timeline.	functional requirement	1.7.1	PO-GANTT-022.0	Not relevant	approved	aligned
+	The Gantt Chart shall display vacation overlays as semi-transparent orange blocks on non-working (vacation) days for assigned resources.	functional requirement	1.7.2	PO-GANTT-023.0	Not relevant	approved	aligned
+1.8 Gantt Task Panel Interaction			1.8	1_8_Heading.0	Not relevant		
+	Double-clicking a task row in the Gantt task panel (left side) shall open the Task Information dialog, supplying the current CPM critical_ids and float_data so that the Schedule tab displays the correct critical status and float values.	functional requirement	1.8.1	PO-GANTT-024.0	Not relevant	approved	aligned
+</OBJECTS>

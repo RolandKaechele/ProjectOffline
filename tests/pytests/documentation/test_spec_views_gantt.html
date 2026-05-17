@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Gantt View &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Gantt View</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#gantt_view">gantt view</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">82</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">82</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="gantt_view">
+  <div class="module-header"><h2>gantt_view.py</h2><span class="badge">82 tests</span></div>
+  <div class="module-desc">Gantt canvas: to_qdate, add_working_days, snap_to_workday, visible-task filtering, layout constants, zoom, project load, timeline reference, vacation-block helper, split_task, split/merge history push.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestToQdate — To Qdate</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-01</span>
+          <span class="test-name">None returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import _to_qdate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_to_qdate(None) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _to_qdate(None) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-02</span>
+          <span class="test-name">Iso date string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _to_qdate</code><br><code>from PyQt5.QtCore import QDate</code><br><code>mock_dt = MagicMock()</code><br><code>mock_dt.__str__ = MagicMock(return_value=&quot;2025-06-15&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _to_qdate(mock_dt)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 6, 15)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 6, 15)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-03</span>
+          <span class="test-name">Datetime string truncated to date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _to_qdate</code><br><code>from PyQt5.QtCore import QDate</code><br><code>mock_dt = MagicMock()</code><br><code>mock_dt.__str__ = MagicMock(return_value=&quot;2025-12-01T08:00:00&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _to_qdate(mock_dt)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 12, 1)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 12, 1)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-04</span>
+          <span class="test-name">Invalid string returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _to_qdate</code><br><code>mock_dt = MagicMock()</code><br><code>mock_dt.__str__ = MagicMock(return_value=&quot;not-a-date&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _to_qdate(mock_dt)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-05</span>
+          <span class="test-name">Empty string returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _to_qdate</code><br><code>mock_dt = MagicMock()</code><br><code>mock_dt.__str__ = MagicMock(return_value=&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _to_qdate(mock_dt)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestAddWorkingDays — Add Working Days</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-06</span>
+          <span class="test-name">Add zero days returns start unchanged</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _add_working_days</code><br><code>from PyQt5.QtCore import QDate</code><br><code>monday = QDate(2025, 1, 6)   # a Monday</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _add_working_days(monday, 0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>monday</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == monday</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-07</span>
+          <span class="test-name">Add five days from monday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _add_working_days</code><br><code>from PyQt5.QtCore import QDate</code><br><code>monday = QDate(2025, 1, 6)   # Monday 2025-01-06</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _add_working_days(monday, 5)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 1, 10)  # Friday</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 1, 10)  # Friday</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-08</span>
+          <span class="test-name">One day task on friday stays friday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _add_working_days</code><br><code>from PyQt5.QtCore import QDate</code><br><code>friday = QDate(2025, 1, 10)   # Friday 2025-01-10</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _add_working_days(friday, 1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>friday</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == friday</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-09</span>
+          <span class="test-name">Two day task from friday skips weekend</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _add_working_days</code><br><code>from PyQt5.QtCore import QDate</code><br><code>friday = QDate(2025, 1, 10)   # Friday 2025-01-10</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _add_working_days(friday, 2)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 1, 13)  # Monday 2025-01-13</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 1, 13)  # Monday 2025-01-13</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-10</span>
+          <span class="test-name">Result is never a weekend</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _add_working_days</code><br><code>from PyQt5.QtCore import QDate</code><br><code>start = QDate(2025, 1, 6)</code><br><code>for days in range(1, 15):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _add_working_days(start, days)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result.dayOfWeek() not</code> is contained in <code>(6, 7), \</code>. f&quot;Got weekend for days={days}: {result.toString()}&quot;</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result.dayOfWeek() not in (6, 7), \</code><br><code>f&quot;Got weekend for days={days}: {result.toString()}&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSnapToWorkday — Snap To Workday</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-11</span>
+          <span class="test-name">Workday unchanged</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _snap_to_workday</code><br><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Run</div><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_snap_to_workday(monday)</code> equals <code>monday</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _snap_to_workday(monday) == monday</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-12</span>
+          <span class="test-name">Saturday snaps to monday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _snap_to_workday</code><br><code>from PyQt5.QtCore import QDate</code><br><code>saturday = QDate(2025, 1, 11)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _snap_to_workday(saturday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 1, 13)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 1, 13)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-13</span>
+          <span class="test-name">Sunday snaps to monday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _snap_to_workday</code><br><code>from PyQt5.QtCore import QDate</code><br><code>sunday = QDate(2025, 1, 12)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _snap_to_workday(sunday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 1, 13)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 1, 13)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-14</span>
+          <span class="test-name">Holiday in non working set snaps forward</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _snap_to_workday</code><br><code>from PyQt5.QtCore import QDate</code><br><code>monday = QDate(2025, 1, 6)</code><br><code>non_working = {&quot;2025-01-06&quot;, &quot;2025-01-07&quot;}   # Mon + Tue blocked</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _snap_to_workday(monday, non_working)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>QDate(2025, 1, 8)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == QDate(2025, 1, 8)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetVisibleTasks — Get Visible Tasks</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-15</span>
+          <span class="test-name">Empty collapsed returns all</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _get_visible_tasks</code><br><code>tasks = [make_mock_task(task_id=i, uid=i) for i in range(1, 4)]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _get_visible_tasks(tasks, set())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>tasks</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == tasks</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-16</span>
+          <span class="test-name">Empty task list returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import _get_visible_tasks</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_visible_tasks([], set())</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_visible_tasks([], set()) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-17</span>
+          <span class="test-name">Non summary task always visible</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _get_visible_tasks</code><br><code>task = make_mock_task(task_id=1, uid=1, is_summary=False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _get_visible_tasks([task], {&quot;1&quot;})</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>task</code> is contained in <code>result</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert task in result</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-18</span>
+          <span class="test-name">Collapsed summary hides children</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _get_visible_tasks</code><br><code>summary = make_mock_task(task_id=1, uid=1, outline_level=1, is_summary=True)</code><br><code>summary.getSummary.return_value = True</code><br><code>child = make_mock_task(task_id=2, uid=2, outline_level=2, is_summary=False)</code><br><code>child.getSummary.return_value = False</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _get_visible_tasks([summary, child], {&quot;1&quot;})</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>summary</code> is contained in <code>result</code>. <code>child not</code> is contained in <code>result</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert summary in result</code><br><code>assert child not in result</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-19</span>
+          <span class="test-name">Uncollapsed summary shows children</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _get_visible_tasks</code><br><code>summary = make_mock_task(task_id=1, uid=1, outline_level=1, is_summary=True)</code><br><code>summary.getSummary.return_value = True</code><br><code>child = make_mock_task(task_id=2, uid=2, outline_level=2, is_summary=False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _get_visible_tasks([summary, child], set())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>summary</code> is contained in <code>result</code>. <code>child</code> is contained in <code>result</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert summary in result</code><br><code>assert child in result</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestLayoutConstants — Layout Constants</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-20</span>
+          <span class="test-name">Day width def between min and max</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import DAY_WIDTH_DEF, DAY_WIDTH_MIN, DAY_WIDTH_MAX</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>DAY_WIDTH_MIN &lt;= DAY_WIDTH_DEF &lt;= DAY_WIDTH_MAX</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert DAY_WIDTH_MIN &lt;= DAY_WIDTH_DEF &lt;= DAY_WIDTH_MAX</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-21</span>
+          <span class="test-name">Header height is sum of rows</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import HEADER_HEIGHT, HEADER_MONTH_H, HEADER_WEEK_H</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>HEADER_HEIGHT</code> equals <code>HEADER_MONTH_H + HEADER_WEEK_H</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert HEADER_HEIGHT == HEADER_MONTH_H + HEADER_WEEK_H</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-22</span>
+          <span class="test-name">Row height positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import ROW_HEIGHT</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ROW_HEIGHT</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ROW_HEIGHT &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-23</span>
+          <span class="test-name">Nav bar height positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import NAV_BAR_HEIGHT</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>NAV_BAR_HEIGHT</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert NAV_BAR_HEIGHT &gt; 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGanttView — Gantt View</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-24</span>
+          <span class="test-name">Widget created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import GanttView</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>GanttView() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert GanttView() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-25</span>
+          <span class="test-name">Zoom in increases day width</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_DEF</code><br><code>initial = gv.canvas.day_width</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.zoom_in()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.day_width</code> is greater than <code>initial</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.day_width &gt; initial</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-26</span>
+          <span class="test-name">Zoom out decreases day width</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>initial = gv.canvas.day_width</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.zoom_out()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.day_width</code> is less than <code>initial</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.day_width &lt; initial</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-27</span>
+          <span class="test-name">Set day width clamps to min</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_MIN</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_day_width(0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.day_width</code> is = <code>DAY_WIDTH_MIN</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.day_width &gt;= DAY_WIDTH_MIN</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-28</span>
+          <span class="test-name">Set day width clamps to max</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_MAX</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_day_width(9999)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.day_width &lt;= DAY_WIDTH_MAX</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.day_width &lt;= DAY_WIDTH_MAX</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-29</span>
+          <span class="test-name">Set show resource units</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_show_resource_units(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.show_resource_units</code> is <code>True</code>. gv.set_show_resource_units(False) <code>gv.canvas.show_resource_units</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.show_resource_units is True</code><br><code>gv.set_show_resource_units(False)</code><br><code>assert gv.canvas.show_resource_units is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-30</span>
+          <span class="test-name">Set show sundays</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_show_sundays(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas.show_sundays</code> is <code>False</code>. gv.set_show_sundays(True) <code>gv.canvas.show_sundays</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas.show_sundays is False</code><br><code>gv.set_show_sundays(True)</code><br><code>assert gv.canvas.show_sundays is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-31</span>
+          <span class="test-name">Set zero float critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_zero_float_critical(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas._zero_float_critical</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas._zero_float_critical is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-32</span>
+          <span class="test-name">Load none does not raise</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;gantt_view._get_non_working_dates&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>load none does not raise</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-33</span>
+          <span class="test-name">Load project sets tasks on canvas</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import GanttView</code><br><code>gv = GanttView()</code><br><code>tasks = [make_mock_task(task_id=i, uid=i) for i in range(1, 3)]</code><br><code>project = make_mock_project(tasks=tasks)</code><br><code>with patch(&#x27;gantt_view._get_non_working_dates&#x27;, return_value=set()), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(gv.canvas.tasks)</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(gv.canvas.tasks) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-34</span>
+          <span class="test-name">Signals defined</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(gv, &#x27;zoom_changed&#x27;)</code> is truthy. <code>hasattr(gv, &#x27;task_moved&#x27;)</code> is truthy. <code>hasattr(gv, &#x27;task_edited&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(gv, &#x27;zoom_changed&#x27;)</code><br><code>assert hasattr(gv, &#x27;task_moved&#x27;)</code><br><code>assert hasattr(gv, &#x27;task_edited&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-35</span>
+          <span class="test-name">Set timeline view stores on canvas</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tv = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_timeline_view(tv)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas._timeline_view is tv</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas._timeline_view is tv</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-36</span>
+          <span class="test-name">Set timeline view none clears reference</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tv = MagicMock()</code><br><code>gv.set_timeline_view(tv)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>gv.set_timeline_view(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas._timeline_view is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas._timeline_view is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-37</span>
+          <span class="test-name">Canvas timeline view initially none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>gv.canvas._timeline_view is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert gv.canvas._timeline_view is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-38</span>
+          <span class="test-name">Set timeline view method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>callable(getattr(gv, &#x27;set_timeline_view&#x27;, None))</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert callable(getattr(gv, &#x27;set_timeline_view&#x27;, None))</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTaskVacationBlocks — Task Vacation Blocks</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-39</span>
+          <span class="test-name">No assignments returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.return_value = []</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-40</span>
+          <span class="test-name">Assignment no calendar returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>res = MagicMock()</code><br><code>res.getCalendar.return_value = None</code><br><code>asgn = MagicMock()</code><br><code>asgn.getResource.return_value = res</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.return_value = [asgn]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-41</span>
+          <span class="test-name">Null resource assignment skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>asgn = MagicMock()</code><br><code>asgn.getResource.return_value = None</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.return_value = [asgn]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-42</span>
+          <span class="test-name">Non working exception returns one block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>from gantt_view import _task_vacation_blocks</code><br><code>asgn = _make_assignment_with_vacation(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;, working=False)</code><br><code>task = MagicMock()</code><br><code>task.getResourceAssignments.return_value = [asgn]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _task_vacation_blocks(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(blocks)</code> equals <code>1</code>. <code>blocks[0][0]</code> equals <code>QDate(2026, 5, 21)</code>. <code>blocks[0][1]</code> equals <code>QDate(2026, 6, 5)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(blocks) == 1</code><br><code>assert blocks[0][0] == QDate(2026, 5, 21)</code><br><code>assert blocks[0][1] == QDate(2026, 6, 5)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-43</span>
+          <span class="test-name">Working exception is skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>asgn = _make_assignment_with_vacation(&quot;2026-05-02&quot;, &quot;2026-05-02&quot;, working=True)</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.return_value = [asgn]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-44</span>
+          <span class="test-name">Invalid from date is skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>asgn = _make_assignment_with_vacation(&quot;not-a-date&quot;, &quot;2026-06-01&quot;)</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.return_value = [asgn]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-45</span>
+          <span class="test-name">Multiple resources combined</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>asgn1 = _make_assignment_with_vacation(&quot;2026-03-10&quot;, &quot;2026-03-14&quot;)</code><br><code>asgn2 = _make_assignment_with_vacation(&quot;2026-07-01&quot;, &quot;2026-07-05&quot;)</code><br><code>task = MagicMock()</code><br><code>task.getResourceAssignments.return_value = [asgn1, asgn2]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _task_vacation_blocks(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(blocks)</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(blocks) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-46</span>
+          <span class="test-name">Exception suppressed when get assignments raises</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import _task_vacation_blocks</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getResourceAssignments.side_effect = RuntimeError(&quot;JVM gone&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_task_vacation_blocks(task)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _task_vacation_blocks(task) == []</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSplitTask — Split Task</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-47</span>
+          <span class="test-name">Split mid week no vacation</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task   = self._make_task(start=&quot;2026-05-18&quot;, finish=&quot;2026-05-22&quot;)  # Mon–Fri</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = canvas.split_task(task, QDate(2026, 5, 20))  # split on Wed</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. segs = canvas._task_splits[1] <code>len(segs)</code> equals <code>2</code>. … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>segs = canvas._task_splits[1]</code><br><code>assert len(segs) == 2</code><br><code>assert segs[0] == (QDate(2026, 5, 18), QDate(2026, 5, 19))  # seg1 Mon–Tue</code><br><code>assert segs[1][0] == QDate(2026, 5, 21)                     # seg2 starts Thu</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-48</span>
+          <span class="test-name">Split returns false for summary task</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task   = self._make_task(summary=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.split_task(task, QDate(2026, 5, 20))</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.split_task(task, QDate(2026, 5, 20)) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-49</span>
+          <span class="test-name">Split returns false for milestone</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task   = self._make_task(milestone=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.split_task(task, QDate(2026, 5, 20))</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.split_task(task, QDate(2026, 5, 20)) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-50</span>
+          <span class="test-name">Split out of range returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task   = self._make_task(start=&quot;2026-05-18&quot;, finish=&quot;2026-05-22&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.split_task(task, QDate(2026, 5, 10))</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.split_task(task, QDate(2026, 5, 10)) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-51</span>
+          <span class="test-name">Split seg2 skips weekend</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task   = self._make_task(start=&quot;2026-05-11&quot;, finish=&quot;2026-05-18&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = canvas.split_task(task, QDate(2026, 5, 16))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. segs = canvas._task_splits[1] seg2_start = segs[1][0] … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>segs = canvas._task_splits[1]</code><br><code>seg2_start = segs[1][0]</code><br><code>assert seg2_start.dayOfWeek() not in (6, 7)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-52</span>
+          <span class="test-name">Split seg2 skips into vacation</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>asgn = _make_assignment_with_vacation(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;, working=False)</code><br><code>task = self._make_task(uid=10, start=&quot;2026-05-14&quot;, finish=&quot;2026-05-21&quot;,</code><br><code>assignments=[asgn])</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = canvas.split_task(task, QDate(2026, 5, 20))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. segs = canvas._task_splits[10] seg2_start = segs[1][0] … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>segs = canvas._task_splits[10]</code><br><code>seg2_start = segs[1][0]</code><br><code>assert seg2_start &gt; QDate(2026, 6, 5)</code><br><code>assert seg2_start.dayOfWeek() not in (6, 7)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-53</span>
+          <span class="test-name">Split seg2 duration preserved after vacation skip</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>asgn = _make_assignment_with_vacation(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;, working=False)</code><br><code>task = self._make_task(uid=20, start=&quot;2026-05-14&quot;, finish=&quot;2026-05-21&quot;,</code><br><code>assignments=[asgn])</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>canvas.split_task(task, QDate(2026, 5, 20))</code><br><code>segs = canvas._task_splits[20]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg2_s, seg2_e = segs[1]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>seg2_s</code> equals <code>seg2_e  # single-day segment</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert seg2_s == seg2_e  # single-day segment</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-54</span>
+          <span class="test-name">Split stores segments in task splits</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task   = self._make_task(uid=5, start=&quot;2026-05-11&quot;, finish=&quot;2026-05-15&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.split_task(task, QDate(2026, 5, 12))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>5</code> is contained in <code>canvas._task_splits</code>. <code>len(canvas._task_splits[5])</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 5 in canvas._task_splits</code><br><code>assert len(canvas._task_splits[5]) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-55</span>
+          <span class="test-name">Split existing split task</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task   = self._make_task(uid=7, start=&quot;2026-05-04&quot;, finish=&quot;2026-05-15&quot;)</code><br><code>canvas._task_splits[7] = [</code><br><code>(QDate(2026, 5, 4), QDate(2026, 5, 7)),</code><br><code>(QDate(2026, 5, 11), QDate(2026, 5, 15)),</code><br><code>]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = canvas.split_task(task, QDate(2026, 5, 12))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>. <code>len(canvas._task_splits[7])</code> equals <code>3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code><br><code>assert len(canvas._task_splits[7]) == 3</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSplitMergeHistoryPush — Split Merge History Push</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-56</span>
+          <span class="test-name">Do merge does not call push history</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task()</code><br><code>canvas._task_splits[1] = [(QDate(2026, 5, 11), QDate(2026, 5, 14)), (QDate(2026, 5, 18), QDate(2026, 5, 22))]</code><br><code>canvas._push_history = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_merge(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._push_history.call_count</code> equals <code>0</code> — history is handled by <code>task_edited</code>, not by an internal pre-push.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._push_history.call_count == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-57</span>
+          <span class="test-name">Do merge emits task edited exactly once</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task()</code><br><code>canvas._task_splits[1] = [(QDate(2026, 5, 11), QDate(2026, 5, 14)), (QDate(2026, 5, 18), QDate(2026, 5, 22))]</code><br><code>emitted = []</code><br><code>canvas.task_edited.connect(lambda: emitted.append(1))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_merge(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(emitted)</code> equals <code>1</code> — exactly one history snapshot via <code>task_edited</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(emitted) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-58</span>
+          <span class="test-name">Do split interactive success no push history</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task()</code><br><code>canvas._push_history = MagicMock()</code><br><code>with self._patch_split_dialog(accepted=True, split_date=QDate(2026, 5, 14)):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_split_interactive(task, None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._push_history.call_count</code> equals <code>0</code> — no internal pre-push on success.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._push_history.call_count == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-59</span>
+          <span class="test-name">Do split interactive success emits task edited once</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task()</code><br><code>emitted = []</code><br><code>canvas.task_edited.connect(lambda: emitted.append(1))</code><br><code>with self._patch_split_dialog(accepted=True, split_date=QDate(2026, 5, 14)):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_split_interactive(task, None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(emitted)</code> equals <code>1</code> — exactly one history snapshot on successful split.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(emitted) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-60</span>
+          <span class="test-name">Do split interactive cancel no push no emit</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task()</code><br><code>canvas._push_history = MagicMock()</code><br><code>emitted = []</code><br><code>canvas.task_edited.connect(lambda: emitted.append(1))</code><br><code>with self._patch_split_dialog(accepted=False):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_split_interactive(task, None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._push_history.call_count</code> equals <code>0</code> and <code>len(emitted)</code> equals <code>0</code> — cancelled dialog must not produce any undo step.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._push_history.call_count == 0</code><br><code>assert len(emitted) == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-61</span>
+          <span class="test-name">Do split interactive fail no push no emit</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>gv, canvas = _make_canvas_for_split(qapp)</code><br><code>task = self._make_task(start=&quot;2026-05-11&quot;, finish=&quot;2026-05-22&quot;)</code><br><code>canvas._push_history = MagicMock()</code><br><code>emitted = []</code><br><code>canvas.task_edited.connect(lambda: emitted.append(1))</code><br><code>with self._patch_split_dialog(accepted=True, split_date=QDate(2026, 5, 5)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._do_split_interactive(task, None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._push_history.call_count</code> equals <code>0</code> and <code>len(emitted)</code> equals <code>0</code> — a rejected split (date out of range) must not produce any undo step.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._push_history.call_count == 0</code><br><code>assert len(emitted) == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-62</span>
+          <span class="test-name">Load project always calls compute critical ids</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import GanttView</code><br><code>gv = GanttView()</code><br><code>project = make_mock_project(tasks=[make_mock_task(task_id=1, uid=1)])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value={1}) as mock_cpm, \</code><br><code>patch(&#x27;gantt_view._read_critical_ids&#x27;) as mock_read:</code><br><code>gv.load_project(project, recompute_critical=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_compute_critical_ids</code> called once; <code>_read_critical_ids</code> never called — MPXJ flags always ignored.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_cpm.assert_called_once()</code><br><code>mock_read.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">GV-63</span>
+          <span class="test-name">Load project cpm result used for critical ids</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import GanttView</code><br><code>task = make_mock_task(task_id=7, uid=7)</code><br><code>task.getCritical.return_value = False  # MPXJ says NOT critical</code><br><code>project = make_mock_project(tasks=[task])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value={7}):</code><br><code>gv.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>7</code> is contained in <code>gv.canvas._critical_ids</code> — CPM result overrides <code>getCritical()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 7 in gv.canvas._critical_ids</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>TestLagToTimedelta — MPXJ Duration to timedelta conversion (Phase 1)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-64</span><span class="test-name">None returns zero</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No lag object.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(0)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _lag_to_timedelta(None) == timedelta(0)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-65</span><span class="test-name">Minutes unit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: 30 MINUTES.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(30, "MINUTES"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(minutes=30)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(minutes=30)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-66</span><span class="test-name">Hours unit</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: 2 HOURS.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(2, "HOURS"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(hours=2)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(hours=2)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-67</span><span class="test-name">Days unit equals 480 minutes</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: 1 DAYS (8-hour working day = 480 min).</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(1, "DAYS"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(minutes=480)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(minutes=480)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-68</span><span class="test-name">Weeks unit equals 2400 minutes</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: 1 WEEKS (5 × 8h = 2400 min).</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(1, "WEEKS"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(minutes=2400)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(minutes=2400)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-69</span><span class="test-name">Negative lead</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: -1 DAYS (lead, not lag).</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(-1, "DAYS"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(minutes=-480)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(minutes=-480)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-70</span><span class="test-name">Unknown unit defaults to days</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock duration: 1 UNKNOWNUNIT.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _lag_to_timedelta(mock_dur(1, "UNKNOWNUNIT"))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == timedelta(minutes=480)</code> — falls back to DAYS treatment.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == timedelta(minutes=480)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>TestComputeCriticalIds — CPM engine forward/backward pass (Phase 1)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-71</span><span class="test-name">Returns set by default</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single mock task with start/finish.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_critical_ids([task])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(result, set)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(result, set)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-72</span><span class="test-name">Returns tuple when return float data</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single mock task.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_critical_ids([task], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(result, tuple) and len(result) == 2</code> — (set, dict).</div>
+          <div class="block"><div class="block-label">Check</div><code>crit, fd = result; assert isinstance(crit, set); assert isinstance(fd, dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-73</span><span class="test-name">Empty tasks returns empty set</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty task list.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_critical_ids([])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == set()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == set()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-74</span><span class="test-name">Empty tasks with return float data returns empty tuple</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty task list.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_critical_ids([], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == (set(), {})</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (set(), {})</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-75</span><span class="test-name">Single task is critical by default</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single task with no successors — TF=0.</div>
+          <div class="block"><div class="block-label">Run</div><code>crit, _ = _compute_critical_ids([task], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>1 in crit</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 1 in crit</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-76</span><span class="test-name">Completed task not critical</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Task with <code>getPercentageComplete()=100.0</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>crit, _ = _compute_critical_ids([task], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>1 not in crit</code> — completed tasks excluded.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 1 not in crit</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-77</span><span class="test-name">Critical slack days threshold</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Task A finishes 2 days before task B — TF(A) = 2 days.</div>
+          <div class="block"><div class="block-label">Run</div><code>crit = _compute_critical_ids([t_A, t_B], critical_slack_days=2)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>1 in crit</code> — TF ≤ threshold → critical.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 1 in crit</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-78</span><span class="test-name">Float data contains expected keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single task.</div>
+          <div class="block"><div class="block-label">Run</div><code>_, fd = _compute_critical_ids([task], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Entry has keys: <code>es, ef, ls, lf, total_float, free_float, critical</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>for key in (...): assert key in fd[1]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-79</span><span class="test-name">Free float is non negative</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single task.</div>
+          <div class="block"><div class="block-label">Run</div><code>_, fd = _compute_critical_ids([task], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>fd[1]["free_float"] &gt;= timedelta(0)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert fd[1]["free_float"] &gt;= timedelta(0)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-80</span><span class="test-name">Dep types fs only does not crash</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Task A with a START_START dependency from task B.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_critical_ids([t_A, t_B], dep_types="fs_only")</code></div>
+          <div class="block"><div class="block-label">Expect</div>No exception; SS dependency filtered out; result is a set.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(result, set)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-81</span><span class="test-name">Summary task critical when child is critical</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Parent (id=1) wraps child (id=2); child has TF=0.</div>
+          <div class="block"><div class="block-label">Run</div><code>crit = _compute_critical_ids([parent, child])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>2 in crit and 1 in crit</code> — critical propagates to summary.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 2 in crit; assert 1 in crit</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">GV-82</span><span class="test-name">Critical ids subset of float data keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two leaf tasks.</div>
+          <div class="block"><div class="block-label">Run</div><code>crit, fd = _compute_critical_ids([t_A, t_B], return_float_data=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Leaf critical IDs are all present in <code>fd</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert leaf_crits.issubset(set(fd.keys()))</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

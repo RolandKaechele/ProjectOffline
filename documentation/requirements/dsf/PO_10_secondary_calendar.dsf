@@ -1,0 +1,43 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_10_SecondaryCalendar	PO-SC-	Project Offline – Secondary Calendar Integration Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	PO_10_SecondaryCalendar	PO-SC-	Project Offline – Secondary Calendar Integration Requirements	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Secondary Calendar Integration			1	1_Heading.0	Not relevant		
+	Requirements for managing per-resource secondary regional holiday calendars, persisted in the project file and surfaced in the Team Planner.	information	1.1	PO-SC-INFO-001.0	Not relevant		
+2.1 Secondary Calendar Integration Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall provide a secondary_calendar_integration module that stores and retrieves per-resource secondary calendar assignments as a JSON map in the MPXJ project custom properties under the key "AD Secondary Calendars".	functional requirement	1.1.1	PO-SC-001.0	Not relevant	approved	aligned
+	The secondary calendar map shall use resource unique ID strings as keys and store at minimum the calendar_name, calendar_uid (nullable), and source (e.g. "ad:auto-match" or "manual") for each assigned resource.	functional requirement	1.1.2	PO-SC-002.0	Not relevant	approved	aligned
+	The module shall expose a get_secondary_calendar_map(project) function returning the full {uid → entry} dict, a set_secondary_calendar_for_resource(...) function for creating and clearing entries, and a resolve_secondary_calendar(project, resource) function that looks up the mapped MPXJ calendar object (by UID first, then by name).	functional requirement	1.1.3	PO-SC-003.0	Not relevant	approved	aligned
+	resolve_secondary_calendar shall return None when no mapping exists for the resource; it shall return a result dict with calendar=None when a mapping exists but the named calendar is not found in the project calendar list, so that callers can distinguish "not configured" from "calendar not yet imported".	functional requirement	1.1.4	PO-SC-004.0	Not relevant	approved	aligned
+	The module shall expose an assign_secondary_calendar_from_ad(project, resource, ad_user) function that infers the best-matching project calendar from the AD user's location fields and persists the assignment; it shall return None and make no change when no matching calendar is found.	functional requirement	1.1.5	PO-SC-005.0	Not relevant	approved	aligned
+</OBJECTS>

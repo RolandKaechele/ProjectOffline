@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Resource View &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Resource View</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#resource_view">resource view</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">48</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">48</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="resource_view">
+  <div class="module-header"><h2>resource_view.py</h2><span class="badge">56 tests</span></div>
+  <div class="module-desc">Resource sheet view: construction, load/clear, resource display, delete selected, data-changed signal. Also covers <code>_ensure_resource_uid()</code>: skips when UID already set, assigns next free UID when <code>None</code>, avoids collisions with existing UIDs, starts at&nbsp;1 for an empty project. Covers the updated <code>add_resource()</code>: ID assigned and personal calendar created before dialog opens; calendar and resource rolled back on Cancel. Covers <code>add_resources_from_ad_group()</code>: group-member bulk import via <code>ADGroupSearchDialog</code>, duplicate detection, email assignment, <code>data_changed</code> emission. Covers <code>_create_resource_calendar()</code>: links personal calendar to project standard calendar via <code>setParent()</code>; falls back to <code>addDefaultCalendarDays()</code> when no default; UID collision avoidance.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestResourceViewInit — Resource View Init</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-01</span>
+          <span class="test-name">Widget created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from resource_view import ResourceView</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ResourceView() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ResourceView() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-02</span>
+          <span class="test-name">Initial row count is zero</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>view.rowCount()</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert view.rowCount() == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-03</span>
+          <span class="test-name">Column count matches constant</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from resource_view import ResourceView</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>view.columnCount()</code> equals <code>len(ResourceView.COLUMNS)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert view.columnCount() == len(ResourceView.COLUMNS)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-04</span>
+          <span class="test-name">Data changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(view, &#x27;data_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(view, &#x27;data_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-05</span>
+          <span class="test-name">Column headers</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code></div>
+          <div class="block"><div class="block-label">Run</div><code>for col, header in enumerate(ResourceView.COLUMNS):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>view.horizontalHeaderItem(col).text()</code> equals <code>header</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert view.horizontalHeaderItem(col).text() == header</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestLoadProject — Load Project</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-06</span>
+          <span class="test-name">Load none clears rows</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>view.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>view.rowCount()</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert view.rowCount() == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-07</span>
+          <span class="test-name">Load project with one resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Alice&quot;)</code><br><code>project = make_mock_project(resources=[res])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-08</span>
+          <span class="test-name">Load project with multiple resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>resources = [make_mock_resource(res_id=i, name=f&quot;R{i}&quot;) for i in range(1, 5)]</code><br><code>project = make_mock_project(resources=resources)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>4</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 4</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-09</span>
+          <span class="test-name">Resource name displayed in name column</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Bob&quot;)</code><br><code>v.load_project(make_mock_project(resources=[res]))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>name_item = v.item(0, 1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>name_item is not None</code> is truthy. <code>name_item.text()</code> equals <code>&quot;Bob&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert name_item is not None</code><br><code>assert name_item.text() == &quot;Bob&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-10</span>
+          <span class="test-name">Resource id displayed in id column</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>res = make_mock_resource(res_id=7, name=&quot;Carol&quot;)</code><br><code>v.load_project(make_mock_project(resources=[res]))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>id_item = v.item(0, 0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>id_item is not None</code> is truthy. <code>id_item.text()</code> equals <code>&quot;7&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert id_item is not None</code><br><code>assert id_item.text() == &quot;7&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-11</span>
+          <span class="test-name">Resources with none name are excluded</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>res_valid = make_mock_resource(res_id=1, name=&quot;Valid&quot;)</code><br><code>res_null  = make_mock_resource(res_id=2, name=None)</code><br><code>res_null.getName.return_value = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.load_project(make_mock_project(resources=[res_valid, res_null]))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-12</span>
+          <span class="test-name">Load project replaces previous</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>r1 = [make_mock_resource(res_id=i, name=f&quot;R{i}&quot;) for i in range(1, 4)]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.load_project(make_mock_project(resources=r1))</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>3</code>. r2 = [make_mock_resource(res_id=1, name=&quot;OnlyOne&quot;)] v.load_project(make_mock_project(resources=r2)) … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 3</code><br><code>r2 = [make_mock_resource(res_id=1, name=&quot;OnlyOne&quot;)]</code><br><code>v.load_project(make_mock_project(resources=r2))</code><br><code>assert v.rowCount() == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-13</span>
+          <span class="test-name">Load none after data clears</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>v.load_project(make_mock_project(resources=[make_mock_resource()]))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDeleteResources — Delete Resources</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-14</span>
+          <span class="test-name">Delete with no project does not raise</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>view.delete_selected_resources()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>delete with no project does not raise</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-15</span>
+          <span class="test-name">Delete selected emits data changed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Dave&quot;)</code><br><code>v.load_project(make_mock_project(resources=[res]))</code><br><code>v.selectRow(0)</code><br><code>received = []</code><br><code>v.data_changed.connect(lambda: received.append(1))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.delete_selected_resources()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(received)</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(received) &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-16</span>
+          <span class="test-name">Delete removes row</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>resources = [make_mock_resource(res_id=i, name=f&quot;R{i}&quot;) for i in range(1, 4)]</code><br><code>v.load_project(make_mock_project(resources=resources))</code><br><code>v.selectRow(0)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.delete_selected_resources()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-17</span>
+          <span class="test-name">Delete no selection does nothing</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from resource_view import ResourceView</code><br><code>v = ResourceView()</code><br><code>v.load_project(make_mock_project(resources=[make_mock_resource()]))</code><br><code>initial = v.rowCount()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.delete_selected_resources()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>v.rowCount()</code> equals <code>initial</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == initial</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestDeleteResourcesCalendarCleanup &mdash; Calendar removed on resource deletion (bug fix)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-18a</span><span class="test-name">Delete calls remove on linked calendar</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getCalendar() → cal_mock</code>; <code>project.getCalendars() → cal_list_mock</code>.</div><div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div><div class="block"><div class="block-label">Expect</div><code>cal_list_mock.remove</code> called once with <code>cal_mock</code>.</div><div class="block"><div class="block-label">Check</div><code>cal_list_mock.remove.assert_called_once_with(cal_mock)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-18b</span><span class="test-name">Delete skips calendar removal when no calendar</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getCalendar() → None</code>.</div><div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div><div class="block"><div class="block-label">Expect</div><code>cal_list_mock.remove</code> is never called; no exception.</div><div class="block"><div class="block-label">Check</div><code>cal_list_mock.remove.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-18c</span><span class="test-name">Row count drops after calendar removal</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One resource with a linked calendar.</div><div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div><div class="block"><div class="block-label">Expect</div><code>v.rowCount() == 0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-18d</span><span class="test-name">Exception during calendar remove does not prevent row deletion</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>cal_list_mock.remove.side_effect = Exception(&quot;MPXJ error&quot;)</code>.</div><div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div><div class="block"><div class="block-label">Expect</div>No exception propagates; <code>v.rowCount() == 0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 0</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestAddResourceFromAd &mdash; Add Resource from Active Directory</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-18</span>
+          <span class="test-name">Duplicate name (case-insensitive) is blocked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>v = ResourceView()</code><br><code>existing = make_mock_resource(res_id=1, name=&quot;Doe, John&quot;)</code><br><code>project loaded with [existing]</code><br><code>ADSearchDialog returns name=&quot;doe, john&quot; (case variant)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> is NOT called; <code>QMessageBox.warning</code> is called once.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code><br><code>warn_mock.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-19</span>
+          <span class="test-name">Duplicate name exact match is blocked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>existing = make_mock_resource(res_id=2, name=&quot;M&uuml;ller, Hans&quot;)</code><br><code>ADSearchDialog returns name=&quot;M&uuml;ller, Hans&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> is NOT called; warning shown.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code><br><code>warn_mock.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-20</span>
+          <span class="test-name">Unique name proceeds without warning</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>existing = make_mock_resource(name=&quot;Smith, Jane&quot;)</code><br><code>ADSearchDialog returns name=&quot;Doe, John&quot; (unique)</code><br><code>ResourceDialog.exec_() returns Accepted</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> called once; no warning shown.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_called_once()</code><br><code>warn_mock.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-21</span>
+          <span class="test-name">Resource ID assigned immediately after add (next free ID)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>existing = make_mock_resource(res_id=3, name=&quot;Existing, Person&quot;)</code><br><code>java.lang stub: Integer = int</code><br><code>ADSearchDialog returns name=&quot;Doe, John&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_res.setID</code> called once with value <code>4</code> (max existing ID + 1).</div>
+          <div class="block"><div class="block-label">Check</div><code>new_res.setID.assert_called_once()</code><br><code>assert int(str(call_arg)) == 4</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-22</span>
+          <span class="test-name">Resource ID starts at 1 when no existing resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project with empty resource list</code><br><code>java.lang stub: Integer = int</code><br><code>ADSearchDialog returns name=&quot;First, Resource&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_res.setID</code> called once with value <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>new_res.setID.assert_called_once()</code><br><code>assert int(str(call_arg)) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RV-23</span>
+          <span class="test-name">Cancel on search dialog does not add resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project with empty resource list</code><br><code>ADSearchDialog.exec_() returns Rejected (0)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource_from_ad()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> is NOT called.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestEnsureResourceUid &mdash; Ensure Resource UID</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-24</span><span class="test-name">Does nothing when uid already set</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getUniqueID.return_value = 5</code></div><div class="block"><div class="block-label">Run</div><code>v._ensure_resource_uid(res)</code></div><div class="block"><div class="block-label">Expect</div><code>setUniqueID</code> is NOT called.</div><div class="block"><div class="block-label">Check</div><code>res.setUniqueID.assert_not_called()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-25</span><span class="test-name">Assigns uid when none</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getUniqueID.return_value = None</code></div><div class="block"><div class="block-label">Run</div><code>v._ensure_resource_uid(res)</code></div><div class="block"><div class="block-label">Expect</div><code>setUniqueID</code> is called exactly once.</div><div class="block"><div class="block-label">Check</div><code>res.setUniqueID.assert_called_once()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-26</span><span class="test-name">Picks next free uid avoiding collision</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>existing resource with uid=3; new resource with uid=None</code></div><div class="block"><div class="block-label">Run</div><code>v._ensure_resource_uid(new_res)</code></div><div class="block"><div class="block-label">Expect</div>Assigned UID is not 3.</div><div class="block"><div class="block-label">Check</div><code>assert int(str(call_arg)) not in {3}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RV-27</span><span class="test-name">Starts at 1 when no existing resources</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>project with no resources; new resource with uid=None</code></div><div class="block"><div class="block-label">Run</div><code>v._ensure_resource_uid(new_res)</code></div><div class="block"><div class="block-label">Expect</div>Assigned UID equals <code>1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert int(str(call_arg)) == 1</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestAddResource &mdash; Manual Add Resource (ID + Calendar)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-28</span><span class="test-name">Resource ID assigned on Accept</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Project with one existing resource (ID=5); <code>ResourceDialog.exec_() = 1</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_res.setID</code> is called with <code>6</code> (one higher than existing max).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert int(str(new_res.setID.call_args[0][0])) == 6</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-29</span><span class="test-name">Resource ID starts at 1 when no existing</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty project; <code>ResourceDialog.exec_() = 1</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>setID</code> called with <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert int(str(call_arg)) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-30</span><span class="test-name">Calendar created on Accept</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty project; <code>ResourceDialog.exec_() = 1</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addCalendar</code> is called once (personal calendar created).</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addCalendar.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-31</span><span class="test-name">Calendar and resource rolled back on Cancel</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty project; <code>ResourceDialog.exec_() = 0</code> (Rejected).</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>calendars.remove(cal)</code> and <code>new_res.remove()</code> are both called.</div>
+          <div class="block"><div class="block-label">Check</div><code>cal_list_mock.remove.assert_called_once_with(cal_mock)</code><br><code>new_res.remove.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-32</span><span class="test-name">No project does not raise</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ResourceView</code> with no project loaded.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Method returns silently.</div>
+          <div class="block"><div class="block-label">Check</div>No exception raised.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestAddResourcesFromAdGroup &mdash; Bulk Add Group Members</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-33</span><span class="test-name">No project does not raise</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No project loaded.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns silently.</div>
+          <div class="block"><div class="block-label">Check</div>No exception raised.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-34</span><span class="test-name">Cancel does not add resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ADGroupSearchDialog.exec_() = 0</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-35</span><span class="test-name">Empty user list does not add resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Dialog accepted; <code>get_selected_users()</code> returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-36</span><span class="test-name">New user is added as resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty project; one user <code>{&quot;display_name&quot;: &quot;Doe, John&quot;, ...}</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>project.addResource</code> called once.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-37</span><span class="test-name">Duplicate name is skipped</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing resource named <code>&quot;Doe, John&quot;</code>; same name in user list.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Duplicate silently skipped; <code>addResource</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-38</span><span class="test-name">data_changed emitted when resource added</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One new user added successfully.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data_changed</code> signal emitted at least once.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(received) &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-39</span><span class="test-name">User with empty display_name skipped</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>User dict has <code>display_name == &quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div>User skipped; <code>addResource</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-40</span><span class="test-name">Email written to resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>User has <code>email=&quot;j.doe@corp.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resources_from_ad_group()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_res.setEmailAddress</code> called with the email string.</div>
+          <div class="block"><div class="block-label">Check</div><code>new_res.setEmailAddress.assert_called_once_with(&quot;j.doe@corp.com&quot;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestCreateResourceCalendar &mdash; Personal Calendar Base-Calendar Link</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-41</span><span class="test-name">setParent called with project default calendar</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project.getDefaultCalendar()</code> returns a mock calendar; <code>addCalendar</code> returns a new calendar mock.</div>
+          <div class="block"><div class="block-label">Run</div><code>v._create_resource_calendar(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_cal.setParent</code> called once with the project default calendar.</div>
+          <div class="block"><div class="block-label">Check</div><code>new_cal.setParent.assert_called_once_with(default_cal)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-42</span><span class="test-name">setCalendar called on resource</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>No default calendar; <code>addCalendar</code> returns new calendar mock.</div>
+          <div class="block"><div class="block-label">Run</div><code>v._create_resource_calendar(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>res.setCalendar</code> called once with the new calendar.</div>
+          <div class="block"><div class="block-label">Check</div><code>res.setCalendar.assert_called_once_with(new_cal)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-43</span><span class="test-name">No default calendar uses addDefaultCalendarDays</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project.getDefaultCalendar()</code> returns <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>v._create_resource_calendar(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_cal.addDefaultCalendarDays</code> called to provide a default Mon&ndash;Fri working week.</div>
+          <div class="block"><div class="block-label">Check</div><code>new_cal.addDefaultCalendarDays.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-44</span><span class="test-name">Calendar UID avoids collision with existing</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing calendar with UID=3; no default calendar.</div>
+          <div class="block"><div class="block-label">Run</div><code>v._create_resource_calendar(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Assigned UID is not 3.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert int(str(assigned_uid[0])) != 3</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestDeleteResourcesSidecarCleanup &mdash; Sidecar store pruned on resource deletion</h3>
+  </div>
+  <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-45</span><span class="test-name">Thumbnail store pruned on delete</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two entries in <code>dialogs._resource_thumbnail_store</code> with UIDs "1" and "2". One resource with UID=1 loaded in view.</div>
+          <div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>UID "1" removed from thumbnail store; UID "2" remains.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "1" not in dialogs._resource_thumbnail_store</code>; <code>assert "2" in dialogs._resource_thumbnail_store</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-46</span><span class="test-name">Department store pruned on delete</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two entries in <code>dialogs._resource_dept_store</code> with UIDs "1" and "2". One resource with UID=1 loaded in view.</div>
+          <div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>UID "1" removed from dept store; UID "2" remains.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "1" not in dialogs._resource_dept_store</code>; <code>assert "2" in dialogs._resource_dept_store</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-47</span><span class="test-name">_save_resource_thumbnail_sidecar called on delete</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Patch <code>dialogs._save_resource_thumbnail_sidecar</code>; one resource in view.</div>
+          <div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div><code>_save_resource_thumbnail_sidecar</code> called at least once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_save.assert_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-48</span><span class="test-name">Other UIDs not pruned on delete</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Thumbnail store has UIDs "1" and "99". Delete resource with UID=1.</div>
+          <div class="block"><div class="block-label">Run</div>Select row 0 then <code>v.delete_selected_resources()</code>.</div>
+          <div class="block"><div class="block-label">Expect</div>UID "99" still present in both stores.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "99" in dialogs._resource_thumbnail_store</code></div>
+        </div>
+      </div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestAddResourceDuplicateGuard &mdash; Duplicate name guard in add_resource</h3>
+  </div>
+  <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-49</span><span class="test-name">Duplicate name shows warning</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing resource named "Alice". <code>ResourceDialog.exec_</code> returns Accepted. New resource getName() returns "Alice".</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>QMessageBox.warning</code> called with duplicate-name message.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warning.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-50</span><span class="test-name">Duplicate name rolls back resource and calendar</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing resource "Alice". Dialog accepted; new resource named "Alice".</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Row count unchanged; <code>project.getResources().remove</code> called; <code>project.getCalendars().remove</code> called.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert v.rowCount() == 1</code>; remove mocks asserted called.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-51</span><span class="test-name">Unique name proceeds without warning</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing resource "Alice". Dialog accepted; new resource named "Bob".</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div>No warning shown; row count increases to 2.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warning.assert_not_called()</code>; <code>assert v.rowCount() == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">RV-52</span><span class="test-name">Duplicate check excludes resource itself (edit)</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Existing resource "Alice" with UID=1. Dialog accepted; same resource renamed to "Alice" (same UID).</div>
+          <div class="block"><div class="block-label">Run</div><code>v.add_resource()</code> with UID exclusion path.</div>
+          <div class="block"><div class="block-label">Expect</div>No warning — resource is not a duplicate of itself.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_warning.assert_not_called()</code></div>
+        </div>
+      </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

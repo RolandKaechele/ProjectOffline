@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Jira Integration (API) &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Jira Integration (API)</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#jira_integration">jira integration</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">36</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">36</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="jira_integration">
+  <div class="module-header"><h2>integrations/jira_integration.py</h2><span class="badge">36 tests</span></div>
+  <div class="module-desc">Jira API connectivity and credential management for syncing tasks. Supports three authentication methods: API Token (Jira Cloud), Password, and Personal Access Token (Jira Server/Data Center). All JIRA connections are mocked &mdash; no real Jira server required. Covers test_connection with basic_auth and token_auth modes, get_jira_client creation, PAT/username validation, KeePass integration, config summaries, and credential whitespace stripping.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraIntegration &#8212; test_connection</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-01</span>
+          <span class="test-name">Connection succeeds with valid manual credentials</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager returns valid username and token. Mock JIRA client succeeds authentication.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>success</code> is <code>True</code>, <code>error</code> is empty.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is True</code><br><code>assert error == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-02</span>
+          <span class="test-name">Connection fails when credentials missing</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager returns empty credentials.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>success</code> is <code>False</code>, error mentions missing credentials.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is False</code><br><code>assert "Credentials not available" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-03</span>
+          <span class="test-name">Connection uses token_auth for PAT mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server config with <code>credential_type='pat'</code>. Mock returns PAT.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JIRA constructor called with <code>token_auth=</code> parameter (not <code>basic_auth</code>).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "token_auth" in call_kwargs</code><br><code>assert "basic_auth" not in call_kwargs</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-04</span>
+          <span class="test-name">Connection uses basic_auth for token mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server config with <code>credential_type='token'</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JIRA constructor called with <code>basic_auth=(username, token)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "basic_auth" in call_kwargs</code><br><code>assert call_kwargs["basic_auth"] == (username, token)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-05</span>
+          <span class="test-name">PAT mode does not require username</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server with <code>credential_type='pat'</code>, empty username, valid PAT.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Connection succeeds without username.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-06</span>
+          <span class="test-name">PAT mode fails when token missing</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server with <code>credential_type='pat'</code> but empty credential.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>success</code> is <code>False</code>, error mentions PAT unavailable.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is False</code><br><code>assert "Personal Access Token not available" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-07</span>
+          <span class="test-name">Connection works with KeePass mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server with <code>auth_mode='keepass'</code>. Mock retrieves credentials from KeePass entry.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Connection succeeds using KeePass credentials.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraIntegration &#8212; get_jira_client</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-08</span>
+          <span class="test-name">Returns client instance with valid config</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager and JIRA constructor.</div>
+          <div class="block"><div class="block-label">Run</div><code>client, error = get_jira_client(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>client</code> is JIRA instance, <code>error</code> is empty.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert client is not None</code><br><code>assert error == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-09</span>
+          <span class="test-name">Returns None when credentials missing</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock returns empty credentials.</div>
+          <div class="block"><div class="block-label">Run</div><code>client, error = get_jira_client(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>client</code> is <code>None</code>, error describes missing credentials.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert client is None</code><br><code>assert "Credentials not available" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-10</span>
+          <span class="test-name">Uses token_auth for PAT</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server with <code>credential_type='pat'</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>client, error = get_jira_client(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JIRA instantiated with <code>token_auth</code> parameter.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "token_auth" in call_kwargs</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-11</span>
+          <span class="test-name">Uses basic_auth for token</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server with <code>credential_type='token'</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>client, error = get_jira_client(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JIRA instantiated with <code>basic_auth</code> parameter.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "basic_auth" in call_kwargs</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraIntegration &#8212; get_config_summary</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-12</span>
+          <span class="test-name">Returns server list for debug dump</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager with two configured servers.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dict with 'servers' list containing non-sensitive server info.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "servers" in summary</code><br><code>assert len(summary["servers"]) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-13</span>
+          <span class="test-name">Excludes sensitive data from summary</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server config with username, token, keepass_entry.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Summary does not include username, token, or keepass_entry fields.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "username" not in server_info</code><br><code>assert "token" not in server_info</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-14</span>
+          <span class="test-name">Includes last connection test result</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Call <code>test_connection()</code> to populate <code>_last_connection_test</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Summary includes <code>last_connection_test</code> with timestamp and result.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "last_connection_test" in summary</code><br><code>assert "timestamp" in summary["last_connection_test"]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-15</span>
+          <span class="test-name">Returns error when settings manager unavailable</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock <code>_get_settings_manager()</code> to return <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Summary contains <code>error</code> key.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "error" in summary</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-16</span>
+          <span class="test-name">Credentials whitespace stripping</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>SettingsManager returns credentials with trailing whitespace (handled by settings_manager).</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Connection succeeds without "Invalid header value" error.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestJiraIntegration &#8212; record_filter_test</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-17</span>
+          <span class="test-name">Stores successful filter test</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import jira_integration module.</div>
+          <div class="block"><div class="block-label">Run</div><code>record_filter_test("Test Server", "project = TEST", 42, "")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_last_filter_test</code> contains server_name, filter, issue_count, success=True, error="".</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _last_filter_test["server_name"] == "Test Server"</code><br><code>assert _last_filter_test["issue_count"] == 42</code><br><code>assert _last_filter_test["success"] is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-18</span>
+          <span class="test-name">Stores failed filter test</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import jira_integration module.</div>
+          <div class="block"><div class="block-label">Run</div><code>record_filter_test("Test Server", "invalid JQL", 0, "JQL syntax error")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_last_filter_test</code> contains success=False and error message.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _last_filter_test["success"] is False</code><br><code>assert _last_filter_test["error"] == "JQL syntax error"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-19</span>
+          <span class="test-name">Overwrites previous filter test</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Call <code>record_filter_test("Server 1", "project = FIRST", 10, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>record_filter_test("Server 2", "project = SECOND", 20, "")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_last_filter_test</code> contains only the most recent test.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _last_filter_test["server_name"] == "Server 2"</code><br><code>assert _last_filter_test["issue_count"] == 20</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-20</span>
+          <span class="test-name">get_config_summary includes last filter test</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager to return test servers. Call <code>record_filter_test()</code> to set <code>_last_filter_test</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Summary includes <code>last_filter_test</code> key with recorded data.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "last_filter_test" in summary</code><br><code>assert summary["last_filter_test"]["filter"] == "project = PROJ"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-21</span>
+          <span class="test-name">get_config_summary excludes filter test when None</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock SettingsManager to return test servers. Set <code>_last_filter_test = None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>summary = get_config_summary()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Summary does not contain <code>last_filter_test</code> key.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "last_filter_test" not in summary</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-22</span>
+          <span class="test-name">Connection fails when jira raises exception</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock JIRA constructor raises <code>Exception("Connection refused")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>(False, "Connection refused")</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is False</code><br><code>assert "Connection refused" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-23</span>
+          <span class="test-name">Connection fails when myself returns None</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock JIRA instance with <code>myself()</code> returning <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>(False, error)</code> mentioning unable to retrieve user info.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert success is False</code><br><code>assert "could not retrieve user info" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-24</span>
+          <span class="test-name">Connection uses basic auth for password mode</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Server config <code>credential_type="password"</code>. Mock returns <code>(user, pass)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>success, error = test_connection(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JIRA called with <code>basic_auth=(user, pass)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "basic_auth" in call_kwargs</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-25</span>
+          <span class="test-name">Get Jira client returns None on exception</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock JIRA constructor raises <code>Exception("Network error")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>client, error = get_jira_client(server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>(None, "Network error")</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert client is None</code><br><code>assert "Network error" in error</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-26</span>
+          <span class="test-name">Extract filter id from full URL</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import <code>jira_integration</code> module.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = jira_integration._extract_filter_id("https://jira.example.com/issues/?filter=66111")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == "66111"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == "66111"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-27</span>
+          <span class="test-name">Extract filter id from URL with other params</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import <code>jira_integration</code> module.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = jira_integration._extract_filter_id("https://jira.example.com/issues/?startAt=0&amp;filter=12345&amp;foo=bar")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == "12345"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == "12345"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-28</span>
+          <span class="test-name">Extract filter id from plain number</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import <code>jira_integration</code> module.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = jira_integration._extract_filter_id("66111")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == "66111"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == "66111"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-29</span>
+          <span class="test-name">Extract filter id returns empty for invalid input</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import <code>jira_integration</code> module.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = jira_integration._extract_filter_id("project = MYPROJECT")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == ""</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-30</span>
+          <span class="test-name">Extract filter id strips whitespace</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Import <code>jira_integration</code> module.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = jira_integration._extract_filter_id("  66111  ")</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == "66111"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == "66111"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-31</span>
+          <span class="test-name">Resolve filter to JQL passes through JQL unchanged</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock jira client; JQL string <code>"project = TEST ORDER BY created DESC"</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, filter_text, server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JQL string returned unchanged; <code>error == ""</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jql == filter_text</code><br><code>assert error == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-32</span>
+          <span class="test-name">Resolve filter to JQL resolves filter ID</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock jira client; filter ID <code>"66111"</code>; mock <code>client.filter("66111").jql</code> returns JQL.</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, "66111", server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns JQL from filter object; <code>error == ""</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jql != ""</code><br><code>assert error == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-33</span>
+          <span class="test-name">Resolve filter to JQL resolves filter URL</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock jira client; filter URL <code>"https://jira.example.com/issues/?filter=66111"</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, filter_url, server)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Extracts filter ID then resolves to JQL.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jql != ""</code><br><code>assert error == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-34</span>
+          <span class="test-name">Resolve filter to JQL returns error for unresolvable filter</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Filter ID that cannot be resolved (mock raises exception).</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, "99999", server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>jql == ""</code>; <code>error</code> contains message.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jql == ""</code><br><code>assert error != ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-35</span>
+          <span class="test-name">Resolve filter to JQL returns error when jira raises</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock JIRA raises exception when calling filter.</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, "66111", server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>jql == ""</code>; <code>error != ""</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jql == ""</code><br><code>assert error != ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">JI-36</span>
+          <span class="test-name">Resolve filter to JQL returns error when JQL is empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock filter returns empty JQL.</div>
+          <div class="block"><div class="block-label">Run</div><code>jql, error = resolve_filter_to_jql(client, "66111", server)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>error</code> contains "empty".</div>
+          <div class="block"><div class="block-label">Check</div><code>assert error != ""</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

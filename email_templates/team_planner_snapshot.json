@@ -1,0 +1,6 @@
+{
+  "name": "Team Planner Snapshot",
+  "subject": "Team Plan: {project_name} ({date})",
+  "body": "Dear Team,\n\nAttached is the current Team Planner snapshot for {project_name} as of {date}.\n\nThis view shows all resource assignments across the project timeline, enabling you to see workload distribution and identify periods of over- or under-allocation at a glance.\n\nPlease review your scheduled activities and flag any conflicts to {project_manager} as soon as possible so adjustments can be made before the next planning cycle.\n\nKind regards,\n{project_manager}",
+  "body_html": "<html><body style='font-family:Arial,sans-serif;font-size:14px;color:#222;'>\n<p>Dear Team,</p>\n<p>Below is the current Team Planner snapshot for <strong>{project_name}</strong> as of <strong>{date}</strong>. The chart is also attached as an SVG file.</p>\n<p>{svg_inline}</p>\n<p>This view shows all resource assignments across the project timeline. Please review your scheduled activities and flag any conflicts to <strong>{project_manager}</strong> as soon as possible so adjustments can be made before the next planning cycle.</p>\n<p>Kind regards,<br/>{project_manager}</p>\n</body></html>"
+}

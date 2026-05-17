@@ -1,0 +1,6 @@
+{
+  "name": "CPM Report",
+  "subject": "Critical Path Report: {project_name} ({date})",
+  "body": "Dear Team,\n\nPlease find below the Critical Path Method (CPM) analysis for {project_name} as of {date}.\n\nCritical tasks (Total Float = 0) are highlighted. Near-critical tasks have float within the configured threshold.\n\nPlease review your tasks and contact {project_manager} with any scheduling concerns.\n\nKind regards,\n{project_manager}",
+  "body_html": "<html><body style='font-family:Arial,sans-serif;font-size:14px;color:#222;'>\n<p>Dear Team,</p>\n<p>Below is the Critical Path Method (CPM) analysis for <strong>{project_name}</strong> as of <strong>{date}</strong>.</p>\n{html_table}\n<p>Critical tasks (shown in red) have zero Total Float. Near-critical tasks are shown in amber.</p>\n<p>Please contact <strong>{project_manager}</strong> with any scheduling concerns.</p>\n<p>Kind regards,<br/>{project_manager}</p>\n</body></html>"
+}

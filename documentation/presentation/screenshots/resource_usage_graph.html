@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Resource Usage Graph – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1200px;height:640px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Menu / Ribbon ── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:26px;font-size:13px}
+.menubar span{padding:4px 12px;cursor:default}.menubar span:hover{background:#3A6EBC}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column;flex-shrink:0}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 16px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:2px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:52px;padding:3px 6px 0;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn.on{background:#dce8f8;border-color:#8ab0d8}
+.rbtn-icon{font-size:17px;line-height:1.1}
+.rgroup-lbl{font-size:9px;color:#5a6070;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:auto}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:5px 5px;align-self:stretch}
+
+/* ── Tab bar ── */
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 14px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+/* ── Nav bar ── */
+.nav-bar{height:28px;background:#f0f4fb;border-bottom:1px solid #c8d8ee;display:flex;align-items:center;padding:0 10px;gap:10px;flex-shrink:0}
+.nav-btn{font-size:11px;padding:2px 10px;border:1px solid #a8bcd8;border-radius:3px;background:#fff;color:#2B579A;font-weight:700;cursor:default}
+.zoom-row{display:flex;align-items:center;gap:4px;margin-left:auto;font-size:10px;color:#3a4a6a}
+.zoom-pill{padding:2px 9px;border:1px solid #a8bcd8;border-radius:10px;background:#fff;font-size:10px;color:#1A3F7A;cursor:default}
+.zoom-pill.active{background:#2B579A;color:#fff;border-color:#2B579A}
+
+/* ── Shared calendar header ── */
+.hdr-row{display:flex;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A;flex-shrink:0}
+.corner{width:220px;flex-shrink:0;border-right:2px solid #2B579A;padding:4px 8px;font-size:11.5px;font-weight:700;color:#1A3F7A;display:flex;align-items:center}
+.cal-hdr{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.month-row{display:flex;height:22px;border-bottom:1px solid #B0C8E0}
+.mc{border-right:1px solid #B0C8E0;font-size:11px;font-weight:700;color:#1A3F7A;padding:3px 6px;white-space:nowrap;flex-shrink:0}
+.day-row{display:flex;height:18px}
+.dc{flex:1;font-size:9px;color:#4a5570;display:flex;align-items:center;justify-content:center;border-right:1px solid #E0EAF8;min-width:0}
+.dc.we{background:rgba(190,200,215,.35);color:#888}
+.dc.td{background:#b8f0b8;color:#145214;font-weight:700}
+.dc.ph{background:rgba(190,200,215,.6);color:#555}
+
+/* ── Grid body ── */
+.body-area{display:flex;flex:1;overflow:hidden}
+
+/* Left frozen pane */
+.left-pane{width:220px;flex-shrink:0;border-right:2px solid #2B579A;overflow:hidden}
+.res-hdr-row{height:26px;background:#ECF3FB;border-bottom:1px solid #c8d8ee;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#1A3F7A}
+.res-row{height:26px;display:flex;align-items:center;border-bottom:1px solid #D8E8F5;padding:0 8px}
+.res-row.resource{background:#dce8f8;font-weight:700;color:#1a3060;font-size:12px}
+.res-row.resource .tri{font-size:9px;margin-right:4px;color:#1A3F7A}
+.res-row.assignment{background:#fff;padding-left:26px;font-size:11px;color:#4a5060}
+.res-row.assignment.alt{background:#f7f9fe}
+.res-row .hours{margin-left:auto;font-size:10.5px;color:#2B579A;font-weight:700}
+
+/* Right grid */
+.right-grid{flex:1;overflow:hidden;position:relative}
+.grid-rows{position:absolute;inset:0;display:flex;flex-direction:column}
+.grid-row{height:26px;display:flex;flex-shrink:0;border-bottom:1px solid #E8EFF8}
+.grid-row.resource{background:#dce8f8}
+.grid-row.assignment{background:#fff}
+.grid-row.assignment.alt{background:#f7f9fe}
+.cell{flex:1;font-size:10px;font-weight:600;color:#2B579A;display:flex;align-items:center;justify-content:center;border-right:1px solid #E0EAF8;min-width:0}
+.cell.we{background:rgba(190,200,215,.35)}
+.cell.td{background:#e8fce8}
+.cell.ph{background:rgba(190,200,215,.6)}
+.cell.empty{color:transparent}
+.cell.ov{color:#c04040;background:#fff0f0}
+.vac-overlay{position:absolute;top:0;bottom:0;background:rgba(240,160,90,.25);border-left:1px solid rgba(185,90,30,.4);border-right:1px solid rgba(185,90,30,.4);z-index:5;pointer-events:none}
+.td-line{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:20}
+
+/* ── Status bar ── */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 10px;display:flex;gap:14px;height:20px;align-items:center;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab">TASK</button>
+      <button class="rtab active">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#128101;</div>Team<br>Planner</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128202;</div>Resource<br>Sheet</div>
+          <div class="rbtn on"><div class="rbtn-icon">&#128200;</div>Resource<br>Usage</div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#43;</div>Add<br>Resource</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128421;</div>Add from<br>AD</div>
+        </div>
+        <div class="rgroup-lbl">Insert</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#10005;</div>Delete<br>Resource</div>
+        </div>
+        <div class="rgroup-lbl">Editing</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">&#9881;</div>Calendar<br>Config</div>
+          <div class="rbtn"><div class="rbtn-icon">&#128260;</div>Sync<br>Calendar</div>
+        </div>
+        <div class="rgroup-lbl">Confluence</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab active">Resource Usage</div>
+  </div>
+
+  <div class="nav-bar">
+    <span class="nav-btn">&#9664; Today</span>
+    <div class="zoom-row">
+      <span class="zoom-pill">Monthly</span>
+      <span class="zoom-pill active">Weekly</span>
+      <span class="zoom-pill">Daily</span>
+      <span class="zoom-pill">Hourly</span>
+    </div>
+  </div>
+
+  <!-- Calendar header -->
+  <div class="hdr-row">
+    <div class="corner">Resource / Task</div>
+    <div class="cal-hdr">
+      <div class="month-row">
+        <div class="mc" style="width:11.76%">Apr W16</div>
+        <div class="mc" style="width:11.76%">Apr W17</div>
+        <div class="mc" style="width:11.76%">Apr W18</div>
+        <div class="mc" style="width:11.76%">Mai W19</div>
+        <div class="mc" style="width:11.76%">Mai W20</div>
+        <div class="mc" style="width:11.76%">Mai W21</div>
+        <div class="mc" style="width:11.76%">Mai W22</div>
+        <div class="mc" style="flex:1">Mai W23</div>
+      </div>
+      <div class="day-row">
+        <div class="dc">14</div><div class="dc we">15</div><div class="dc we">16</div>
+        <div class="dc">17</div><div class="dc">18</div>
+        <div class="dc">21</div><div class="dc we">22</div><div class="dc we">23</div>
+        <div class="dc">24</div><div class="dc">25</div>
+        <div class="dc">28</div><div class="dc we">29</div><div class="dc we">30</div>
+        <div class="dc">1</div><div class="dc ph">1</div>
+        <div class="dc">5</div><div class="dc we">6</div><div class="dc we">7</div>
+        <div class="dc td">8</div><div class="dc">9</div>
+        <div class="dc">12</div><div class="dc we">13</div><div class="dc we">14</div>
+        <div class="dc">15</div><div class="dc">16</div>
+        <div class="dc">19</div><div class="dc we">20</div><div class="dc we">21</div>
+        <div class="dc">22</div><div class="dc">23</div>
+        <div class="dc">26</div><div class="dc we">27</div><div class="dc we">28</div>
+        <div class="dc">29</div><div class="dc">30</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body: left pane + right grid -->
+  <div class="body-area">
+    <div class="left-pane">
+      <div class="res-row resource"><span class="tri">&#9660;</span>Alice M.<span class="hours">176h</span></div>
+      <div class="res-row assignment">Backend Refactoring<span class="hours">96h</span></div>
+      <div class="res-row assignment alt">API Integration<span class="hours">48h</span></div>
+      <div class="res-row assignment">Code Review<span class="hours">32h</span></div>
+      <div class="res-row resource"><span class="tri">&#9660;</span>Bob K.<span class="hours">120h</span></div>
+      <div class="res-row assignment">UI Design<span class="hours">64h</span></div>
+      <div class="res-row assignment alt">Prototype Review<span class="hours">32h</span></div>
+      <div class="res-row assignment">Documentation<span class="hours">24h</span></div>
+      <div class="res-row resource"><span class="tri">&#9660;</span>Carol S.<span class="hours">144h</span></div>
+      <div class="res-row assignment">Testing Suite<span class="hours">88h</span></div>
+      <div class="res-row assignment alt">Regression Tests<span class="hours">40h</span></div>
+      <div class="res-row assignment">Test Reports<span class="hours">16h</span></div>
+      <div class="res-row resource"><span class="tri">&#9660;</span>David L.<span class="hours">88h</span></div>
+      <div class="res-row assignment">DB Optimisation<span class="hours">56h</span></div>
+      <div class="res-row assignment alt">Schema Review<span class="hours">32h</span></div>
+      <div class="res-row resource"><span class="tri">&#9658;</span>Eve H.<span class="hours">40h</span></div>
+    </div>
+
+    <div class="right-grid">
+      <div class="td-line" style="left:50%"></div>
+      <!-- Vacation overlay for Carol W20 -->
+      <div class="vac-overlay" style="left:34%;width:5.9%;top:78px;height:78px"></div>
+
+      <div class="grid-rows">
+        <!-- Alice — resource row -->
+        <div class="grid-row resource">
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell ov">10h</div><div class="cell we"></div><div class="cell we"></div><div class="cell ov">10h</div><div class="cell ov">10h</div>
+          <div class="cell ov">10h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+        </div>
+        <!-- Alice — assignment 1 -->
+        <div class="grid-row assignment">
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell empty">—</div><div class="cell ph"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell td empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Alice — assignment 2 -->
+        <div class="grid-row assignment alt">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell ov">2h</div><div class="cell we"></div><div class="cell we"></div><div class="cell ov">2h</div><div class="cell ov">2h</div>
+          <div class="cell ov">2h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Alice — assignment 3 -->
+        <div class="grid-row assignment">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell td empty"></div><div class="cell empty"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+        </div>
+        <!-- Bob — resource row -->
+        <div class="grid-row resource">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Bob — assignment 1 -->
+        <div class="grid-row assignment">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell td empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Bob — assignment 2 -->
+        <div class="grid-row assignment alt">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Bob — assignment 3 -->
+        <div class="grid-row assignment">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell td empty"></div><div class="cell empty"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Carol — resource row -->
+        <div class="grid-row resource">
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Carol — assignment 1 -->
+        <div class="grid-row assignment">
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Carol — assignment 2 -->
+        <div class="grid-row assignment alt">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell td empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- David — resource row -->
+        <div class="grid-row resource">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+        <!-- Eve — resource row (collapsed) -->
+        <div class="grid-row resource" style="opacity:.8">
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell ph"></div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell td">8h</div><div class="cell">8h</div>
+          <div class="cell">8h</div><div class="cell we"></div><div class="cell we"></div><div class="cell">8h</div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+          <div class="cell empty"></div><div class="cell we"></div><div class="cell we"></div><div class="cell empty"></div><div class="cell empty"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>5 resources &nbsp;|&nbsp; 12 assignments</span>
+    <span>Weekly zoom &nbsp;|&nbsp; 8-week window</span>
+    <span style="margin-left:auto">May 2026</span>
+  </div>
+
+</div>
+</body>
+</html>

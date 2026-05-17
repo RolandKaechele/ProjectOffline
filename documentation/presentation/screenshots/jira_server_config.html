@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Jira Server Configuration – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:680px;height:720px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ────────────────────────────── */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* ── Dialog body ─────────────────────────────── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:16px 18px;overflow:auto;background:#fff;gap:12px}
+
+/* ── Section headers ─────────────────────────── */
+.section-header{font-size:12px;font-weight:700;color:#1a3f7a;margin-top:4px;margin-bottom:4px}
+
+/* ── Form rows ───────────────────────────────── */
+.form-section{background:#fafbfc;border:1px solid #d8e4f0;border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.form-row{display:flex;align-items:center;gap:8px}
+.form-label{width:140px;font-size:11.5px;color:#444;flex-shrink:0;text-align:right}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff}
+.form-input.disabled{background:#f0f0f0;color:#888}
+.form-input.pw{letter-spacing:2px}
+.form-select{flex:1;border:1px solid#b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#1a3f7a;background:#fff;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232B579A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center}
+.btn-small{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:3px 9px;font-size:11px;cursor:default;font-weight:600}
+.btn-small:hover{background:#d0e4f8}
+.btn-small.show{padding:3px 7px}
+
+/* ── Radio group ─────────────────────────────── */
+.radio-row{display:flex;gap:20px;padding:8px 10px;background:#f0f4fb;border:1px solid #c8d8f0;border-radius:4px}
+.radio-label{display:flex;align-items:center;gap:6px;font-size:12px;color:#1a3f7a;font-weight:600;cursor:default}
+.radio-label input{accent-color:#2B579A}
+
+/* ── Groupbox ────────────────────────────────── */
+.groupbox{border:1px solid #2B579A;border-radius:4px;padding:12px 14px 10px;position:relative;background:#fafbfc}
+.groupbox-title{position:absolute;top:-9px;left:10px;background:#fff;padding:0 5px;font-size:11.5px;font-weight:700;color:#2B579A}
+
+/* ── Status indicators ───────────────────────── */
+.status-ok{color:#107C10;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+.status-ok::before{content:"✔"}
+.status-locked{color:#E07B1A;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+.status-locked::before{content:"🔒"}
+
+/* ── Test button section ─────────────────────── */
+.test-row{display:flex;justify-content:flex-end;padding-top:6px}
+.btn-test{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-test:hover{background:#1a3f7a}
+
+/* ── Bottom buttons ──────────────────────────── */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Dialog header -->
+  <div class="dlg-header">
+    <h2>Edit Jira Server</h2>
+    <p>Configure Jira server connection and authentication</p>
+  </div>
+
+  <!-- Dialog body -->
+  <div class="dlg-body">
+
+    <!-- Server details -->
+    <div class="section-header">Server Details</div>
+    <div class="form-section">
+      <div class="form-row">
+        <span class="form-label">Server Name</span>
+        <input class="form-input" type="text" value="EB Jira Production" readonly>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Server URL</span>
+        <input class="form-input" type="text" value="https://jira.example.com" readonly>
+      </div>
+      <div class="form-row">
+        <span class="form-label">JQL Query</span>
+        <input class="form-input" type="text" value="project = MYPROJECT AND status IN ('In Progress', 'Open')" readonly>
+      </div>
+    </div>
+
+    <!-- Authentication mode -->
+    <div class="section-header">Authentication</div>
+    <div class="radio-row">
+      <label class="radio-label"><input type="radio" name="auth" checked> Manual (username + credential)</label>
+      <label class="radio-label"><input type="radio" name="auth"> From KeePass entry</label>
+    </div>
+
+    <!-- Manual credentials -->
+    <div class="groupbox">
+      <span class="groupbox-title">Credentials</span>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="form-row">
+          <span class="form-label">Credential Type</span>
+          <select class="form-select">
+            <option>API Token (Jira Cloud)</option>
+            <option>Password</option>
+            <option selected>Personal Access Token (Server/Data Center)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Username</span>
+          <input class="form-input" type="text" value="" placeholder="Not required for PAT" readonly>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Personal Access Token</span>
+          <input class="form-input pw" type="password" value="••••••••••••••••••••••••••" readonly>
+          <button class="btn-small show">Show</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test connection -->
+    <div class="test-row">
+      <button class="btn-test">Test Connection</button>
+    </div>
+
+  </div>
+
+  <!-- Dialog footer -->
+  <div class="dlg-footer">
+    <button class="btn-primary">OK</button>
+    <button class="btn-default">Cancel</button>
+  </div>
+
+</div>
+
+</body>
+</html>

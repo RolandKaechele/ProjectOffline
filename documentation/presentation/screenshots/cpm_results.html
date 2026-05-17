@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>CPM Results Panel – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#f4f6fb;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:960px;height:480px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Menu / Ribbon ── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:26px;font-size:13px}
+.menubar span{padding:4px 12px;cursor:default}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column;flex-shrink:0}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:68px}
+.rgroup{display:flex;flex-direction:column;padding:2px 8px 0;position:relative}
+.rgroup-btns{display:flex;gap:4px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:52px;padding:3px 6px 0;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn.active{border-color:#2B579A;background:#dce8f8}
+.rbtn-icon{font-size:17px;line-height:1.1}
+.rgroup-lbl{font-size:9px;color:#5a6070;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:auto}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:5px 3px;align-self:stretch}
+
+/* ── Tab bar ── */
+.tab-bar{display:flex;border-bottom:1px solid #c8d8ee;background:#f8f9fc}
+.tab{padding:5px 14px;font-size:12px;color:#555;cursor:default;border-right:1px solid #e0e8f0}
+.tab.active{color:#1A3F7A;font-weight:700;border-bottom:2px solid #2B579A;margin-bottom:-1px;background:#fff}
+
+/* ── CPM panel ── */
+.cpm-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.cpm-toolbar{display:flex;align-items:center;gap:10px;padding:5px 10px;border-bottom:1px solid #e0e8f0;background:#f8f9fc}
+.cpm-chk{display:flex;align-items:center;gap:5px;font-size:12px;color:#333}
+.export-btn{font-size:11px;padding:3px 10px;border:1px solid #b0c8e8;border-radius:3px;background:#fff;color:#2B579A;cursor:default;margin-left:auto}
+.cpm-table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+.cpm-table th{background:#e8eef8;color:#1a2a5e;font-weight:700;padding:4px 8px;text-align:left;border-bottom:2px solid #b0c8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpm-table td{padding:3px 8px;border-bottom:1px solid #edf0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-crit td{background:#fdecef;color:#c0392b}
+.row-near td{background:#fef9e7}
+.row-normal td{background:#fff}
+.row-normal:nth-child(even) td{background:#f8f9fc}
+.status-bar{padding:4px 10px;font-size:11px;color:#666;border-top:1px solid #e0e8f0;background:#f8f9fc}
+.badge-crit{color:#c0392b;font-weight:700}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <!-- menu bar -->
+  <div class="menubar">
+    <span>File</span><span>Edit</span><span>View</span><span>Project</span>
+    <span>Settings</span><span>Options</span><span>Help</span>
+  </div>
+
+  <!-- ribbon -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <div class="rtab">TASK</div>
+      <div class="rtab">RESOURCE</div>
+      <div class="rtab active">REPORT</div>
+      <div class="rtab">BASELINE</div>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📊</div>Gantt<br>Export</div>
+          <div class="rbtn"><div class="rbtn-icon">📈</div>Resource<br>SVG</div>
+          <div class="rbtn"><div class="rbtn-icon">🗓️</div>Timeline<br>Export</div>
+          <div class="rbtn"><div class="rbtn-icon">✉️</div>CPM<br>Report</div>
+        </div>
+        <div class="rgroup-lbl">Export</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn active"><div class="rbtn-icon">🔍</div>CPM<br>Results</div>
+        </div>
+        <div class="rgroup-lbl">Views</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">⚙️</div>Email<br>Accounts</div>
+          <div class="rbtn"><div class="rbtn-icon">⚙️</div>Email<br>Config</div>
+        </div>
+        <div class="rgroup-lbl">Email</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tab-bar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+    <div class="tab active">CPM Results</div>
+  </div>
+
+  <!-- CPM results panel -->
+  <div class="cpm-panel">
+    <div class="cpm-toolbar">
+      <label class="cpm-chk"><input type="checkbox" disabled> Critical tasks only</label>
+      <button class="export-btn">Export CSV…</button>
+    </div>
+    <div style="overflow:auto;flex:1">
+      <table class="cpm-table">
+        <colgroup>
+          <col style="width:24%">
+          <col style="width:7%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:8%">
+          <col style="width:8%">
+          <col style="width:13%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Task Name</th><th>Duration</th>
+            <th>Early Start</th><th>Early Finish</th>
+            <th>Late Start</th><th>Late Finish</th>
+            <th>Total Float</th><th>Free Float</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-crit">
+            <td>Design phase</td><td>10.0d</td>
+            <td>01 Jun 2026</td><td>12 Jun 2026</td>
+            <td>01 Jun 2026</td><td>12 Jun 2026</td>
+            <td>0.0d</td><td>0.0d</td><td>CRITICAL</td>
+          </tr>
+          <tr class="row-crit">
+            <td>Backend implementation</td><td>15.0d</td>
+            <td>15 Jun 2026</td><td>03 Jul 2026</td>
+            <td>15 Jun 2026</td><td>03 Jul 2026</td>
+            <td>0.0d</td><td>0.0d</td><td>CRITICAL</td>
+          </tr>
+          <tr class="row-crit">
+            <td>Integration testing</td><td>5.0d</td>
+            <td>06 Jul 2026</td><td>10 Jul 2026</td>
+            <td>06 Jul 2026</td><td>10 Jul 2026</td>
+            <td>0.0d</td><td>0.0d</td><td>CRITICAL</td>
+          </tr>
+          <tr class="row-near">
+            <td>UI design</td><td>8.0d</td>
+            <td>01 Jun 2026</td><td>10 Jun 2026</td>
+            <td>03 Jun 2026</td><td>12 Jun 2026</td>
+            <td>2.0d</td><td>0.0d</td><td>near-critical</td>
+          </tr>
+          <tr class="row-near">
+            <td>Frontend implementation</td><td>12.0d</td>
+            <td>13 Jun 2026</td><td>30 Jun 2026</td>
+            <td>15 Jun 2026</td><td>03 Jul 2026</td>
+            <td>2.0d</td><td>2.0d</td><td>near-critical</td>
+          </tr>
+          <tr class="row-normal">
+            <td>Documentation</td><td>5.0d</td>
+            <td>01 Jun 2026</td><td>05 Jun 2026</td>
+            <td>04 Jul 2026</td><td>10 Jul 2026</td>
+            <td>23.0d</td><td>23.0d</td><td>—</td>
+          </tr>
+          <tr class="row-normal">
+            <td>Code review</td><td>3.0d</td>
+            <td>13 Jun 2026</td><td>17 Jun 2026</td>
+            <td>07 Jul 2026</td><td>10 Jul 2026</td>
+            <td>18.0d</td><td>18.0d</td><td>—</td>
+          </tr>
+          <tr class="row-normal">
+            <td>Deployment preparation</td><td>2.0d</td>
+            <td>01 Jun 2026</td><td>02 Jun 2026</td>
+            <td>08 Jul 2026</td><td>10 Jul 2026</td>
+            <td>27.0d</td><td>27.0d</td><td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="status-bar">
+      <span class="badge-crit">3 critical task(s)</span> &nbsp;·&nbsp; 2 near-critical &nbsp;·&nbsp; 8 tasks total
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

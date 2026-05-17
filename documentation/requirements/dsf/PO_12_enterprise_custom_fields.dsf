@@ -1,0 +1,39 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_12_EnterpriseCustomFields	PO-ECF-	Project Offline – Enterprise Custom Fields Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Enterprise Custom Fields			1	1_Heading.0	Not relevant		
+1.1 Custom Field Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall store per-project configuration as MPXJ enterprise custom fields on the project summary task (UID=0).	functional requirement	1.1.1	PO-ECF-001.0	Not relevant	approved	aligned
+	Enterprise custom field data shall be preserved when the project file is saved and loaded, making it portable across teams.	functional requirement	1.1.2	PO-ECF-002.0	Not relevant	approved	aligned
+</OBJECTS>

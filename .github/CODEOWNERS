@@ -1,0 +1,40 @@
+# CODEOWNERS file
+# This file defines individuals or teams that are responsible for code in this repository.
+# Each line is a file pattern followed by one or more owners.
+# Order is important: the last matching pattern takes precedence.
+# 
+# More information: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+# This will be requested for review when someone opens a pull request
+* @RolandKaechele
+
+# Documentation
+/documentation/ @RolandKaechele
+*.md @RolandKaechele
+
+# Core application files
+/src/*.py @RolandKaechele
+/src/main.py @RolandKaechele
+/src/logic.py @RolandKaechele
+
+# UI components
+/src/ui.py @RolandKaechele
+/src/ribbon.py @RolandKaechele
+/src/toolbar.py @RolandKaechele
+/src/menu.py @RolandKaechele
+/src/dialogs.py @RolandKaechele
+
+# Integrations
+/src/integrations/ @RolandKaechele
+
+# Tests
+/tests/ @RolandKaechele
+
+# Build and configuration files
+/SConstruct @RolandKaechele
+/requirements.txt @RolandKaechele
+/.github/ @RolandKaechele
+
+# Tools and scripts
+/tools/ @RolandKaechele

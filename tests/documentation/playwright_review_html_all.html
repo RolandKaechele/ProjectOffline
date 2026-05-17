@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Review Report &#8212; Playwright Chromium</title>
+<style>
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body { display: flex; align-items: flex-start; }
+  nav {
+    position: sticky; top: 0; max-height: 100vh; overflow-y: auto;
+    width: 200px; min-width: 200px;
+    background: var(--bg-sec); border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+    z-index: 100; flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em; text-transform: uppercase; letter-spacing: .08em;
+    color: #999; padding: 8px 6px 3px; margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent); text-decoration: none; font-size: .8em;
+    padding: 3px 8px; border-radius: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+  nav a:hover { background: #dce8fb; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  .module {
+    border: 1px solid var(--border); border-radius: 6px;
+    margin-bottom: 32px; overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px; display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25); border-radius: 12px;
+    padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe; border-bottom: 1px solid var(--border);
+    padding: 8px 18px; font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec); padding: 8px 18px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px; user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; flex: 1; }
+  .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .ch-icon { font-size: 1em; flex-shrink: 0; }
+  .ch-badge {
+    margin-left: auto; border-radius: 10px;
+    padding: 2px 10px; font-size: .75em; white-space: nowrap; font-weight: 600;
+  }
+  .ch-badge.pass    { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
+  .ch-badge.warn    { background: #fff3cd; color: #664d03; border: 1px solid #ffda6a; }
+  .ch-badge.error   { background: #f8d7da; color: #58151c; border: 1px solid #f1aeb5; }
+  .chapter-body { padding: 8px 18px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .check-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 10px; border-radius: 4px; font-size: .87em;
+  }
+  .check-error  { background: #fff5f5; border: 1px solid #f1aeb5; }
+  .check-warn   { background: #fffbf0; border: 1px solid #ffda6a; }
+  .check-pass   { background: #f0fff4; border: 1px solid #a3cfbb; }
+  .check-info   { background: var(--bg-sec); border: 1px solid var(--border); }
+  .check-icon   { flex-shrink: 0; font-size: .95em; margin-top: 1px; }
+  .check-text   { font-family: "Consolas", monospace; font-size: .9em; color: #333; word-break: break-all; }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px; font-family: "Consolas",monospace; font-size: .9em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#127760; HTML Review Report &#8212; Playwright Chromium</h1>
+  <p>Generated: 2026-05-17T00:44:02 &nbsp;|&nbsp; Browser: Chromium headless &nbsp;|&nbsp; Scope: All directories</p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <span class="nav-section">presentation</span>
+  <a href="#pres_index">✅ index.html</a>
+  <span class="nav-section">user_documentation</span>
+  <a href="#udoc_01_getting_started">✅ 01_getting_started.html</a>
+  <a href="#udoc_02_task_creation">✅ 02_task_creation.html</a>
+  <a href="#udoc_03_gantt_chart">✅ 03_gantt_chart.html</a>
+  <a href="#udoc_04_dependencies">✅ 04_dependencies.html</a>
+  <a href="#udoc_05_resource_creation">✅ 05_resource_creation.html</a>
+  <a href="#udoc_06_team_planner">✅ 06_team_planner.html</a>
+  <a href="#udoc_07_resource_usage">✅ 07_resource_usage.html</a>
+  <a href="#udoc_08_baseline">✅ 08_baseline.html</a>
+  <a href="#udoc_09_calendar_sync">✅ 09_calendar_sync.html</a>
+  <a href="#udoc_10_file_operations">✅ 10_file_operations.html</a>
+  <a href="#udoc_11_timeline">✅ 11_timeline.html</a>
+  <a href="#udoc_12_task_splitting">✅ 12_task_splitting.html</a>
+  <a href="#udoc_13_keepass">✅ 13_keepass.html</a>
+  <a href="#udoc_14_ad_integration">✅ 14_ad_integration.html</a>
+  <a href="#udoc_15_email_integration">✅ 15_email_integration.html</a>
+  <a href="#udoc_16_jira_integration">✅ 16_jira_integration.html</a>
+  <a href="#udoc_17_jira_sync">✅ 17_jira_sync.html</a>
+  <a href="#udoc_18_calendar_management">✅ 18_calendar_management.html</a>
+  <a href="#udoc_19_version_control">✅ 19_version_control.html</a>
+  <a href="#udoc_20_resource_usage_histogram">✅ 20_resource_usage_histogram.html</a>
+  <a href="#udoc_21_progress_dialogs">✅ 21_progress_dialogs.html</a>
+  <a href="#udoc_22_critical_path_method">✅ 22_critical_path_method.html</a>
+  <a href="#udoc_index">✅ index.html</a>
+
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n" style="color:var(--accent)">24</div><div class="stat-l">Files</div></div>
+  <div class="stat"><div class="stat-n" style="color:var(--pass)">24</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n" style="color:var(--pass)">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n" style="color:#198754">0</div><div class="stat-l">Warnings</div></div>
+  <div class="stat"><div class="stat-n" style="color:var(--accent)">0</div><div class="stat-l">Errors</div></div>
+  <div class="stat"><div class="stat-n" style="color:#198754">0</div><div class="stat-l">Warnings&nbsp;(total)</div></div>
+</div>
+
+
+<div class="module" id="presentation">
+  <div class="module-header">
+    <h2>&#128196; documentation\presentation</h2>
+    <span class="badge">1 files &nbsp;|&nbsp; ✅ all clean</span>
+  </div>
+  <div class="module-desc">Playwright Chromium review: broken images, missing iframe titles, JS errors, encoding errors (U+FFFD, stray zero-width chars).</div>
+
+<div class="chapter" id="pres_index">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>index.html</h3>
+    <span class="ch-badge pass">No issues &nbsp;&middot;&nbsp; 31 iframes</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+</div>
+<div class="module" id="user_documentation">
+  <div class="module-header">
+    <h2>&#128196; documentation\user_documentation</h2>
+    <span class="badge">23 files &nbsp;|&nbsp; ✅ all clean</span>
+  </div>
+  <div class="module-desc">Playwright Chromium review: broken images, missing iframe titles, JS errors, encoding errors (U+FFFD, stray zero-width chars).</div>
+
+<div class="chapter" id="udoc_01_getting_started">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>01_getting_started.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_02_task_creation">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>02_task_creation.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_03_gantt_chart">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>03_gantt_chart.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_04_dependencies">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>04_dependencies.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_05_resource_creation">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>05_resource_creation.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_06_team_planner">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>06_team_planner.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_07_resource_usage">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>07_resource_usage.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_08_baseline">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>08_baseline.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_09_calendar_sync">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>09_calendar_sync.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_10_file_operations">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>10_file_operations.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_11_timeline">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>11_timeline.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_12_task_splitting">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>12_task_splitting.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_13_keepass">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>13_keepass.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_14_ad_integration">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>14_ad_integration.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_15_email_integration">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>15_email_integration.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_16_jira_integration">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>16_jira_integration.html</h3>
+    <span class="ch-badge pass">No issues &nbsp;&middot;&nbsp; 1 iframe</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_17_jira_sync">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>17_jira_sync.html</h3>
+    <span class="ch-badge pass">No issues &nbsp;&middot;&nbsp; 2 iframes</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_18_calendar_management">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>18_calendar_management.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_19_version_control">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>19_version_control.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_20_resource_usage_histogram">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>20_resource_usage_histogram.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_21_progress_dialogs">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>21_progress_dialogs.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_22_critical_path_method">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>22_critical_path_method.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+<div class="chapter" id="udoc_index">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9660;</span>
+    <span class="ch-icon">✅</span>
+    <h3>index.html</h3>
+    <span class="ch-badge pass">No issues</span>
+  </div>
+  <div class="chapter-body">
+<div class="check-row check-pass"><span class="check-icon">✅</span><span class="check-text">No issues found</span></div>
+  </div>
+</div>
+</div>
+
+</main>
+</div><!-- /.page-body -->
+<script>
+function toggle(hdr) {
+  hdr.classList.toggle('collapsed');
+  const body = hdr.nextElementSibling;
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const targets  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = targets[0];
+    for (const m of targets) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

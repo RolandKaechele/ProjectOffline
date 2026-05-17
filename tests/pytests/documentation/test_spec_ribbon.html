@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Ribbon &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Ribbon</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#ribbon">ribbon</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">63</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">63</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="ribbon">
+  <div class="module-header"><h2>ribbon.py</h2><span class="badge">63 tests</span></div>
+  <div class="module-desc">Ribbon widget: tab/panel/group/button construction, set_save/project_open/delete/confluence state, tab-changed signal. Includes <code>add_menu_button()</code> helper and split-button action-count tests for all converted dropdown buttons (Jira Sync/Push, Add Resource, Gantt/Timeline/Resource-SVG Export, Set/Clear Baseline, VCS Commit/Pull/SVN Update). Email-disabled state: <code>_RibbonListPopup.set_item_enabled()</code> (disable/enable/unknown-label no-op) and <code>ProjectRibbon.set_email_actions_enabled()</code> (disables/re-enables all three email popup items across all three export popups).</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-01</span>
+          <span class="test-name">Ribbon group init</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonGroup</code></div>
+          <div class="block"><div class="block-label">Run</div><code>group = _RibbonGroup(&quot;Test Group&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>group is not None</code> is truthy. <code>group.separator_widget() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert group is not None</code><br><code>assert group.separator_widget() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-02</span>
+          <span class="test-name">Ribbon group add button</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonGroup</code><br><code>group = _RibbonGroup(&quot;Test Group&quot;)</code><br><code>slot = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_button(&quot;Test&quot;, &quot;Test tooltip&quot;, slot=slot)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(btn, QToolButton)</code> is truthy. <code>btn.text()</code> equals <code>&quot;Test&quot;</code>. <code>btn.toolTip()</code> equals <code>&quot;Test tooltip&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(btn, QToolButton)</code><br><code>assert btn.text() == &quot;Test&quot;</code><br><code>assert btn.toolTip() == &quot;Test tooltip&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-03</span>
+          <span class="test-name">Ribbon group add button with icon</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonGroup</code><br><code>from PyQt5.QtGui import QIcon</code><br><code>group = _RibbonGroup(&quot;Test Group&quot;)</code><br><code>icon = QIcon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_button(&quot;Test&quot;, &quot;Tooltip&quot;, icon=icon)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>btn.icon().isNull() or icon.isNull()  # Allow null icons</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not btn.icon().isNull() or icon.isNull()  # Allow null icons</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-04</span>
+          <span class="test-name">Ribbon group add button checkable</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonGroup</code><br><code>group = _RibbonGroup(&quot;Test Group&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_button(&quot;Test&quot;, &quot;Tooltip&quot;, checkable=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>btn.isCheckable()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert btn.isCheckable()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-05</span>
+          <span class="test-name">Ribbon panel init</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonPanel</code></div>
+          <div class="block"><div class="block-label">Run</div><code>panel = _RibbonPanel()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>panel is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert panel is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-06</span>
+          <span class="test-name">Ribbon panel add group</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonPanel, _RibbonGroup</code><br><code>panel = _RibbonPanel()</code><br><code>group = _RibbonGroup(&quot;Test&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>panel.add_group(group)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True  # Test passes if no exceptions</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True  # Test passes if no exceptions</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-07</span>
+          <span class="test-name">Project ribbon init</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon is not None</code> is truthy. <code>len(ribbon.TAB_NAMES)</code> equals <code>5</code>. <code>ribbon.TAB_NAMES</code> equals <code>[&quot;TASK&quot;, &quot;RESOURCE&quot;, &quot;REPORT&quot;, &quot;BASELINE&quot;, &quot;VERSION CONTROL&quot;]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon is not None</code><br><code>assert len(ribbon.TAB_NAMES) == 5</code><br><code>assert ribbon.TAB_NAMES == [&quot;TASK&quot;, &quot;RESOURCE&quot;, &quot;REPORT&quot;, &quot;BASELINE&quot;, &quot;VERSION CONTROL&quot;]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-08</span>
+          <span class="test-name">Project ribbon has tabs</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(ribbon._tab_buttons)</code> equals <code>5</code>. <code>ribbon._tab_buttons[0].text()</code> equals <code>&quot;TASK&quot;</code>. <code>ribbon._tab_buttons[1].text()</code> equals <code>&quot;RESOURCE&quot;</code>. &hellip; and 3 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(ribbon._tab_buttons) == 5</code><br><code>assert ribbon._tab_buttons[0].text() == &quot;TASK&quot;</code><br><code>assert ribbon._tab_buttons[1].text() == &quot;RESOURCE&quot;</code><br><code>assert ribbon._tab_buttons[2].text() == &quot;REPORT&quot;</code><br><code>assert ribbon._tab_buttons[3].text() == &quot;BASELINE&quot;</code><br><code>assert ribbon._tab_buttons[4].text() == &quot;VERSION CONTROL&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-09</span>
+          <span class="test-name">Project ribbon first tab active</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._active_tab</code> equals <code>0</code>. <code>ribbon._tab_buttons[0].isChecked()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._active_tab == 0</code><br><code>assert ribbon._tab_buttons[0].isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-10</span>
+          <span class="test-name">Project ribbon switch tabs</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._tab_buttons[1].click()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._active_tab</code> equals <code>1</code>. <code>ribbon._tab_buttons[1].isChecked()</code> is truthy. <code>ribbon._tab_buttons[0].isChecked()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._active_tab == 1</code><br><code>assert ribbon._tab_buttons[1].isChecked()</code><br><code>assert not ribbon._tab_buttons[0].isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-11</span>
+          <span class="test-name">Project ribbon panels created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(ribbon._panels)</code> equals <code>5</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(ribbon._panels) == 5</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-12</span>
+          <span class="test-name">Project ribbon set save enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_save_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_save_enabled(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-13</span>
+          <span class="test-name">Project ribbon set project open</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_project_open(True)</code><br><code>for btn in ribbon._project_btns:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>if btn not in ribbon._selection_btns:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>btn.isEnabled()</code> is truthy. for btn in ribbon._selection_btns: <code>btn.isEnabled()</code> is falsy. … and 3 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert btn.isEnabled()</code><br><code>for btn in ribbon._selection_btns:</code><br><code>assert not btn.isEnabled()</code><br><code>ribbon.set_project_open(False)</code><br><code>for btn in ribbon._project_btns:</code><br><code>assert not btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-14</span>
+          <span class="test-name">Project ribbon set delete enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_delete_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>if ribbon._del_btn:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._del_btn.isEnabled()</code> is truthy. ribbon.set_delete_enabled(False) if ribbon._del_btn: … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._del_btn.isEnabled()</code><br><code>ribbon.set_delete_enabled(False)</code><br><code>if ribbon._del_btn:</code><br><code>assert not ribbon._del_btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-15</span>
+          <span class="test-name">Project ribbon set confluence sync state</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_confluence_sync_state(True, &quot;Sync enabled&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_confluence_sync_state(False, &quot;Sync disabled&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-16</span>
+          <span class="test-name">Project ribbon set resource units checked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_resource_units_checked(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_resource_units_checked(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-17</span>
+          <span class="test-name">Project ribbon update actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon.update_actions(&quot;Add Task&quot;, &quot;Delete Task&quot;, enabled=True, zoom_enabled=True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>if ribbon._add_btn:</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Task&quot;</code> is contained in <code>ribbon._add_btn.text()</code>. if ribbon._del_btn: <code>&quot;Task&quot;</code> is contained in <code>ribbon._del_btn.text()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Task&quot; in ribbon._add_btn.text()</code><br><code>if ribbon._del_btn:</code><br><code>assert &quot;Task&quot; in ribbon._del_btn.text()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-18</span>
+          <span class="test-name">Project ribbon call method</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>parent.test_method = MagicMock()</code><br><code>ribbon = ProjectRibbon(parent)</code><br><code>ribbon._call(&quot;test_method&quot;, &quot;arg1&quot;, &quot;arg2&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>parent.test_method.assert_called_once_with(&quot;arg1&quot;, &quot;arg2&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>project ribbon call method</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-19</span>
+          <span class="test-name">Project ribbon call method no parent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._call(&quot;nonexistent_method&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-20</span>
+          <span class="test-name">Project ribbon tab changed signal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code><br><code>signal_received = []</code><br><code>ribbon.ribbon_tab_changed.connect(lambda idx: signal_received.append(idx))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._tab_buttons[2].click()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>2</code> is contained in <code>signal_received</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 2 in signal_received</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-21</span>
+          <span class="test-name">Project ribbon build task panel</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._add_btn is not None</code> is truthy. <code>ribbon._del_btn is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._add_btn is not None</code><br><code>assert ribbon._del_btn is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-22</span>
+          <span class="test-name">Project ribbon build resource panel</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._panels[1] is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._panels[1] is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-23</span>
+          <span class="test-name">Project ribbon build report panel</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._panels[2] is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._panels[2] is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-24</span>
+          <span class="test-name">Project ribbon activate tab</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>from PyQt5.QtCore import QCoreApplication</code><br><code>ribbon = ProjectRibbon()</code><br><code>ribbon._activate_tab(1)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>QCoreApplication.processEvents()  # Process UI updates</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._active_tab</code> equals <code>1</code>. <code>ribbon._tab_buttons[1].isChecked()</code> is truthy. <code>ribbon._tab_buttons[0].isChecked()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._active_tab == 1</code><br><code>assert ribbon._tab_buttons[1].isChecked()</code><br><code>assert not ribbon._tab_buttons[0].isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-25</span>
+          <span class="test-name">Project ribbon selection buttons</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._del_btn</code> is contained in <code>ribbon._selection_btns</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._del_btn in ribbon._selection_btns</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-26</span>
+          <span class="test-name">Project ribbon project buttons</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._add_btn</code> is contained in <code>ribbon._project_btns</code>. <code>ribbon._del_btn</code> is contained in <code>ribbon._project_btns</code>. <code>len(ribbon._project_btns)</code> is greater than <code>2  # Should have more buttons</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._add_btn in ribbon._project_btns</code><br><code>assert ribbon._del_btn in ribbon._project_btns</code><br><code>assert len(ribbon._project_btns) &gt; 2  # Should have more buttons</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-27</span>
+          <span class="test-name">Confluence config btn exists and is enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._confluence_config_btn</code> is not <code>None</code> and is enabled (always-on button).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._confluence_config_btn is not None</code><br><code>assert ribbon._confluence_config_btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-28</span>
+          <span class="test-name">Set confluence config state</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_confluence_config_state(False, &quot;DB not configured&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Button disabled with tooltip <code>&quot;DB not configured&quot;</code>; re-enabling restores enabled state.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not ribbon._confluence_config_btn.isEnabled()</code><br><code>assert ribbon._confluence_config_btn.toolTip() == &quot;DB not configured&quot;</code><br><code>ribbon.set_confluence_config_state(True, &quot;Configure Confluence Calendar&quot;)</code><br><code>assert ribbon._confluence_config_btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-29</span>
+          <span class="test-name">Confluence config btn not in project btns</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import ProjectRibbon</code><br><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_confluence_config_btn</code> is NOT in <code>_project_btns</code>, so it remains enabled even when no project is open.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._confluence_config_btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-30</span>
+          <span class="test-name">add_menu_button returns QToolButton</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ribbon import _RibbonGroup</code>; <code>group = _RibbonGroup("G")</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("Action 1", cb)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(btn, QToolButton)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(btn, QToolButton)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-31</span>
+          <span class="test-name">add_menu_button attaches a QMenu</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("Action 1", cb)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>btn.menu()</code> is not <code>None</code> and is an instance of <code>QMenu</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert btn.menu() is not None</code><br><code>assert isinstance(btn.menu(), QMenu)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-32</span>
+          <span class="test-name">add_menu_button action count matches input</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code>; three callbacks prepared.</div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("A1", cb1), ("A2", cb2), ("A3", cb3)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(btn.menu().actions()) == 3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(btn.menu().actions()) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-33</span>
+          <span class="test-name">add_menu_button default_slot called on click</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>cb_default = MagicMock()</code>; <code>cb_menu = MagicMock()</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("A", cb_menu)], default_slot=cb_default)</code>; <code>btn.click()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cb_default</code> called once; <code>cb_menu</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>cb_default.assert_called_once()</code><br><code>cb_menu.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-34</span>
+          <span class="test-name">add_menu_button falls back to first action when default_slot is None</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>cb1 = MagicMock()</code>; <code>cb2 = MagicMock()</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("A1", cb1), ("A2", cb2)], default_slot=None)</code>; <code>btn.click()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cb1</code> called once; <code>cb2</code> not called.</div>
+          <div class="block"><div class="block-label">Check</div><code>cb1.assert_called_once()</code><br><code>cb2.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-35</span>
+          <span class="test-name">add_menu_button popup mode defaults to MenuButtonPopup</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code></div>
+          <div class="block"><div class="block-label">Run</div><code>btn = group.add_menu_button("Lbl", "tip", [("A", cb)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>btn.popupMode() == QToolButton.MenuButtonPopup</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert btn.popupMode() == QToolButton.MenuButtonPopup</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-36</span>
+          <span class="test-name">Menu button in _project_btns disabled by set_project_open(False)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code>; manually create an <code>add_menu_button</code> and append to <code>ribbon._project_btns</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Extra menu button is disabled (<code>isEnabled() == False</code>).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not extra_btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-37</span>
+          <span class="test-name">Jira Sync split-button has 4 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._jira_sync_btn.menu().actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon._jira_sync_btn.menu()</code> is not <code>None</code>; <code>len(...) == 4</code> (Sync now, Changed since, Full resync, Open Config).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._jira_sync_btn.menu() is not None</code><br><code>assert len(ribbon._jira_sync_btn.menu().actions()) == 4</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-38</span>
+          <span class="test-name">Jira Push split-button has 3 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._jira_push_btn.menu().actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(...) == 3</code> (normal, dry-run, open config).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._jira_push_btn.menu() is not None</code><br><code>assert len(ribbon._jira_push_btn.menu().actions()) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-39</span>
+          <span class="test-name">Add Resource listview split-button has 3 popup entries</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>_SplitToolButton</code> in <code>_project_btns</code> whose text contains both <code>"Add"</code> and <code>"Resource"</code>; get its <code>_RibbonListPopup</code> child.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one such button; <code>popup._list.count() == 3</code> (manual, from AD, from AD group).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(add_res_btns) == 1</code><br><code>assert popup._list.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-40</span>
+          <span class="test-name">Gantt Export listview split-button has 5 popup entries (2 save + 1 sep + 2 email)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>_SplitToolButton</code> in <code>_project_btns</code> whose text contains <code>"Gantt"</code>; get its <code>_RibbonListPopup</code> child.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one; <code>popup._list.count() == 5</code> (SVG, PlantUML, separator, Email Gantt SVG, Email Timeline SVG).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(gantt_btns) == 1</code><br><code>assert popup._list.count() == 5</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-41</span>
+          <span class="test-name">Timeline Export listview split-button has 4 popup entries (2 save + 1 sep + 1 email)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>_SplitToolButton</code> in <code>_project_btns</code> whose text contains <code>"Timeline"</code>; get its <code>_RibbonListPopup</code> child.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one; <code>popup._list.count() == 4</code> (SVG, PlantUML, separator, Email Timeline SVG).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(tl_btns) == 1</code><br><code>assert popup._list.count() == 4</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-42</span>
+          <span class="test-name">Set Baseline split-button has 3 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>QToolButton</code> in <code>_project_btns</code> whose text contains both <code>"Set"</code> and <code>"Baseline"</code> and has a menu.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one; <code>len(...actions()) == 3</code> (dialog, next free slot, all slots).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(set_btns[0].menu().actions()) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-43</span>
+          <span class="test-name">Clear Baseline split-button has 2 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>QToolButton</code> in <code>_project_btns</code> whose text contains both <code>"Clear"</code> and <code>"Baseline"</code> and has a menu.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one; <code>len(...actions()) == 2</code> (dialog, clear all).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(clr_btns[0].menu().actions()) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-44</span>
+          <span class="test-name">VCS Commit split-button has 2 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._vcs_commit_btn.menu().actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(...) == 2</code> (commit project file, commit all tracked).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._vcs_commit_btn.menu() is not None</code><br><code>assert len(ribbon._vcs_commit_btn.menu().actions()) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-45</span>
+          <span class="test-name">VCS Pull split-button has 3 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._vcs_pull_btn.menu().actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(...) == 3</code> (merge, rebase, fetch only).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._vcs_pull_btn.menu() is not None</code><br><code>assert len(ribbon._vcs_pull_btn.menu().actions()) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-46</span>
+          <span class="test-name">SVN Update split-button has 2 menu actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon._vcs_update_btn.menu().actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(...) == 2</code> (update to HEAD, update to revision).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ribbon._vcs_update_btn.menu() is not None</code><br><code>assert len(ribbon._vcs_update_btn.menu().actions()) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-47</span>
+          <span class="test-name">All new split-buttons disabled when no project open</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Every <code>QToolButton</code> in <code>_project_btns</code> that has a menu is disabled (<code>isEnabled() == False</code>).</div>
+          <div class="block"><div class="block-label">Check</div><code>for btn in menu_btns: assert not btn.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-48</span>
+          <span class="test-name">Resource SVG listview split-button has 3 popup entries (1 save + 1 sep + 1 email)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div>Find the <code>_SplitToolButton</code> in <code>_project_btns</code> whose text contains both <code>"Resource"</code> and <code>"SVG"</code>; get its <code>_RibbonListPopup</code> child.</div>
+          <div class="block"><div class="block-label">Expect</div>Exactly one; <code>popup._list.count() == 3</code> (Resource SVG, separator, Email to All Resources).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(rsvg_btns) == 1</code><br><code>assert popup._list.count() == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-49</span>
+          <span class="test-name">set_item_enabled(label, False) removes ItemIsEnabled flag and sets tooltip</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code><br><code>btn = group.add_listview_button("Lbl", "tip", [("Action A", cb), ("Action B", cb)])</code><br><code>popup = btn._ribbon_popup</code></div>
+          <div class="block"><div class="block-label">Run</div><code>popup.set_item_enabled("Action A", False, "Not available")</code></div>
+          <div class="block"><div class="block-label">Expect</div>Item at index 0 has <code>ItemIsEnabled</code> cleared and <code>ToolTipRole == "Not available"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not (item.flags() &amp; Qt.ItemIsEnabled)</code><br><code>assert item.data(Qt.ToolTipRole) == "Not available"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-50</span>
+          <span class="test-name">set_item_enabled(label, True) restores ItemIsEnabled and clears tooltip</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code><br><code>btn = group.add_listview_button("Lbl", "tip", [("Action A", cb)])</code><br><code>popup = btn._ribbon_popup</code><br><code>popup.set_item_enabled("Action A", False, "Off")</code></div>
+          <div class="block"><div class="block-label">Run</div><code>popup.set_item_enabled("Action A", True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Item has <code>ItemIsEnabled</code> set; <code>ToolTipRole</code> is falsy (cleared).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert bool(item.flags() &amp; Qt.ItemIsEnabled)</code><br><code>assert not item.data(Qt.ToolTipRole)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-51</span>
+          <span class="test-name">set_item_enabled with unknown label is a no-op (does not raise)</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>group = _RibbonGroup("G")</code><br><code>btn = group.add_listview_button("Lbl", "tip", [("Action A", cb)])</code><br><code>popup = btn._ribbon_popup</code></div>
+          <div class="block"><div class="block-label">Run</div><code>popup.set_item_enabled("Nonexistent", False, "tip")</code></div>
+          <div class="block"><div class="block-label">Expect</div>No exception is raised; the popup state is unchanged.</div>
+          <div class="block"><div class="block-label">Check</div>Call does not raise.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-52</span>
+          <span class="test-name">set_email_actions_enabled(False) disables all email items in all three popups</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(False, "No email account configured")</code></div>
+          <div class="block"><div class="block-label">Expect</div>In each of the three popups (<code>_gantt_exp_popup</code>, <code>_rsvg_popup</code>, <code>_tl_exp_popup</code>), the items labelled <code>"Email Gantt SVG"</code>, <code>"Email to All Resources"</code>, and <code>"Email Timeline SVG"</code> have <code>ItemIsEnabled</code> cleared and their tooltip set.</div>
+          <div class="block"><div class="block-label">Check</div><code>for popup in ...: assert not (item.flags() &amp; Qt.ItemIsEnabled)</code><br><code>assert item.data(Qt.ToolTipRole) == tip</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">RB-53</span>
+          <span class="test-name">set_email_actions_enabled(True) re-enables all email items in all three popups</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code><br><code>ribbon.set_email_actions_enabled(False, "off")</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All three email items across all three popups have <code>ItemIsEnabled</code> set.</div>
+          <div class="block"><div class="block-label">Check</div><code>for popup in ...: assert bool(item.flags() &amp; Qt.ItemIsEnabled)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>CPM ribbon buttons (Phase 3)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-54</span><span class="test-name">Cpm report button in project btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div><div class="block"><div class="block-label">Run</div>Filter <code>_project_btns</code> for buttons with "CPM" in text.</div><div class="block"><div class="block-label">Expect</div>At least one CPM button found in <code>_project_btns</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(cpm_btns) &gt;= 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-55</span><span class="test-name">Cpm results view button in project btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div><div class="block"><div class="block-label">Run</div>Filter <code>_project_btns</code> for buttons with "CPM" and "Results" in text.</div><div class="block"><div class="block-label">Expect</div>At least one CPM Results button found in <code>_project_btns</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(results_btns) &gt;= 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-56</span><span class="test-name">Cpm results button registered in view btns by tab</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); from ui import TAB_CPM</code></div><div class="block"><div class="block-label">Run</div><code>TAB_CPM in ribbon._view_btns_by_app_tab</code></div><div class="block"><div class="block-label">Expect</div><code>TAB_CPM</code> registered in <code>_view_btns_by_app_tab</code>.</div><div class="block"><div class="block-label">Check</div><code>assert TAB_CPM in ribbon._view_btns_by_app_tab</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-57</span><span class="test-name">Cpm buttons disabled without open project</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon()</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(False)</code></div><div class="block"><div class="block-label">Expect</div>All buttons in <code>_project_btns</code> with "CPM" in text are disabled.</div><div class="block"><div class="block-label">Check</div><code>for btn in cpm_btns: assert not btn.isEnabled()</code></div></div></div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>CPM Report button — email-configured state (RB-58 to RB-63)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-58</span><span class="test-name">Cpm report disabled when email not configured</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_project_open(True)</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(False, tip)</code></div><div class="block"><div class="block-label">Expect</div><code>_cpm_exp_btn</code> is disabled even though a project is open.</div><div class="block"><div class="block-label">Check</div><code>assert not ribbon._cpm_exp_btn.isEnabled()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-59</span><span class="test-name">Cpm report tooltip when email not configured</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_project_open(True)</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(False, tip)</code></div><div class="block"><div class="block-label">Expect</div>Button tooltip contains "No email account configured".</div><div class="block"><div class="block-label">Check</div><code>assert "No email account configured" in ribbon._cpm_exp_btn.toolTip()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-60</span><span class="test-name">Cpm report enabled when email configured and project open</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_project_open(True); ribbon.set_email_actions_enabled(False, tip)</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(True, "")</code></div><div class="block"><div class="block-label">Expect</div><code>_cpm_exp_btn</code> is re-enabled because project is open and email is configured.</div><div class="block"><div class="block-label">Check</div><code>assert ribbon._cpm_exp_btn.isEnabled()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-61</span><span class="test-name">Cpm report restores original tooltip when email configured</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_project_open(True); ribbon.set_email_actions_enabled(False, tip)</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_email_actions_enabled(True, "")</code></div><div class="block"><div class="block-label">Expect</div>Tooltip restored to original <code>_cpm_exp_btn_tip</code> value.</div><div class="block"><div class="block-label">Check</div><code>assert ribbon._cpm_exp_btn.toolTip() == ribbon._cpm_exp_btn_tip</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-62</span><span class="test-name">Cpm report stays disabled after project open when email not configured</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_email_actions_enabled(False, tip)</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(True)</code></div><div class="block"><div class="block-label">Expect</div><code>_cpm_exp_btn</code> remains disabled — <code>set_project_open</code> respects the email-not-configured flag.</div><div class="block"><div class="block-label">Check</div><code>assert not ribbon._cpm_exp_btn.isEnabled()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">RB-63</span><span class="test-name">Cpm report disabled when email configured but no project</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ribbon = ProjectRibbon(); ribbon.set_email_actions_enabled(True, "")</code></div><div class="block"><div class="block-label">Run</div><code>ribbon.set_project_open(False)</code></div><div class="block"><div class="block-label">Expect</div><code>_cpm_exp_btn</code> is disabled because no project is open, regardless of email config.</div><div class="block"><div class="block-label">Check</div><code>assert not ribbon._cpm_exp_btn.isEnabled()</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

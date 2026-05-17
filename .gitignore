@@ -1,0 +1,129 @@
+# ── SVN ────────────────────────────────────────────────────────────────────
+*.svn*/
+
+# ── Virtual environment (svn:ignore on root: venv) ─────────────────────────
+venv/
+
+# ── Temporary files (svn:ignore on root: temp) ──────────────────────────────
+temp/
+debug_*.json
+
+# ── User-specific config files (machine-local, not for version control) ──────
+email_configs.json
+
+# ── Microsoft Project files ───────────────────────────────────────────────────
+*.mpp
+*.mpx
+
+# ── Binary files ─────────────────────────────────────────────────────────────
+*.7z
+*._br
+*._cn
+*._de
+*._es
+*._fr
+*._hu
+*._it
+*._jp
+*.a
+*.accdb
+*.bin
+*.bz2
+*.chm
+*.class
+*.cp_
+*.deb
+*.dblite
+*.dl_
+*.dll
+*.doc
+*.docx
+*.dot
+*.dotx
+*.eap
+*.EAP
+*.eap_bak
+*.elf
+*.ex_
+*.exe
+*.gif
+*.gm
+*.ico
+*.jar
+*.jpg
+*.jsa
+*.jsa
+*.lib
+*.lnk
+*.lzma
+*.ncb
+*.pch
+*.pdf
+*.pf
+*.png
+*.PNG
+*.potx
+*.ppt
+*.pptx
+*.pscp
+*.pyc
+*.pyd
+*.rpm
+*.sdf
+*.sdp
+*.so
+*.swf
+*.sym
+*.tar
+*.tar.bz
+*.tar.gz
+*.tdb
+*.tgz
+*.tsp
+*.ttf
+*.vsd
+*.xls
+*.xlsm
+*.xlsx
+*.xltm
+*.xltx
+*.xz
+*.zip
+*.zipx
+
+# ── Bundled JDK (svn:ignore on tools: java) ─────────────────────────────────
+tools/java/
+tools/plantuml*/
+tools/extensions/
+tools/requirementProcessTool_*/
+tools/innosetup/
+
+# ── Python bytecode ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+
+# ── Pytest cache (svn:global-ignores: .pytest_cache) ────────────────────────
+.pytest_cache/
+
+# ── Build / distribution ─────────────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+
+# ── Generated Inno Setup script (produced by SConstruct from installer/setup.iss.template) ──
+setup.iss
+
+# ── Debug / log artefacts ────────────────────────────────────────────────────
+*.log
+debug_output.txt
+
+# ── OS artefacts ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor / IDE ─────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

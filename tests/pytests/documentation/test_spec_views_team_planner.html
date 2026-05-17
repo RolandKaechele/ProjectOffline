@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Team Planner View &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Team Planner View</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#team_planner_view">team planner view</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">117</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">117</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="team_planner_view">
+  <div class="module-header"><h2>team_planner_view.py</h2><span class="badge">117 tests</span></div>
+  <div class="module-desc">Team Planner: chip duration string, lane layout, row height, canvas/view construction, placement dialog, vacation blocks, overlap detection, conflict data, signals, segment vacation overlap. Also covers resource filter and UID handling in <code>load_project()</code>: null-UID resources appear as empty rows, resources with null UID are excluded from <code>_tasks_by_res</code>, arbitrary UID exceptions are caught silently, resources with valid UIDs are keyed correctly.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestChipDurStr — Chip Dur Str</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-01</span>
+          <span class="test-name">Five day task returns 1w</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task = make_mock_task(duration_days=5)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;1w&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;1w&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-02</span>
+          <span class="test-name">One day task returns 1d</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task = make_mock_task(duration_days=1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;1d&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;1d&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-03</span>
+          <span class="test-name">Three day task returns 3d</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task = make_mock_task(duration_days=3)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;3d&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;3d&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-04</span>
+          <span class="test-name">Six day task returns 1w 1d</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task = make_mock_task(duration_days=6)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;1w 1d&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;1w 1d&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-05</span>
+          <span class="test-name">Ten day task returns 2w</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task = make_mock_task(duration_days=10)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;2w&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;2w&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-06</span>
+          <span class="test-name">Hour units converted to days</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code><br><code>task = MagicMock()</code><br><code>dur = MagicMock()</code><br><code>unit = MagicMock(); unit.__str__ = MagicMock(return_value=&quot;HOURS&quot;)</code><br><code>dur.getDuration.return_value = 40.0   # 40 h == 5 d</code><br><code>dur.getUnits.return_value    = unit</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getDuration.return_value = dur</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;1w&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;1w&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-07</span>
+          <span class="test-name">Week units converted to days</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code><br><code>task = MagicMock()</code><br><code>dur = MagicMock()</code><br><code>unit = MagicMock(); unit.__str__ = MagicMock(return_value=&quot;WEEKS&quot;)</code><br><code>dur.getDuration.return_value = 2.0   # 2 w == 10 d</code><br><code>dur.getUnits.return_value    = unit</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getDuration.return_value = dur</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;2w&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;2w&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-08</span>
+          <span class="test-name">None duration returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getDuration.return_value = None</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-09</span>
+          <span class="test-name">Exception returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _chip_dur_str</code><br><code>task = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>task.getDuration.side_effect = Exception(&quot;boom&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_chip_dur_str(task)</code> equals <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _chip_dur_str(task) == &quot;&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestComputeLaneLayout — Compute Lane Layout</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-10</span>
+          <span class="test-name">Empty list returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _compute_lane_layout</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_compute_lane_layout([])</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _compute_lane_layout([]) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-11</span>
+          <span class="test-name">Single task uses lane 0</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _compute_lane_layout</code><br><code>task = make_mock_task(</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=10,</code><br><code>)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_lane_layout([task])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>. <code>result[0][&#x27;lane&#x27;]</code> equals <code>0</code>. <code>result[0][&#x27;task&#x27;] is task</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code><br><code>assert result[0][&#x27;lane&#x27;] == 0</code><br><code>assert result[0][&#x27;task&#x27;] is task</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-12</span>
+          <span class="test-name">Non overlapping tasks share lane 0</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _compute_lane_layout</code><br><code>t1 = make_mock_task(</code><br><code>task_id=1, uid=1,</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=8,</code><br><code>)</code><br><code>t2 = make_mock_task(</code><br><code>task_id=2, uid=2,</code><br><code>start_year=2025, start_month=1, start_day=13,</code><br><code>finish_year=2025, finish_month=1, finish_day=17,</code><br><code>)</code><br><code>result = _compute_lane_layout([t1, t2])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>lanes = {e[&#x27;task&#x27;].getID(): e[&#x27;lane&#x27;] for e in result}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>lanes[1]</code> equals <code>0</code>. <code>lanes[2]</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lanes[1] == 0</code><br><code>assert lanes[2] == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-13</span>
+          <span class="test-name">Overlapping tasks use different lanes</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _compute_lane_layout</code><br><code>t1 = make_mock_task(</code><br><code>task_id=1, uid=1,</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=15,</code><br><code>)</code><br><code>t2 = make_mock_task(</code><br><code>task_id=2, uid=2,</code><br><code>start_year=2025, start_month=1, start_day=8,</code><br><code>finish_year=2025, finish_month=1, finish_day=17,</code><br><code>)</code><br><code>result = _compute_lane_layout([t1, t2])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>lanes = {e[&#x27;task&#x27;].getID(): e[&#x27;lane&#x27;] for e in result}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>lanes[1]</code> is not <code>lanes[2]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert lanes[1] != lanes[2]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-14</span>
+          <span class="test-name">Three overlapping tasks use three lanes</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _compute_lane_layout</code><br><code>tasks = [</code><br><code>make_mock_task(task_id=i, uid=i,</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=20)</code><br><code>for i in range(1, 4)</code><br><code>]</code><br><code>result = _compute_lane_layout(tasks)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>used_lanes = {e[&#x27;lane&#x27;] for e in result}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(used_lanes)</code> equals <code>3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(used_lanes) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-15</span>
+          <span class="test-name">Result sorted by start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _compute_lane_layout</code><br><code>t1 = make_mock_task(task_id=1, uid=1,</code><br><code>start_year=2025, start_month=1, start_day=13,</code><br><code>finish_year=2025, finish_month=1, finish_day=17)</code><br><code>t2 = make_mock_task(task_id=2, uid=2,</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=10)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = _compute_lane_layout([t1, t2])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[0][&#x27;task&#x27;].getID()</code> equals <code>2</code>. <code>result[1][&#x27;task&#x27;].getID()</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[0][&#x27;task&#x27;].getID() == 2</code><br><code>assert result[1][&#x27;task&#x27;].getID() == 1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRowHeightForLanes — Row Height For Lanes</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-16</span>
+          <span class="test-name">Single lane returns at least row h</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _row_height_for_lanes, ROW_H</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_row_height_for_lanes(1)</code> is = <code>ROW_H</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _row_height_for_lanes(1) &gt;= ROW_H</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-17</span>
+          <span class="test-name">More lanes increases height</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _row_height_for_lanes</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_row_height_for_lanes(2)</code> is greater than <code>_row_height_for_lanes(1)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _row_height_for_lanes(2) &gt; _row_height_for_lanes(1)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-18</span>
+          <span class="test-name">Three lanes more than two</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _row_height_for_lanes</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_row_height_for_lanes(3)</code> is greater than <code>_row_height_for_lanes(2)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _row_height_for_lanes(3) &gt; _row_height_for_lanes(2)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestLayoutConstants — Layout Constants</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-19</span>
+          <span class="test-name">Resource col width positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import RESOURCE_COL_W</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>RESOURCE_COL_W</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert RESOURCE_COL_W &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-20</span>
+          <span class="test-name">Row h positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import ROW_H</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ROW_H</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ROW_H &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-21</span>
+          <span class="test-name">Task bar h less than row h</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import TASK_BAR_H, ROW_H</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>TASK_BAR_H</code> is less than <code>ROW_H</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert TASK_BAR_H &lt; ROW_H</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-22</span>
+          <span class="test-name">Chip dimensions positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import CHIP_H, CHIP_W</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CHIP_H</code> is greater than <code>0</code>. <code>CHIP_W</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert CHIP_H &gt; 0</code><br><code>assert CHIP_W &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-23</span>
+          <span class="test-name">Ua section height positive</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import UA_SECTION_H</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>UA_SECTION_H</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert UA_SECTION_H &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-24</span>
+          <span class="test-name">Day width range consistent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from gantt_view import DAY_WIDTH_DEF, DAY_WIDTH_MIN, DAY_WIDTH_MAX</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>DAY_WIDTH_MIN &lt;= DAY_WIDTH_DEF &lt;= DAY_WIDTH_MAX</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert DAY_WIDTH_MIN &lt;= DAY_WIDTH_DEF &lt;= DAY_WIDTH_MAX</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTeamPlannerCanvas — Team Planner Canvas</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-25</span>
+          <span class="test-name">Widget created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import TeamPlannerCanvas</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>TeamPlannerCanvas() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert TeamPlannerCanvas() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-26</span>
+          <span class="test-name">Load none does not raise</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(None)   # must not raise</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>load none does not raise</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-27</span>
+          <span class="test-name">Load none clears resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._resources</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._resources == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-28</span>
+          <span class="test-name">Load none clears unassigned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._unassigned</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._unassigned == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-29</span>
+          <span class="test-name">Load project populates resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = make_mock_resource(res_id=1, name=&quot;Alice&quot;)</code><br><code>project = make_mock_project(tasks=[], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>canvas = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(canvas._resources)</code> equals <code>1</code>. <code>canvas._res_names</code> equals <code>[&quot;Alice&quot;]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(canvas._resources) == 1</code><br><code>assert canvas._res_names == [&quot;Alice&quot;]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-30</span>
+          <span class="test-name">Load project null resource excluded</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res_null = MagicMock()</code><br><code>res_null.getName.return_value = None</code><br><code>project = make_mock_project(tasks=[], resources=[res_null])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>canvas = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._resources</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._resources == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-31</span>
+          <span class="test-name">Assigned task not in unassigned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res  = make_mock_resource(res_id=1, name=&quot;Bob&quot;)</code><br><code>task = make_mock_task(task_id=1, uid=1)</code><br><code>asgn = MagicMock()</code><br><code>asgn.getResource.return_value = res</code><br><code>res.getUniqueID.return_value = 1</code><br><code>task.getResourceAssignments.return_value = [asgn]</code><br><code>project = make_mock_project(tasks=[task], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>canvas = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>task not</code> is contained in <code>canvas._unassigned</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert task not in canvas._unassigned</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-32</span>
+          <span class="test-name">Unassigned task appears in unassigned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res  = make_mock_resource(res_id=1, name=&quot;Carol&quot;)</code><br><code>task = make_mock_task(task_id=2, uid=2)</code><br><code>task.getResourceAssignments.return_value = []</code><br><code>task.getSummary.return_value = False</code><br><code>project = make_mock_project(tasks=[task], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>canvas = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>task</code> is contained in <code>canvas._unassigned</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert task in canvas._unassigned</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-33</span>
+          <span class="test-name">Summary task excluded from unassigned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res  = make_mock_resource(res_id=1, name=&quot;Dave&quot;)</code><br><code>task = make_mock_task(task_id=3, uid=3, is_summary=True)</code><br><code>task.getResourceAssignments.return_value = []</code><br><code>task.getSummary.return_value = True</code><br><code>project = make_mock_project(tasks=[task], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>canvas = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>task not</code> is contained in <code>canvas._unassigned</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert task not in canvas._unassigned</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-34</span>
+          <span class="test-name">Set day width clamps to min</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_MIN</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.set_day_width(0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.day_width</code> is = <code>DAY_WIDTH_MIN</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.day_width &gt;= DAY_WIDTH_MIN</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-35</span>
+          <span class="test-name">Set day width clamps to max</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_MAX</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.set_day_width(9999)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.day_width &lt;= DAY_WIDTH_MAX</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.day_width &lt;= DAY_WIDTH_MAX</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-36</span>
+          <span class="test-name">Set show sundays stores value</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>canvas.set_show_sundays(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas.show_sundays</code> is <code>False</code>. canvas.set_show_sundays(True) <code>canvas.show_sundays</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas.show_sundays is False</code><br><code>canvas.set_show_sundays(True)</code><br><code>assert canvas.show_sundays is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-37</span>
+          <span class="test-name">Task rescheduled signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import pyqtSignal</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(canvas, &#x27;task_rescheduled&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(canvas, &#x27;task_rescheduled&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-38</span>
+          <span class="test-name">Task reassigned signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(canvas, &#x27;task_reassigned&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(canvas, &#x27;task_reassigned&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-39</span>
+          <span class="test-name">Layout changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(canvas, &#x27;layout_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(canvas, &#x27;layout_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-40</span>
+          <span class="test-name">Unassigned changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(canvas, &#x27;unassigned_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(canvas, &#x27;unassigned_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-41</span>
+          <span class="test-name">Y to row returns minus one below all rows</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>canvas._resources = []</code><br><code>canvas._row_y_off = []</code><br><code>canvas._row_heights = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._ua_y = 0</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._y_to_row(500)</code> equals <code>-1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._y_to_row(500) == -1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-42</span>
+          <span class="test-name">Y to row returns zero when above canvas</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>canvas._resources = [MagicMock()]</code><br><code>canvas._row_y_off = [0]</code><br><code>canvas._row_heights = [44]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>canvas._ua_y = 44</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas._y_to_row(-5)</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas._y_to_row(-5) == 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTeamPlannerView — Team Planner View</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-43</span>
+          <span class="test-name">Widget created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import TeamPlannerView</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>TeamPlannerView() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert TeamPlannerView() is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-44</span>
+          <span class="test-name">Data changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(tpv, &#x27;data_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(tpv, &#x27;data_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-45</span>
+          <span class="test-name">Canvas attribute exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import TeamPlannerCanvas</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(tpv.canvas, TeamPlannerCanvas)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(tpv.canvas, TeamPlannerCanvas)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-46</span>
+          <span class="test-name">Load none does not raise</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>load none does not raise</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-47</span>
+          <span class="test-name">Load project updates canvas resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = make_mock_resource(res_id=1, name=&quot;Eve&quot;)</code><br><code>project = make_mock_project(tasks=[], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerView</code><br><code>tpv = TeamPlannerView()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(tpv.canvas._resources)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(tpv.canvas._resources) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-48</span>
+          <span class="test-name">Load project replaces previous</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res1 = make_mock_resource(res_id=1, name=&quot;Res1&quot;)</code><br><code>res2 = make_mock_resource(res_id=2, name=&quot;Res2&quot;)</code><br><code>proj1 = make_mock_project(tasks=[], resources=[res1])</code><br><code>proj2 = make_mock_project(tasks=[], resources=[res1, res2])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerView</code><br><code>tpv = TeamPlannerView()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.load_project(proj1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(tpv.canvas._resources)</code> equals <code>1</code>. tpv.load_project(proj2) <code>len(tpv.canvas._resources)</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(tpv.canvas._resources) == 1</code><br><code>tpv.load_project(proj2)</code><br><code>assert len(tpv.canvas._resources) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-49</span>
+          <span class="test-name">Set day width propagates to canvas</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from gantt_view import DAY_WIDTH_DEF</code></div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.set_day_width(DAY_WIDTH_DEF + 8)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>tpv.canvas.day_width</code> equals <code>DAY_WIDTH_DEF + 8</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert tpv.canvas.day_width == DAY_WIDTH_DEF + 8</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-50</span>
+          <span class="test-name">Set show sundays propagates to canvas</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.set_show_sundays(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>tpv.canvas.show_sundays</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert tpv.canvas.show_sundays is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-51</span>
+          <span class="test-name">Unassigned label updates on load</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res  = make_mock_resource(res_id=1, name=&quot;Frank&quot;)</code><br><code>task = make_mock_task(task_id=1, uid=1)</code><br><code>task.getResourceAssignments.return_value = []</code><br><code>task.getSummary.return_value = False</code><br><code>project = make_mock_project(tasks=[task], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerView</code><br><code>tpv = TeamPlannerView()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;(1)&quot;</code> is contained in <code>tpv._ua_col_label.text()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;(1)&quot; in tpv._ua_col_label.text()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-52</span>
+          <span class="test-name">Unassigned label zero on empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>tpv.load_project(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;(0)&quot;</code> is contained in <code>tpv._ua_col_label.text()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;(0)&quot; in tpv._ua_col_label.text()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPlacementDialog — Placement Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-53</span>
+          <span class="test-name">Default choice is cancel</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _PlacementDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = _PlacementDialog(&quot;Task A&quot;, &quot;Resource B&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg.choice()</code> equals <code>_PlacementDialog.CANCEL</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.choice() == _PlacementDialog.CANCEL</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-54</span>
+          <span class="test-name">Serial constant</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _PlacementDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_PlacementDialog.SERIAL</code> equals <code>&quot;serial&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _PlacementDialog.SERIAL == &quot;serial&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-55</span>
+          <span class="test-name">Parallel constant</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _PlacementDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_PlacementDialog.PARALLEL</code> equals <code>&quot;parallel&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _PlacementDialog.PARALLEL == &quot;parallel&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-56</span>
+          <span class="test-name">Cancel constant</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from team_planner_view import _PlacementDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_PlacementDialog.CANCEL</code> equals <code>&quot;cancel&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _PlacementDialog.CANCEL == &quot;cancel&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetResourceVacationBlocks — Get Resource Vacation Blocks</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-57</span>
+          <span class="test-name">No calendar returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>res = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res.getCalendar.return_value = None</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_resource_vacation_blocks(res)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_resource_vacation_blocks(res) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-58</span>
+          <span class="test-name">No exceptions returns empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res = _make_resource_with_calendar([])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_resource_vacation_blocks(res)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_resource_vacation_blocks(res) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-59</span>
+          <span class="test-name">Non working exception returns one block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-07-14&quot;, &quot;2025-07-18&quot;, &quot;Summer Vacation&quot;, working=False)</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(blocks)</code> equals <code>1</code>. <code>blocks[0][&#x27;name&#x27;]</code> equals <code>&quot;Summer Vacation&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(blocks) == 1</code><br><code>assert blocks[0][&#x27;name&#x27;] == &quot;Summer Vacation&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-60</span>
+          <span class="test-name">Working exception is skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-08-01&quot;, &quot;2025-08-01&quot;, &quot;Working Saturday&quot;, working=True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_resource_vacation_blocks(res)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_resource_vacation_blocks(res) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-61</span>
+          <span class="test-name">Block has correct from date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-03-10&quot;, &quot;2025-03-14&quot;)</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocks[0][&#x27;from_qd&#x27;]</code> equals <code>QDate(2025, 3, 10)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocks[0][&#x27;from_qd&#x27;] == QDate(2025, 3, 10)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-62</span>
+          <span class="test-name">Block has correct to date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-03-10&quot;, &quot;2025-03-14&quot;)</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocks[0][&#x27;to_qd&#x27;]</code> equals <code>QDate(2025, 3, 14)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocks[0][&#x27;to_qd&#x27;] == QDate(2025, 3, 14)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-63</span>
+          <span class="test-name">Missing to date defaults to from date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-05-01&quot;, &quot;&quot;, &quot;Single Day&quot;)</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(blocks)</code> equals <code>1</code>. <code>blocks[0][&#x27;from_qd&#x27;]</code> equals <code>blocks[0][&#x27;to_qd&#x27;]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(blocks) == 1</code><br><code>assert blocks[0][&#x27;from_qd&#x27;] == blocks[0][&#x27;to_qd&#x27;]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-64</span>
+          <span class="test-name">None name defaults to vacation string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex = _make_mock_exception(&quot;2025-06-01&quot;, &quot;2025-06-05&quot;)</code><br><code>ex.getName.return_value = None</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocks[0][&#x27;name&#x27;]</code> equals <code>&quot;Vacation&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocks[0][&#x27;name&#x27;] == &quot;Vacation&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-65</span>
+          <span class="test-name">Blocks sorted by from date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex1 = _make_mock_exception(&quot;2025-09-01&quot;, &quot;2025-09-05&quot;, &quot;Late&quot;)</code><br><code>ex2 = _make_mock_exception(&quot;2025-03-01&quot;, &quot;2025-03-05&quot;, &quot;Early&quot;)</code><br><code>res = _make_resource_with_calendar([ex1, ex2])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocks[0][&#x27;name&#x27;]</code> equals <code>&quot;Early&quot;</code>. <code>blocks[1][&#x27;name&#x27;]</code> equals <code>&quot;Late&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocks[0][&#x27;name&#x27;] == &quot;Early&quot;</code><br><code>assert blocks[1][&#x27;name&#x27;] == &quot;Late&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-66</span>
+          <span class="test-name">Exception stored in block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;2025-12-24&quot;, &quot;2025-12-26&quot;, &quot;Christmas&quot;)</code><br><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocks = _get_resource_vacation_blocks(res)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocks[0][&#x27;exception&#x27;] is ex</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocks[0][&#x27;exception&#x27;] is ex</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-67</span>
+          <span class="test-name">Invalid from date skips block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>ex  = _make_mock_exception(&quot;not-a-date&quot;, &quot;2025-06-01&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res = _make_resource_with_calendar([ex])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_resource_vacation_blocks(res)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_resource_vacation_blocks(res) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-68</span>
+          <span class="test-name">Calendar exception suppressed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _get_resource_vacation_blocks</code><br><code>res = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res.getCalendar.side_effect = RuntimeError(&quot;JVM error&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_get_resource_vacation_blocks(res)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _get_resource_vacation_blocks(res) == []</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestGetResourceVacationBlocksSecondary &mdash; Secondary calendar filtering and name fallback (bug fix)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68a</span><span class="test-name">Parent date excluded from secondary blocks</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Parent cal has 2025-05-01 (Tag der Arbeit). Child cal has same date plus 2025-01-06 (Heilige Drei Könige). <code>resolve_secondary_calendar</code> returns child cal.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=MagicMock())</code></div><div class="block"><div class="block-label">Expect</div>2025-05-01 NOT in secondary block dates; 2025-01-06 IS in secondary block dates.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;2025-05-01&quot; not in secondary_dates</code><br><code>assert &quot;2025-01-06&quot; in secondary_dates</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68b</span><span class="test-name">State-specific date appears when not in parent</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Parent cal has no exceptions. Child cal has 2025-06-19 (Fronleichnam).</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=MagicMock())</code></div><div class="block"><div class="block-label">Expect</div>2025-06-19 IS in secondary block dates.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;2025-06-19&quot; in secondary_dates</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68c</span><span class="test-name">No parent — uses project default calendar for filtering</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Child cal has no parent; project default cal has 2025-10-03. Child has 2025-10-03 AND 2025-11-01.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=project)</code></div><div class="block"><div class="block-label">Expect</div>2025-10-03 excluded (in default cal); 2025-11-01 included.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;2025-10-03&quot; not in secondary_dates</code><br><code>assert &quot;2025-11-01&quot; in secondary_dates</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68d</span><span class="test-name">Empty exception name falls back to calendar name</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Child exception has empty name (&quot;&quot;). Calendar name is &quot;Baden-Württemberg&quot;.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=project)</code></div><div class="block"><div class="block-label">Expect</div><code>secondary_blocks[0][&quot;name&quot;]</code> contains &quot;Baden-Württemberg&quot;.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;Baden-Württemberg&quot; in secondary_blocks[0][&quot;name&quot;]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68e</span><span class="test-name">Non-empty exception name included in block label</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Child exception name = &quot;Heilige Drei Könige&quot;. Calendar name = &quot;Baden-Württemberg&quot;.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=project)</code></div><div class="block"><div class="block-label">Expect</div>Block label contains both &quot;Baden-Württemberg&quot; and &quot;Heilige Drei Könige&quot;.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;Baden-Württemberg&quot; in label</code><br><code>assert &quot;Heilige Drei Könige&quot; in label</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68f</span><span class="test-name">Secondary block source is &apos;secondary&apos;</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Child cal has one exception. <code>resolve_secondary_calendar</code> returns it.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=project)</code></div><div class="block"><div class="block-label">Expect</div>All secondary blocks have <code>source == &quot;secondary&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert all(b[&quot;source&quot;] == &quot;secondary&quot; for b in secondary_blocks)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-68g</span><span class="test-name">No secondary calendar returns only personal blocks</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>resolve_secondary_calendar → None</code>. Resource has one personal vacation exception.</div><div class="block"><div class="block-label">Run</div><code>_get_resource_vacation_blocks(res, project=MagicMock())</code></div><div class="block"><div class="block-label">Expect</div>No block has <code>source == &quot;secondary&quot;</code>.</div><div class="block"><div class="block-label">Check</div><code>assert not any(b.get(&quot;source&quot;) == &quot;secondary&quot; for b in blocks)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestOverlapsVacation — Overlaps Vacation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-69</span>
+          <span class="test-name">No vacations returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>c = TeamPlannerCanvas()</code><br><code>res = MagicMock()</code><br><code>res.getUniqueID.return_value = 99</code><br><code>c._resources = [res]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>c._vacations_by_res = {}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>c._overlaps_vacation(0, QDate(2025, 7, 14), QDate(2025, 7, 18))</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert c._overlaps_vacation(0, QDate(2025, 7, 14), QDate(2025, 7, 18)) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-70</span>
+          <span class="test-name">Non overlapping before vacation returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 1), QDate(2025, 7, 13) ) is False</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 1), QDate(2025, 7, 13)</code><br><code>) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-71</span>
+          <span class="test-name">Non overlapping after vacation returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 19), QDate(2025, 7, 25) ) is False</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 19), QDate(2025, 7, 25)</code><br><code>) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-72</span>
+          <span class="test-name">Task fully inside vacation returns true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 15), QDate(2025, 7, 17) ) is True</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 15), QDate(2025, 7, 17)</code><br><code>) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-73</span>
+          <span class="test-name">Task starts before and ends inside vacation returns true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 10), QDate(2025, 7, 16) ) is True</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 10), QDate(2025, 7, 16)</code><br><code>) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-74</span>
+          <span class="test-name">Task starts inside and ends after vacation returns true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 16), QDate(2025, 7, 22) ) is True</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 16), QDate(2025, 7, 22)</code><br><code>) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-75</span>
+          <span class="test-name">Task spans entire vacation returns true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 1), QDate(2025, 7, 31) ) is True</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 1), QDate(2025, 7, 31)</code><br><code>) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-76</span>
+          <span class="test-name">Invalid row index returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 5, QDate(2025, 7, 15), QDate(2025, 7, 17) ) is False</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>5, QDate(2025, 7, 15), QDate(2025, 7, 17)</code><br><code>) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-77</span>
+          <span class="test-name">Negative row index returns false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. -1, QDate(2025, 7, 15), QDate(2025, 7, 17) ) is False</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>-1, QDate(2025, 7, 15), QDate(2025, 7, 17)</code><br><code>) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-78</span>
+          <span class="test-name">None finish treated as start plus one day</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>canvas_with_vacation._overlaps_vacation(</code> is truthy. 0, QDate(2025, 7, 15), None ) is True</div>
+          <div class="block"><div class="block-label">Check</div><code>assert canvas_with_vacation._overlaps_vacation(</code><br><code>0, QDate(2025, 7, 15), None</code><br><code>) is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestComputeConflictData — Compute Conflict Data</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-79</span>
+          <span class="test-name">No resources returns empty lists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>c = TeamPlannerCanvas()</code><br><code>c._resources       = []</code><br><code>c._tasks_by_res    = {}</code><br><code>c._vacations_by_res = {}</code><br><code>c._lane_data       = {}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags</code> equals <code>[]</code>. <code>tips</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags == []</code><br><code>assert tips  == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-80</span>
+          <span class="test-name">Single task no vacation no conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>task = make_mock_task(task_id=1, uid=1,</code><br><code>start_year=2025, start_month=6, start_day=2,</code><br><code>finish_year=2025, finish_month=6, finish_day=6)</code><br><code>c = _make_canvas_with_tasks({1: [task]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags</code> equals <code>[False]</code>. <code>tips</code> equals <code>[&#x27;&#x27;]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags == [False]</code><br><code>assert tips  == [&#x27;&#x27;]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-81</span>
+          <span class="test-name">Non overlapping tasks no conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>t1 = make_mock_task(task_id=1, uid=1,</code><br><code>start_year=2025, start_month=1, start_day=6,</code><br><code>finish_year=2025, finish_month=1, finish_day=10)</code><br><code>t2 = make_mock_task(task_id=2, uid=2,</code><br><code>start_year=2025, start_month=1, start_day=13,</code><br><code>finish_year=2025, finish_month=1, finish_day=17)</code><br><code>c = _make_canvas_with_tasks({1: [t1], 2: [t2]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags</code> equals <code>[False, False]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags == [False, False]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-82</span>
+          <span class="test-name">Overlapping tasks on same resource conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>t1 = make_mock_task(task_id=1, uid=1, name=&quot;Task A&quot;,</code><br><code>start_year=2025, start_month=3, start_day=3,</code><br><code>finish_year=2025, finish_month=3, finish_day=10)</code><br><code>t2 = make_mock_task(task_id=2, uid=2, name=&quot;Task B&quot;,</code><br><code>start_year=2025, start_month=3, start_day=6,</code><br><code>finish_year=2025, finish_month=3, finish_day=14)</code><br><code>c = _make_canvas_with_tasks({1: [t1, t2]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags[0]</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags[0] is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-83</span>
+          <span class="test-name">Overlap tooltip contains task names</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>t1 = make_mock_task(task_id=1, uid=1, name=&quot;Alpha&quot;,</code><br><code>start_year=2025, start_month=3, start_day=3,</code><br><code>finish_year=2025, finish_month=3, finish_day=10)</code><br><code>t2 = make_mock_task(task_id=2, uid=2, name=&quot;Beta&quot;,</code><br><code>start_year=2025, start_month=3, start_day=6,</code><br><code>finish_year=2025, finish_month=3, finish_day=14)</code><br><code>c = _make_canvas_with_tasks({1: [t1, t2]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Alpha&quot;</code> is contained in <code>tips[0]</code>. <code>&quot;Beta&quot;</code> is contained in <code>tips[0]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Alpha&quot; in tips[0]</code><br><code>assert &quot;Beta&quot; in tips[0]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-84</span>
+          <span class="test-name">Task on vacation raises conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>task = make_mock_task(task_id=1, uid=1, name=&quot;Holiday Task&quot;,</code><br><code>start_year=2025, start_month=7, start_day=15,</code><br><code>finish_year=2025, finish_month=7, finish_day=17)</code><br><code>vacs = {1: [{&#x27;from_qd&#x27;: QDate(2025, 7, 14), &#x27;to_qd&#x27;: QDate(2025, 7, 18),</code><br><code>&#x27;name&#x27;: &#x27;Summer&#x27;, &#x27;exception&#x27;: MagicMock()}]}</code><br><code>c = _make_canvas_with_tasks({1: [task]}, vacations_by_uid=vacs)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, _ = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags[0]</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags[0] is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-85</span>
+          <span class="test-name">Task on vacation tooltip contains vacation name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>task = make_mock_task(task_id=1, uid=1, name=&quot;Meeting&quot;,</code><br><code>start_year=2025, start_month=7, start_day=15,</code><br><code>finish_year=2025, finish_month=7, finish_day=16)</code><br><code>vacs = {1: [{&#x27;from_qd&#x27;: QDate(2025, 7, 14), &#x27;to_qd&#x27;: QDate(2025, 7, 18),</code><br><code>&#x27;name&#x27;: &#x27;Summer Break&#x27;, &#x27;exception&#x27;: MagicMock()}]}</code><br><code>c = _make_canvas_with_tasks({1: [task]}, vacations_by_uid=vacs)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Summer Break&quot;</code> is contained in <code>tips[0]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Summer Break&quot; in tips[0]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-86</span>
+          <span class="test-name">Task not on vacation no conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>task = make_mock_task(task_id=1, uid=1,</code><br><code>start_year=2025, start_month=6, start_day=2,</code><br><code>finish_year=2025, finish_month=6, finish_day=6)</code><br><code>vacs = {1: [{&#x27;from_qd&#x27;: QDate(2025, 7, 14), &#x27;to_qd&#x27;: QDate(2025, 7, 18),</code><br><code>&#x27;name&#x27;: &#x27;Summer&#x27;, &#x27;exception&#x27;: MagicMock()}]}</code><br><code>c = _make_canvas_with_tasks({1: [task]}, vacations_by_uid=vacs)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, _ = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>flags[0]</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert flags[0] is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-87</span>
+          <span class="test-name">Tooltip empty when no conflict</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>task = make_mock_task(task_id=1, uid=1,</code><br><code>start_year=2025, start_month=2, start_day=3,</code><br><code>finish_year=2025, finish_month=2, finish_day=7)</code><br><code>c = _make_canvas_with_tasks({1: [task]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>tips[0]</code> equals <code>&#x27;&#x27;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert tips[0] == &#x27;&#x27;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-88</span>
+          <span class="test-name">Result has same length as resources</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>t1 = make_mock_task(task_id=1, uid=1)</code><br><code>t2 = make_mock_task(task_id=2, uid=2)</code><br><code>t3 = make_mock_task(task_id=3, uid=3)</code><br><code>c = _make_canvas_with_tasks({1: [t1], 2: [t2], 3: [t3]})</code></div>
+          <div class="block"><div class="block-label">Run</div><code>flags, tips = c._compute_conflict_data()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(flags)</code> equals <code>3</code>. <code>len(tips)</code> equals <code>3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(flags) == 3</code><br><code>assert len(tips)  == 3</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestNewCanvasSignals — New Canvas Signals</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-89</span>
+          <span class="test-name">Conflicts changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code></div>
+          <div class="block"><div class="block-label">Run</div><code>c = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(c, &#x27;conflicts_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(c, &#x27;conflicts_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-90</span>
+          <span class="test-name">Conflict tooltips changed signal exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code></div>
+          <div class="block"><div class="block-label">Run</div><code>c = TeamPlannerCanvas()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(c, &#x27;conflict_tooltips_changed&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(c, &#x27;conflict_tooltips_changed&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-91</span>
+          <span class="test-name">Load project emits conflicts changed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>received = []</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Alice&quot;)</code><br><code>project = make_mock_project(tasks=[], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>c = TeamPlannerCanvas()</code><br><code>c.conflicts_changed.connect(lambda v: received.append(v))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>c.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(received)</code> is = <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(received) &gt;= 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-92</span>
+          <span class="test-name">Load project emits conflict tooltips changed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>received = []</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Bob&quot;)</code><br><code>project = make_mock_project(tasks=[], resources=[res])</code><br><code>with patch(&#x27;team_planner_view._get_non_working_dates&#x27;, return_value=set()):</code><br><code>from team_planner_view import TeamPlannerCanvas</code><br><code>c = TeamPlannerCanvas()</code><br><code>c.conflict_tooltips_changed.connect(lambda v: received.append(v))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>c.load_project(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(received)</code> is = <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(received) &gt;= 1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestVacationDialog — Vacation Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-93</span>
+          <span class="test-name">Dialog instantiates</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _VacationDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = _VacationDialog(vacation_block, &quot;Alice&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-94</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _VacationDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = _VacationDialog(vacation_block, &quot;Alice&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-95</span>
+          <span class="test-name">Dialog title contains vacation</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from team_planner_view import _VacationDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = _VacationDialog(vacation_block, &quot;Alice&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Vacation&quot;</code> is contained in <code>dlg.windowTitle() or &quot;Calendar&quot; in dlg.windowTitle()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Vacation&quot; in dlg.windowTitle() or &quot;Calendar&quot; in dlg.windowTitle()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-96</span>
+          <span class="test-name">Dialog has no editable line edits</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtWidgets import QLineEdit</code><br><code>from team_planner_view import _VacationDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = _VacationDialog(vacation_block, &quot;Alice&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(dlg.findChildren(QLineEdit))</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(dlg.findChildren(QLineEdit)) == 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSegmentVacationOverlapCondition — Segment Vacation Overlap Condition</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-97</span>
+          <span class="test-name">Segment fully before vacation no overlap</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 11)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 5, 15)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-98</span>
+          <span class="test-name">Segment fully after vacation no overlap</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 6, 8)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 6, 12)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-99</span>
+          <span class="test-name">Segment fully inside vacation overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 25)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 5, 29)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-100</span>
+          <span class="test-name">Segment starts before ends inside vacation overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 19)  # before vacation</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 5, 24)  # inside vacation</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-101</span>
+          <span class="test-name">Segment starts inside ends after vacation overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 28)  # inside vacation</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 6, 10)  # after vacation</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-102</span>
+          <span class="test-name">Segment straddles entire vacation overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 14)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 6, 12)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-103</span>
+          <span class="test-name">Segment touches vacation start exactly overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 18)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 5, 21)  # = vac_from</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-104</span>
+          <span class="test-name">Segment touches vacation end exactly overlaps</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 6, 5)   # = vac_to</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 6, 9)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-105</span>
+          <span class="test-name">Segment ends day before vacation no overlap</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 5, 18)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 5, 20)  # strictly before vac_from</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TP-106</span>
+          <span class="test-name">Segment starts day after vacation no overlap</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtCore import QDate</code><br><code>vac   = _make_vac_block(&quot;2026-05-21&quot;, &quot;2026-06-05&quot;)</code><br><code>seg_s = QDate(2026, 6, 6)   # strictly after vac_to</code></div>
+          <div class="block"><div class="block-label">Run</div><code>seg_e = QDate(2026, 6, 10)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_vacation_overlaps_segment(vac, seg_s, seg_e)</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _vacation_overlaps_segment(vac, seg_s, seg_e) is False</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestResourceFilterAndUid &mdash; Resource Filter And UID Handling</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-107</span><span class="test-name">Resource with null uid included in resources</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getName() = "Alice"; res.getUniqueID() = None</code></div><div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div><div class="block"><div class="block-label">Expect</div><code>res in canvas._resources</code> is <code>True</code> &mdash; null-UID resource still renders as a row.</div><div class="block"><div class="block-label">Check</div><code>assert res in canvas._resources</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-108</span><span class="test-name">Resource with null uid not in tasks by res</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getUniqueID() = None</code></div><div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div><div class="block"><div class="block-label">Expect</div><code>len(canvas._tasks_by_res)</code> equals <code>0</code> &mdash; no task-bar key created.</div><div class="block"><div class="block-label">Check</div><code>assert len(canvas._tasks_by_res) == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-109</span><span class="test-name">Resource uid exception does not crash load</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getUniqueID.side_effect = RuntimeError("JVM crash")</code></div><div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div><div class="block"><div class="block-label">Expect</div>No exception propagated; <code>load_project</code> completes silently.</div><div class="block"><div class="block-label">Check</div>(no assertion &mdash; must not raise)</div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">TP-110</span><span class="test-name">Resource with valid uid added to tasks by res</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>res.getUniqueID() = 7</code></div><div class="block"><div class="block-label">Run</div><code>canvas.load_project(project)</code></div><div class="block"><div class="block-label">Expect</div><code>7 in canvas._tasks_by_res</code> is <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert 7 in canvas._tasks_by_res</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

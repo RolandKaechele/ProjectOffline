@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Directory Sync — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html" class="active">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Active Directory Integration</h1>
+    <p>Look up employees from your corporate Active Directory and synchronise their
+       details — email, department — directly into the project resource sheet.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Active Directory Integration</div>
+
+    <h2>What Is Active Directory Integration?</h2>
+    <p>Project Offline can query your organisation's <strong>Active Directory (AD)</strong>
+    to look up employee details and write them back into the resource sheet without
+    manual data entry.  Four lookup strategies are supported:</p>
+    <ul>
+      <li><strong>By display name</strong> — first tries an exact <code>DisplayName</code>
+          match; if not found, splits the name on <code>", "</code> (Surname, Given Name)
+          and tries a two-field match.</li>
+      <li><strong>By email (<code>lookup_by_email_all</code>)</strong> — tries an exact
+          <code>mail&nbsp;-eq</code> match first (indexed, typically &lt;&nbsp;1&nbsp;s); only
+          falls back to a wildcard scan if no exact match is found.</li>
+      <li><strong>By SAM account name (<code>lookup_by_username_all</code>)</strong> — tries
+          <code>Get-ADUser&nbsp;-Identity</code> first (indexed, &lt;&nbsp;1&nbsp;s); wildcard
+          scan is used only when the identity lookup fails.</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Offline-first</strong>
+      All AD queries use <strong>PowerShell <code>Get-ADUser</code></strong> — no third-party
+      LDAP library is required.  Only the RSAT <em>ActiveDirectory</em> module must be
+      installed on the workstation.
+    </div>
+
+    <!-- -- Prerequisites -- -->
+    <h2>Prerequisites</h2>
+    <table>
+      <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Windows (domain-joined)</td>
+          <td>The workstation must be joined to the same Active Directory domain you wish to query.</td>
+        </tr>
+        <tr>
+          <td>PowerShell on PATH</td>
+          <td>PowerShell 5.1 or later.  Run <code>powershell -Command &quot;$PSVersionTable.PSVersion&quot;</code> to verify.</td>
+        </tr>
+        <tr>
+          <td>RSAT ActiveDirectory module</td>
+          <td>
+            Install with:<br>
+            <code>Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0</code><br>
+            (Run PowerShell as Administrator.)
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- -- Manual lookups -- -->
+    <h2 id="manual-lookup">Manual Lookups</h2>
+    <p>Individual resources can also be looked up from the
+    <strong>Resource Edit dialog</strong>: press <strong>Look up in AD&hellip;</strong>
+    next to the email field to search AD by the resource's current display name.  The
+    returned email and department are pre-filled into the dialog; you can review and
+    modify them before saving.</p>
+
+    <div class="callout tip">
+      <strong>Tip — lookup by username</strong>
+      If the display name lookup returns no results (e.g. the name has a localised form),
+      edit the resource first to add the SAM account name in the <em>Username</em> field,
+      then click <strong>Look up in AD&hellip;</strong> — the module will try the username
+      strategy automatically.
+    </div>
+
+    <!-- -- Add resource from AD -- -->
+    <h2>Add a New Resource Directly from AD</h2>
+    <p>Instead of creating a resource manually and syncing it afterwards, you can add a
+    new resource from scratch in a single guided workflow using the
+    <strong>Add from AD</strong> button on the <strong>Resources</strong> ribbon tab
+    (Resource Insert group).</p>
+
+    <ol>
+      <li><strong>Search</strong> — type part of the employee&rsquo;s name in the
+          search dialog.  If multiple AD accounts match, a list is shown and you can
+          select the correct person.</li>
+      <li><strong>Review</strong> — the resource dialog opens pre-filled with the AD
+          data (display name, email, department, username).  You can edit any field
+          before confirming.</li>
+      <li><strong>Create</strong> — the resource is added to the project with a unique
+          ID assigned immediately, so the ID column is visible right away without
+          requiring a save/reload cycle.</li>
+      <li><strong>Calendar</strong> — a personal work calendar is created automatically.
+          It copies the <em>day-of-week work types</em> from the project default calendar
+          but does <strong>not</strong> inherit calendar exceptions (e.g. company
+          holidays).  Exceptions remain centralised on the project default calendar.</li>
+    </ol>
+
+    <div class="callout note">
+      <strong>Duplicate prevention</strong>
+      If a resource with the same name already exists in the project (comparison is
+      case-insensitive), a warning is shown and the operation is cancelled.  To update an
+      existing resource&rsquo;s AD data, use <strong>Sync from AD</strong> instead.
+    </div>
+
+    <div class="callout tip">
+      <strong>Automatic regional holiday calendar</strong>
+      When a resource is imported from AD, the application reads the <em>city</em>,
+      <em>state</em>, and <em>country</em> fields from the LDAP record and automatically
+      assigns the matching regional holiday calendar (e.g. a Bavarian public-holiday
+      calendar for resources located in Munich).  The assignment is stored in the project
+      file and is visible in the Team Planner as yellow blocks on non-working days.
+    </div>
+
+    <h2>Add Resources from AD Group</h2>
+    <p>For bulk onboarding, use <strong>Add from AD Group</strong> from the Resources tab.
+       The dialog lets you search AD groups, preview members, and add all selected users in
+       one action. Duplicate resources are skipped automatically.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="860" height="520" fill="#f4f7fb"/>
+        <rect x="8" y="8" width="844" height="504" rx="6" fill="#fff" stroke="#879bb8"/>
+        <rect x="8" y="8" width="844" height="52" rx="6" fill="#2B579A"/>
+        <text x="24" y="32" fill="#fff" font-size="15" font-weight="700">Add Resources from AD Group</text>
+        <text x="24" y="48" fill="#c8d8f4" font-size="11">Search groups, preview members, and bulk-add only users that are not already in the project.</text>
+
+        <rect x="20" y="72" width="320" height="430" rx="5" fill="#fff" stroke="#c9d8ee"/>
+        <rect x="20" y="72" width="320" height="30" fill="#e7effb" stroke="#c9d8ee"/>
+        <text x="32" y="92" fill="#1a3f7a" font-size="12" font-weight="700">AD Groups</text>
+        <rect x="30" y="112" width="230" height="26" rx="3" fill="#fff" stroke="#adc0dd"/>
+        <text x="38" y="129" fill="#223">Embedded</text>
+        <rect x="268" y="112" width="62" height="26" rx="3" fill="#2B579A"/>
+        <text x="299" y="129" fill="#fff" font-size="11" text-anchor="middle">Search</text>
+
+        <rect x="30" y="148" width="300" height="64" rx="4" fill="#edf4ff" stroke="#2B579A"/>
+        <text x="40" y="170" fill="#1a2a4f" font-size="12" font-weight="700">GG_PM_Embedded_Core</text>
+        <text x="40" y="188" fill="#5a6b86" font-size="10.5">14 members - Project core engineering</text>
+        <rect x="30" y="220" width="300" height="50" rx="4" fill="#fff" stroke="#d5e1f2"/>
+        <text x="40" y="240" fill="#1a2a4f" font-size="12" font-weight="700">GG_PM_Embedded_Test</text>
+        <text x="40" y="256" fill="#5a6b86" font-size="10.5">8 members - Validation and QA</text>
+
+        <rect x="352" y="72" width="488" height="430" rx="5" fill="#fff" stroke="#c9d8ee"/>
+        <rect x="352" y="72" width="488" height="30" fill="#e7effb" stroke="#c9d8ee"/>
+        <text x="364" y="92" fill="#1a3f7a" font-size="12" font-weight="700">Members Preview (GG_PM_Embedded_Core)</text>
+
+        <rect x="364" y="114" width="464" height="58" rx="4" fill="#fff" stroke="#d6e2f2"/>
+        <rect x="374" y="132" width="12" height="12" fill="#fff" stroke="#6f88ad"/><text x="376" y="142" fill="#2B579A" font-size="10">✓</text>
+        <text x="396" y="133" fill="#1d2940" font-size="11.5" font-weight="600">Muller, Max</text>
+        <text x="396" y="149" fill="#5f708b" font-size="10.5">max.muller@corp.example.com</text>
+        <rect x="724" y="128" width="96" height="18" rx="9" fill="#e4f6ea" stroke="#9fd3b0"/>
+        <text x="772" y="141" fill="#1e6a34" font-size="10" text-anchor="middle">Will be added</text>
+
+        <rect x="364" y="180" width="464" height="58" rx="4" fill="#fff" stroke="#d6e2f2"/>
+        <rect x="374" y="198" width="12" height="12" fill="#fff" stroke="#6f88ad"/><text x="376" y="208" fill="#2B579A" font-size="10">✓</text>
+        <text x="396" y="199" fill="#1d2940" font-size="11.5" font-weight="600">Schneider, Laura</text>
+        <text x="396" y="215" fill="#5f708b" font-size="10.5">laura.schneider@corp.example.com</text>
+        <rect x="724" y="194" width="96" height="18" rx="9" fill="#e4f6ea" stroke="#9fd3b0"/>
+        <text x="772" y="207" fill="#1e6a34" font-size="10" text-anchor="middle">Will be added</text>
+
+        <rect x="364" y="246" width="464" height="58" rx="4" fill="#f4f6f9" stroke="#d6e2f2" opacity="0.75"/>
+        <rect x="374" y="264" width="12" height="12" fill="#fff" stroke="#8ba0bf"/><text x="376" y="274" fill="#8ba0bf" font-size="10">✓</text>
+        <text x="396" y="265" fill="#1d2940" font-size="11.5" font-weight="600">Weber, Anna</text>
+        <text x="396" y="281" fill="#5f708b" font-size="10.5">anna.weber@corp.example.com</text>
+        <rect x="724" y="260" width="96" height="18" rx="9" fill="#f8ecec" stroke="#d9b2b2"/>
+        <text x="772" y="273" fill="#8a2f2f" font-size="10" text-anchor="middle">Already exists</text>
+
+        <rect x="8" y="468" width="844" height="44" fill="#f3f7fd" stroke="#cfdced"/>
+        <text x="24" y="495" fill="#34486b" font-size="11">Summary: 3 selected to add, 1 duplicate skipped, 1 invalid entry filtered.</text>
+        <rect x="716" y="480" width="122" height="24" rx="3" fill="#2B579A"/>
+        <text x="777" y="496" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Add Selected Users</text>
+      </svg>
+      <figcaption>Fig. 1a — AD group bulk-add workflow with duplicate detection and member preview.</figcaption>
+    </figure>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="520" height="260" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="500" height="240" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="500" height="48" fill="#2B579A" rx="2"/>
+        <text x="26" y="30" fill="white" font-size="13" font-weight="bold">Add Resource from Active Directory</text>
+        <text x="26" y="48" fill="#b8d0f0" font-size="11">Search for an employee and create a project resource</text>
+        <!-- Search row -->
+        <text x="26" y="80" fill="#444" font-size="11">Search name:</text>
+        <rect x="110" y="68" width="270" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="118" y="82" fill="#222" font-size="11">Müller</text>
+        <rect x="388" y="68" width="60" height="20" fill="#2B579A" rx="2"/>
+        <text x="418" y="82" fill="white" font-size="11" font-weight="600" text-anchor="middle">Search</text>
+        <!-- Results list -->
+        <rect x="26" y="100" width="460" height="16" fill="#dce8f8" stroke="#b0c4dc" rx="1"/>
+        <text x="32" y="112" fill="#222" font-size="11" font-weight="600">Müller, Hans — Engineering — h.mueller@corp.example.com</text>
+        <rect x="26" y="116" width="460" height="16" fill="white" stroke="#e0e0e0" rx="1"/>
+        <text x="32" y="128" fill="#444" font-size="11">Müller, Anna — Finance — a.mueller@corp.example.com</text>
+        <!-- Footer -->
+        <rect x="10" y="220" width="500" height="30" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="360" y="228" width="66" height="18" fill="#2B579A" rx="2"/>
+        <text x="393" y="241" fill="white" font-size="11" font-weight="600" text-anchor="middle">Select</text>
+        <rect x="434" y="228" width="60" height="18" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="464" y="241" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 1 — AD search dialog showing two matches for "Müller"; the first row is selected.</figcaption>
+    </figure>
+    <h2>Security &amp; Input Sanitisation</h2>
+    <p>All inputs passed to PowerShell are sanitised before the query is built.
+    Strings containing the following characters are <strong>rejected immediately</strong>
+    and return <code>None</code> without invoking PowerShell:</p>
+    <table>
+      <thead><tr><th>Character(s)</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td><code>( )</code></td><td>LDAP filter grouping — would allow filter injection.</td></tr>
+        <tr><td><code>*</code></td><td>LDAP wildcard — would match any attribute value.</td></tr>
+        <tr><td><code>\</code></td><td>LDAP escape prefix and PowerShell path separator.</td></tr>
+        <tr><td><code>\x00</code></td><td>Null byte — terminates C-style strings inside LDAP libraries.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- -- Troubleshooting -- -->
+    <h2>Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Status bar shows <em>AD not available</em></td>
+          <td>
+            Either PowerShell is not on PATH, or the RSAT ActiveDirectory module is not
+            installed.  Run<br>
+            <code>Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0</code><br>
+            in an elevated PowerShell prompt, then restart Project Offline.
+          </td>
+        </tr>
+        <tr>
+          <td>Sync hangs for a long time</td>
+          <td>The domain controller may be unreachable, or a wildcard scan is running against
+              a large directory.  Check VPN / network connectivity first.  If the problem
+              persists you can raise or lower the <em>Query timeout</em> in Settings
+              (default 60&nbsp;s).</td>
+        </tr>
+        <tr>
+          <td>Resource is always skipped</td>
+          <td>The resource name may not match its <code>DisplayName</code> in AD.  Try
+              adding the SAM account name in the <em>Username</em> field and re-running the sync.</td>
+        </tr>
+        <tr>
+          <td>Lookup returns wrong person</td>
+          <td>A common name may match multiple AD accounts.  Use the email or username
+              lookup strategy by pre-filling those fields and re-syncing.</td>
+        </tr>
+        <tr>
+          <td>AD sync result missing from debug dump</td>
+          <td>AD integration must be <em>enabled</em> in settings and at least one sync or
+              lookup must have run in the current session before the dump is triggered.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+</body>
+</html>

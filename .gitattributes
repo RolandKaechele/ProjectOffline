@@ -1,0 +1,113 @@
+# ── Default: auto-detect text vs binary, normalise line endings to LF in repo
+* text=auto eol=lf
+
+# ── Python ───────────────────────────────────────────────────────────────────
+*.py    text eol=lf diff=python
+*.pyi   text eol=lf diff=python
+*.pyc   binary -filter -diff -merge
+*.pyd   binary -filter -diff -merge
+
+# ── Markup / config ───────────────────────────────────────────────────────────
+*.md    text eol=lf
+*.rst   text eol=lf
+*.txt   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.toml  text eol=lf
+*.cfg   text eol=lf
+*.ini   text eol=lf
+
+# ── PlantUML / XML ────────────────────────────────────────────────────────────
+*.puml  text eol=lf
+*.plantuml text eol=lf
+*.xml   text eol=lf
+
+# ── Windows scripts — must stay CRLF on checkout ─────────────────────────────
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# ── Binary / LFS (taken from reference project) ──────────────────────────────
+*._br   filter=lfs diff=lfs merge=lfs -text
+*._cn   filter=lfs diff=lfs merge=lfs -text
+*._de   filter=lfs diff=lfs merge=lfs -text
+*._es   filter=lfs diff=lfs merge=lfs -text
+*._fr   filter=lfs diff=lfs merge=lfs -text
+*._hu   filter=lfs diff=lfs merge=lfs -text
+*._it   filter=lfs diff=lfs merge=lfs -text
+*._jp   filter=lfs diff=lfs merge=lfs -text
+*.a     filter=lfs diff=lfs merge=lfs -text
+*.accdb filter=lfs diff=lfs merge=lfs -text
+*.bin   filter=lfs diff=lfs merge=lfs -text
+*.bz2   filter=lfs diff=lfs merge=lfs -text
+*.chm   filter=lfs diff=lfs merge=lfs -text
+*.class filter=lfs diff=lfs merge=lfs -text
+*.cp_   filter=lfs diff=lfs merge=lfs -text
+*.deb   filter=lfs diff=lfs merge=lfs -text
+*.dblite filter=lfs diff=lfs merge=lfs -text
+*.dl_   filter=lfs diff=lfs merge=lfs -text
+*.dll   filter=lfs diff=lfs merge=lfs -text
+*.doc   filter=lfs diff=lfs merge=lfs -text
+*.docx  filter=lfs diff=lfs merge=lfs -text
+*.dot   filter=lfs diff=lfs merge=lfs -text
+*.dotx  filter=lfs diff=lfs merge=lfs -text
+*.eap   filter=lfs diff=lfs merge=lfs -text
+*.EAP   filter=lfs diff=lfs merge=lfs -text
+*.eap_bak filter=lfs diff=lfs merge=lfs -text
+*.elf   filter=lfs diff=lfs merge=lfs -text
+*.ex_   filter=lfs diff=lfs merge=lfs -text
+*.exe   filter=lfs diff=lfs merge=lfs -text
+*.gif   filter=lfs diff=lfs merge=lfs -text
+*.gm    filter=lfs diff=lfs merge=lfs -text
+*.jar   filter=lfs diff=lfs merge=lfs -text
+*.jpg   filter=lfs diff=lfs merge=lfs -text
+*.lib   filter=lfs diff=lfs merge=lfs -text
+*.lnk   filter=lfs diff=lfs merge=lfs -text
+*.lzma  filter=lfs diff=lfs merge=lfs -text
+*.mpp   filter=lfs diff=lfs merge=lfs -text
+*.mpx   filter=lfs diff=lfs merge=lfs -text
+*.ncb   filter=lfs diff=lfs merge=lfs -text
+*.pch   filter=lfs diff=lfs merge=lfs -text
+*.pdf   filter=lfs diff=lfs merge=lfs -text
+*.pf    filter=lfs diff=lfs merge=lfs -text
+*.png   filter=lfs diff=lfs merge=lfs -text
+*.PNG   filter=lfs diff=lfs merge=lfs -text
+*.ico   filter=lfs diff=lfs merge=lfs -text
+*.potx  filter=lfs diff=lfs merge=lfs -text
+*.ppt   filter=lfs diff=lfs merge=lfs -text
+*.pptx  filter=lfs diff=lfs merge=lfs -text
+*.pscp  filter=lfs diff=lfs merge=lfs -text
+*.pyd   filter=lfs diff=lfs merge=lfs -text
+*.rpm   filter=lfs diff=lfs merge=lfs -text
+*.sdf   filter=lfs diff=lfs merge=lfs -text
+*.sdp   filter=lfs diff=lfs merge=lfs -text
+*.so    filter=lfs diff=lfs merge=lfs -text
+*.svg   filter=lfs diff=lfs merge=lfs -text
+*.swf   filter=lfs diff=lfs merge=lfs -text
+*.sym   filter=lfs diff=lfs merge=lfs -text
+*.tar   filter=lfs diff=lfs merge=lfs -text
+*.tar.bz filter=lfs diff=lfs merge=lfs -text
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.tdb   filter=lfs diff=lfs merge=lfs -text
+*.tgz   filter=lfs diff=lfs merge=lfs -text
+*.tsp   filter=lfs diff=lfs merge=lfs -text
+*.ttf   filter=lfs diff=lfs merge=lfs -text
+*.vsd   filter=lfs diff=lfs merge=lfs -text
+*.xls   filter=lfs diff=lfs merge=lfs -text
+*.xlsm  filter=lfs diff=lfs merge=lfs -text
+*.xlsx  filter=lfs diff=lfs merge=lfs -text
+*.xltm  filter=lfs diff=lfs merge=lfs -text
+*.xltx  filter=lfs diff=lfs merge=lfs -text
+*.xz    filter=lfs diff=lfs merge=lfs -text
+*.zip   filter=lfs diff=lfs merge=lfs -text
+*.zipx  filter=lfs diff=lfs merge=lfs -text
+*.webp  filter=lfs diff=lfs merge=lfs -text
+*.woff  filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text
+
+# ── GitHub Actions / CI — export-ignore (excluded from git archive tarballs) ─
+.github/            export-ignore
+tests/              export-ignore
+tools/              export-ignore
+documentation/      export-ignore

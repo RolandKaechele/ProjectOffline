@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Stylesheet, Toolbar & Progress Worker &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Stylesheet, Toolbar & Progress Worker</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#stylesheet">stylesheet</a>
+  <a href="#toolbar">toolbar</a>
+  <a href="#progress_worker">progress worker</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">49</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">49</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">3</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="stylesheet">
+  <div class="module-header"><h2>stylesheet.py</h2><span class="badge">4 tests</span></div>
+  <div class="module-desc">Global Qt stylesheet: existence, QMainWindow and QMenuBar selectors, basic CSS validity.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SS-01</span>
+          <span class="test-name">Stylesheet exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from stylesheet import MS_PROJECT_STYLE</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>MS_PROJECT_STYLE is not None</code> is truthy. <code>isinstance(MS_PROJECT_STYLE, str)</code> is truthy. <code>len(MS_PROJECT_STYLE)</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert MS_PROJECT_STYLE is not None</code><br><code>assert isinstance(MS_PROJECT_STYLE, str)</code><br><code>assert len(MS_PROJECT_STYLE) &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SS-02</span>
+          <span class="test-name">Stylesheet contains qmainwindow</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from stylesheet import MS_PROJECT_STYLE</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;QMainWindow&quot;</code> is contained in <code>MS_PROJECT_STYLE</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;QMainWindow&quot; in MS_PROJECT_STYLE</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SS-03</span>
+          <span class="test-name">Stylesheet contains qmenubar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from stylesheet import MS_PROJECT_STYLE</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;QMenuBar&quot;</code> is contained in <code>MS_PROJECT_STYLE</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;QMenuBar&quot; in MS_PROJECT_STYLE</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">SS-04</span>
+          <span class="test-name">Stylesheet valid css syntax</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from stylesheet import MS_PROJECT_STYLE</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;{&quot;</code> is contained in <code>MS_PROJECT_STYLE</code>. <code>&quot;}&quot;</code> is contained in <code>MS_PROJECT_STYLE</code>. <code>&quot;:&quot;</code> is contained in <code>MS_PROJECT_STYLE</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;{&quot; in MS_PROJECT_STYLE</code><br><code>assert &quot;}&quot; in MS_PROJECT_STYLE</code><br><code>assert &quot;:&quot; in MS_PROJECT_STYLE</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="toolbar">
+  <div class="module-header"><h2>toolbar.py</h2><span class="badge">6 tests</span></div>
+  <div class="module-desc">Toolbar widget: ribbon property, save/delete enabled toggles, update_actions, title.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-01</span>
+          <span class="test-name">Toolbar init</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon_instance = QWidget()  # Real QWidget to avoid type error</code><br><code>mock_ribbon_instance.set_save_enabled = MagicMock()</code><br><code>mock_ribbon_instance.set_delete_enabled = MagicMock()</code><br><code>mock_ribbon_instance.update_actions = MagicMock()</code><br><code>mock_ribbon.return_value = mock_ribbon_instance</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>toolbar.logic is logic</code> is truthy. <code>toolbar.file_handler is file_handler</code> is truthy. <code>toolbar.isMovable()</code> is falsy. … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert toolbar.logic is logic</code><br><code>assert toolbar.file_handler is file_handler</code><br><code>assert not toolbar.isMovable()</code><br><code>assert not toolbar.isFloatable()</code><br><code>mock_ribbon.assert_called_once_with(toolbar)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-02</span>
+          <span class="test-name">Toolbar ribbon property</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon_instance = QWidget()</code><br><code>mock_ribbon.return_value = mock_ribbon_instance</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>toolbar.ribbon is mock_ribbon_instance</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert toolbar.ribbon is mock_ribbon_instance</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-03</span>
+          <span class="test-name">Toolbar set save enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon_instance = QWidget()</code><br><code>mock_ribbon_instance.set_save_enabled = MagicMock()</code><br><code>mock_ribbon.return_value = mock_ribbon_instance</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code><br><code>toolbar.set_save_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_ribbon_instance.set_save_enabled.assert_called_once_with(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>toolbar set save enabled</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-04</span>
+          <span class="test-name">Toolbar set delete enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon_instance = QWidget()</code><br><code>mock_ribbon_instance.set_delete_enabled = MagicMock()</code><br><code>mock_ribbon.return_value = mock_ribbon_instance</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code><br><code>toolbar.set_delete_enabled(False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_ribbon_instance.set_delete_enabled.assert_called_once_with(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>toolbar set delete enabled</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-05</span>
+          <span class="test-name">Toolbar update actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon_instance = QWidget()</code><br><code>mock_ribbon_instance.update_actions = MagicMock()</code><br><code>mock_ribbon.return_value = mock_ribbon_instance</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code><br><code>toolbar.update_actions(&quot;Add&quot;, &quot;Delete&quot;, enabled=True, zoom_enabled=False)</code><br><code>mock_ribbon_instance.update_actions.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>call_args = mock_ribbon_instance.update_actions.call_args</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>call_args[0]</code> equals <code>(&quot;Add&quot;, &quot;Delete&quot;, True, False) or \</code>. (call_args[0] == (&quot;Add&quot;, &quot;Delete&quot;) and call_args[1] == {&quot;enabled&quot;: True, &quot;zoom_enabled&quot;: False})</div>
+          <div class="block"><div class="block-label">Check</div><code>assert call_args[0] == (&quot;Add&quot;, &quot;Delete&quot;, True, False) or \</code><br><code>(call_args[0] == (&quot;Add&quot;, &quot;Delete&quot;) and</code><br><code>call_args[1] == {&quot;enabled&quot;: True, &quot;zoom_enabled&quot;: False})</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">TB-06</span>
+          <span class="test-name">Toolbar title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;toolbar.ProjectRibbon&#x27;) as mock_ribbon:</code><br><code>from PyQt5.QtWidgets import QWidget</code><br><code>mock_ribbon.return_value = QWidget()</code><br><code>from toolbar import ProjectToolBar</code><br><code>from PyQt5.QtWidgets import QMainWindow</code><br><code>parent = QMainWindow()</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>toolbar = ProjectToolBar(parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>toolbar.windowTitle()</code> equals <code>&quot;Main Toolbar&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert toolbar.windowTitle() == &quot;Main Toolbar&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="progress_worker">
+  <div class="module-header"><h2>progress_worker.py</h2><span class="badge">39 tests</span></div>
+  <div class="module-desc">Reusable modal progress dialog framework for long-running background operations. Tests cover the <code>WorkerThread</code> base class (signals, cancellation flag, elapsed timing), <code>run_with_progress()</code> (success/failure, progress emissions, indeterminate mode, cancellable=False, elapsed recording, thread safety), <code>run_indeterminate()</code> (return-value forwarding, exception propagation), and the timing registry (<code>record_timing</code> / <code>get_timing_log</code>: append, schema, 50-entry cap, copy independence).</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestWorkerThreadBase &mdash; Worker Thread Base Class</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-01</span><span class="test-name">Cancelled default false</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Concrete subclass of <code>WorkerThread</code> instantiated.</div>
+          <div class="block"><div class="block-label">Run</div><code>w.cancelled</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cancelled</code> is <code>False</code> before the thread starts.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert w.cancelled is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-02</span><span class="test-name">Elapsed seconds default zero</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Concrete subclass of <code>WorkerThread</code> instantiated.</div>
+          <div class="block"><div class="block-label">Run</div><code>w.elapsed_seconds</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>elapsed_seconds</code> is <code>0.0</code> before the thread runs.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert w.elapsed_seconds == 0.0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-03</span><span class="test-name">Signals declared</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module imported.</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(WorkerThread, 'progress')</code>, <code>hasattr(WorkerThread, 'finished')</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both <code>progress</code> and <code>finished</code> are declared as class attributes.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(WorkerThread, 'progress')</code><br><code>assert hasattr(WorkerThread, 'finished')</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-04</span><span class="test-name">Run raises not implemented</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Base <code>WorkerThread</code> instantiated directly (without subclassing).</div>
+          <div class="block"><div class="block-label">Run</div><code>w.run()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>NotImplementedError</code> is raised.</div>
+          <div class="block"><div class="block-label">Check</div><code>with pytest.raises(NotImplementedError): w.run()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-05</span><span class="test-name">Subclass run called</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Subclass whose <code>run()</code> appends to a list and emits <code>finished</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>w.start(); w.wait(5000)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>run()</code> was called (list contains one entry).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ran == [True]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-06</span><span class="test-name">Progress signals received</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Subclass emitting <code>progress(25, &ldquo;quarter&rdquo;)</code> and <code>progress(75, &ldquo;three-quarters&rdquo;)</code>; list connected to signal.</div>
+          <div class="block"><div class="block-label">Run</div><code>w.start(); w.wait(5000); QApplication.processEvents()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Both tuples appear in the received list.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert (25, "quarter") in received</code><br><code>assert (75, "three-quarters") in received</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-07</span><span class="test-name">Finished signal emitted</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Subclass emitting <code>finished(True, "hello")</code>; list connected to signal.</div>
+          <div class="block"><div class="block-label">Run</div><code>w.start(); w.wait(5000); QApplication.processEvents()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Result list contains <code>[(True, "hello")]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert results == [(True, "hello")]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-08</span><span class="test-name">Elapsed seconds set after run_with_progress</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Subclass that sleeps 10 ms then emits <code>finished(True, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_with_progress(None, "Test", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>w.elapsed_seconds &gt; 0.0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert w.elapsed_seconds &gt; 0.0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRunWithProgress &mdash; Run With Progress Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-09</span><span class="test-name">Returns success tuple</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>finished(True, "result")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, out = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is True</code> and <code>out == "result"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>assert out == "result"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-10</span><span class="test-name">Returns failure tuple</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>finished(False, "error msg")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, out = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is False</code> and <code>"error msg"</code> in <code>out</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is False</code><br><code>assert "error msg" in out</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-11</span><span class="test-name">Progress emissions accepted</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>progress(10, ...) / progress(50, ...) / progress(90, ...)</code> before <code>finished</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, _ = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns without error; <code>ok is True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-12</span><span class="test-name">Indeterminate mode</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>progress(-1, "spinning")</code> then <code>progress(50, ...)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, _ = run_with_progress(None, "Title", w, cancellable=False, indeterminate=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-13</span><span class="test-name">Indeterminate signal minus one</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>progress(10, ...)</code> then <code>progress(-1, ...)</code> then <code>progress(90, ...)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, _ = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is True</code>; switching to indeterminate mid-run does not break the dialog.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-14</span><span class="test-name">Cancellable false hides cancel button</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>finished(True, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, _ = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>No exception; <code>ok is True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-15</span><span class="test-name">Worker stopped after return</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>finished(True, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>w.isRunning()</code> is <code>False</code> after the call returns.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not w.isRunning()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-16</span><span class="test-name">Elapsed seconds non zero</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker that sleeps 20 ms before emitting <code>finished</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>w.elapsed_seconds &ge; 0.01</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert w.elapsed_seconds &gt;= 0.01</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-17</span><span class="test-name">Multiple workers independent</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>A fast worker and a slow worker (50 ms sleep).</div>
+          <div class="block"><div class="block-label">Run</div>Both run sequentially via <code>run_with_progress</code>.</div>
+          <div class="block"><div class="block-label">Expect</div><code>w2.elapsed_seconds &gt; w1.elapsed_seconds</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert w2.elapsed_seconds &gt; w1.elapsed_seconds</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-18</span><span class="test-name">Exception in run still stops dialog</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker that catches its own exception and emits <code>finished(False, "exception")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, out = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is False</code>; dialog closed gracefully.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-19</span><span class="test-name">Done guard: finished wins over canceled signal</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Worker emitting <code>finished(True, "my_result")</code>. <code>QProgressDialog.closeEvent</code> always fires <code>canceled()</code> after <code>dlg.close()</code> — the <code>_done</code> guard must prevent <code>_on_cancel</code> from overwriting the already-recorded result.</div>
+          <div class="block"><div class="block-label">Run</div><code>ok, out = run_with_progress(None, "Title", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ok is True</code> and <code>out == "my_result"</code> — not overwritten with <code>(False, "Cancelled by user")</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ok is True</code><br><code>assert out == "my_result"</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRunIndeterminate &mdash; Run Indeterminate Spinner</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-19</span><span class="test-name">Returns function result</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Lambda returning <code>42</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = run_indeterminate(None, "Spinner", lambda: 42)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == 42</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 42</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-20</span><span class="test-name">Passes args to function</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Function <code>_fn(a, b, *, c=0)</code> returning <code>a+b+c</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_indeterminate(None, "Spinner", _fn, 1, 2, c=3)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>6</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 6</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-21</span><span class="test-name">Reraises exception</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Function raising <code>ValueError("bad value")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_indeterminate(None, "Spinner", _bad)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ValueError</code> propagates to the caller.</div>
+          <div class="block"><div class="block-label">Check</div><code>with pytest.raises(ValueError, match="bad value"): ...</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-22</span><span class="test-name">Returns none for void function</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Function returning implicitly (<code>None</code>).</div>
+          <div class="block"><div class="block-label">Run</div><code>result = run_indeterminate(None, "Spinner", _void)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-23</span><span class="test-name">Function called once</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Lambda that appends to a list.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_indeterminate(None, "Spinner", lambda: calls.append(1))</code></div>
+          <div class="block"><div class="block-label">Expect</div>List has exactly one element.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(calls) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-24</span><span class="test-name">Returns list</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Lambda returning <code>[1, 2, 3]</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = run_indeterminate(None, "Spinner", lambda: [1, 2, 3])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result == [1, 2, 3]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == [1, 2, 3]</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-25</span><span class="test-name">Returns false</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Lambda returning <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = run_indeterminate(None, "Spinner", lambda: False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result is False</code> (not confused with <code>None</code>).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTimingRegistry &mdash; Timing Registry</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-26</span><span class="test-name">Get timing log initially empty</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_timing_log</code> cleared.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_timing_log()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_timing_log() == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-27</span><span class="test-name">Record timing appends entry</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty log.</div>
+          <div class="block"><div class="block-label">Run</div><code>record_timing("jira_sync", 5.123, True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Log has 1 entry.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(get_timing_log()) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-28</span><span class="test-name">Entry has required keys</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Single entry recorded.</div>
+          <div class="block"><div class="block-label">Run</div><code>entry = get_timing_log()[0]</code></div>
+          <div class="block"><div class="block-label">Expect</div>Keys <code>operation</code>, <code>elapsed_seconds</code>, <code>success</code>, <code>timestamp</code> all present.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert "operation" in entry</code> &hellip; (4 keys)</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-29</span><span class="test-name">Entry operation name</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>record_timing("confluence_sync", 3.0, False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>entry["operation"]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>"confluence_sync"</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert entry["operation"] == "confluence_sync"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-30</span><span class="test-name">Entry elapsed rounded</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>record_timing("op", 1.23456789, True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>entry["elapsed_seconds"]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>1.235</code> (rounded to 3 decimal places).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert entry["elapsed_seconds"] == 1.235</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-31</span><span class="test-name">Entry success true</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>record_timing("op", 1.0, True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>entry["success"]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert entry["success"] is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-32</span><span class="test-name">Entry success false</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>record_timing("op", 1.0, False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>entry["success"]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>False</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert entry["success"] is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-33</span><span class="test-name">Multiple entries ordered</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Two calls: <code>record_timing("first", 1.0, True)</code>, then <code>record_timing("second", 2.0, False)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_timing_log()</code></div>
+          <div class="block"><div class="block-label">Expect</div>2 entries; first["operation"] == "first", second["operation"] == "second".</div>
+          <div class="block"><div class="block-label">Check</div><code>assert log[0]["operation"] == "first"</code><br><code>assert log[1]["operation"] == "second"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-34</span><span class="test-name">Cap at fifty entries</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>60 entries recorded.</div>
+          <div class="block"><div class="block-label">Run</div><code>get_timing_log()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Exactly 50 entries; <code>"op_0"</code> through <code>"op_9"</code> dropped; <code>"op_59"</code> present.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(log) == 50</code><br><code>assert "op_0" not in names</code><br><code>assert "op_59" in names</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-35</span><span class="test-name">Get timing log returns copy</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One entry recorded.</div>
+          <div class="block"><div class="block-label">Run</div><code>copy = get_timing_log(); copy.clear()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Internal log still has 1 entry after mutating the returned copy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(get_timing_log()) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-36</span><span class="test-name">Timestamp is string</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>One entry recorded.</div>
+          <div class="block"><div class="block-label">Run</div><code>entry["timestamp"]</code></div>
+          <div class="block"><div class="block-label">Expect</div>Non-empty string.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(ts, str) and len(ts) &gt; 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-37</span><span class="test-name">Elapsed zero</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>record_timing("fast_op", 0.0, True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>entry["elapsed_seconds"]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>0.0</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert entry["elapsed_seconds"] == 0.0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">PW-38</span><span class="test-name">Record timing not called by run with progress</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Empty log; worker emitting <code>finished(True, "")</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>run_with_progress(None, "T", w, cancellable=False)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Log is still empty; callers are responsible for recording timing.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert get_timing_log() == []</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

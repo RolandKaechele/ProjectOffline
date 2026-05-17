@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview &amp; Interface — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html" class="active">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Overview &amp; Interface</h1>
+    <p>A guided tour of the Project Offline window: tabs, toolbar, and how to open your first project.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Overview &amp; Interface</div>
+
+    <h2>Opening a Project</h2>
+    <p>Start Project Offline and use <strong>File &rarr; Open&hellip;</strong> (or the toolbar
+    button) to open a project file.  Supported formats:</p>
+    <table>
+      <thead><tr><th>Extension</th><th>Format</th></tr></thead>
+      <tbody>
+        <tr><td><code>.mpp</code></td><td>Microsoft Project binary (read-only source; saves as XML)</td></tr>
+        <tr><td><code>.xml</code> / <code>.mspdi</code></td><td>Microsoft Project XML (native save format)</td></tr>
+        <tr><td><code>.mpt</code></td><td>Microsoft Project template</td></tr>
+        <tr><td><code>.mpx</code></td><td>Microsoft Project Exchange</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Main Window Layout</h2>
+    <figure class="screenshot">
+      <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="680" height="420" fill="#F0F0F0"/>
+        <!-- Title bar -->
+        <rect x="0" y="0" width="680" height="28" fill="#2B579A"/>
+        <text x="10" y="18" fill="white" font-size="12" font-weight="bold">Project Offline — my_project.xml</text>
+        <!-- Menu bar -->
+        <rect x="0" y="28" width="680" height="22" fill="#E8E8E8" stroke="#D0D0D0"/>
+        <text x="8" y="43" fill="#333" font-size="11">File  Edit  View  Project  Options  Help</text>
+        <!-- Toolbar -->
+        <rect x="0" y="50" width="680" height="30" fill="#F5F5F5" stroke="#D8D8D8"/>
+        <text x="8" y="69" fill="#444" font-size="11">&#128194;  &#128190;  |  &#10549;  &#10551;  |  &#9906;  &#9907;  |  &#128247;</text>
+        <!-- Timeline strip -->
+        <rect x="0" y="80" width="680" height="42" fill="#EBF2FF" stroke="#C8D8F0"/>
+        <text x="8" y="96" fill="#2B579A" font-size="10">Timeline strip  --------[Project span bar]------------------------------------------</text>
+        <!-- Tab bar -->
+        <rect x="0" y="122" width="680" height="24" fill="#E0E8F4"/>
+        <rect x="0" y="122" width="100" height="24" fill="#2B579A"/>
+        <text x="10" y="138" fill="white" font-size="11" font-weight="600">Gantt Chart</text>
+        <text x="112" y="138" fill="#555" font-size="11">Resources</text>
+        <text x="200" y="138" fill="#555" font-size="11">Team Planner</text>
+        <text x="296" y="138" fill="#555" font-size="11">Resource Usage</text>
+        <text x="404" y="138" fill="#555" font-size="11">Baseline</text>
+        <text x="468" y="138" fill="#555" font-size="11">Dependencies</text>
+        <text x="565" y="138" fill="#555" font-size="11">Task Sheet</text>
+        <!-- Task list left -->
+        <rect x="0" y="146" width="260" height="274" fill="white" stroke="#D0D0D0"/>
+        <text x="8" y="162" fill="#666" font-size="10">ID  Task Name                  Dur   Start</text>
+        <line x1="0" y1="166" x2="260" y2="166" stroke="#E0E0E0"/>
+        <text x="8" y="182" fill="#333" font-size="10">1   Project kick-off            0d    01-May</text>
+        <text x="8" y="198" fill="#1a3f7a" font-size="10" font-weight="bold">2   Design phase                10d   05-May</text>
+        <text x="16" y="214" fill="#333" font-size="10">3     UI wireframes              5d    05-May</text>
+        <text x="16" y="230" fill="#333" font-size="10">4     Backend design             5d    05-May</text>
+        <text x="8" y="246" fill="#1a3f7a" font-size="10" font-weight="bold">5   Development                 20d   19-May</text>
+        <!-- Gantt right -->
+        <rect x="260" y="146" width="420" height="274" fill="white" stroke="#D0D0D0"/>
+        <!-- Today line -->
+        <line x1="350" y1="146" x2="350" y2="420" stroke="#107C10" stroke-width="2"/>
+        <!-- Task bars -->
+        <rect x="280" y="172" width="4" height="14" fill="#2B579A"/>
+        <rect x="280" y="188" width="120" height="14" fill="#2B579A"/>
+        <rect x="280" y="204" width="60" height="14" fill="#4A7FC0"/>
+        <rect x="280" y="220" width="60" height="14" fill="#4A7FC0"/>
+        <rect x="340" y="236" width="240" height="14" fill="#2B579A"/>
+        <!-- Status bar -->
+        <rect x="0" y="400" width="680" height="20" fill="#E8E8E8" stroke="#D0D0D0"/>
+        <text x="8" y="414" fill="#666" font-size="10">5 tasks  |  Today: 04-May-2026  |  Zoom: 22 px/day</text>
+      </svg>
+      <figcaption>Fig. 1 — Main window layout: toolbar, optional Timeline strip, tab bar, task grid + Gantt chart.</figcaption>
+    </figure>
+
+    <h2>Tabs</h2>
+    <table>
+      <thead><tr><th>Tab</th><th>What it shows</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Gantt Chart</strong></td><td>Task sheet (left) + Gantt bars (right). Primary editing area.</td></tr>
+        <tr><td><strong>Resources</strong></td><td>Resource sheet — names, types, max units, pay rates.</td></tr>
+        <tr><td><strong>Team Planner</strong></td><td>Resource-row timeline with drag-and-drop task assignment.</td></tr>
+        <tr><td><strong>Resource Usage</strong></td><td>Per-resource hour breakdown at Monthly / Weekly / Daily / Hourly zoom.</td></tr>
+        <tr><td><strong>Baseline</strong></td><td>Side-by-side comparison of planned vs. current dates with variance ? columns.</td></tr>
+        <tr><td><strong>Dependencies</strong></td><td>Table of all predecessor relationships (FS / FF / SS / SF).</td></tr>
+        <tr><td><strong>Task Sheet</strong></td><td>Flat editable task grid without the Gantt chart panel.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Timeline Strip</h2>
+    <p>The compact strip above the tab bar shows the full project span, pinned task bars, and milestone
+    diamonds on a condensed time axis.  Toggle it via <strong>Options &rarr; Show Timeline Strip</strong>.
+    It is visible on the <em>Gantt Chart</em> and <em>Team Planner</em> tabs by default.</p>
+
+    <div class="callout note">
+      <strong>Keyboard shortcuts</strong>
+      <table style="margin-top:6px">
+        <thead><tr><th>Key</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><code>Ctrl+O</code></td><td>Open project</td></tr>
+          <tr><td><code>Ctrl+S</code></td><td>Save project</td></tr>
+          <tr><td><code>Ctrl+Z</code> / <code>Ctrl+Y</code></td><td>Undo / Redo (history manager)</td></tr>
+          <tr><td><code>Delete</code></td><td>Delete selected task / resource / dependency</td></tr>
+          <tr><td><code>Insert</code></td><td>Add new row in the active view</td></tr>
+          <tr><td><code>F5</code></td><td>Scroll Gantt to Today</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

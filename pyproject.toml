@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ProjectOffline"
+dynamic = ["version"]
+description = "A desktop project management application with Microsoft Project Pro look and feel"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Project Offline Contributors"}
+]
+keywords = ["project-management", "gantt", "mpp", "mpxj", "planning", "scheduling"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Scheduling",
+    "Environment :: X11 Applications :: Qt",
+]
+
+dependencies = [
+    "PyQt5",
+    "tzdata",
+    "mpxj",
+    "jpype1",
+    "pykeepass",
+    "jira",
+    "atlassian-python-api",
+    "lxml",
+    "requests",
+    "playwright",
+    "pypdf",
+    "vtracer",
+    "Pillow",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=7.1.0",
+    "pytest-qt>=4.5.0",
+    "SCons",
+    "pyinstaller",
+]
+
+[project.urls]
+Homepage = "https://github.com/RolandKaechele/ProjectOffline"
+Documentation = "https://github.com/RolandKaechele/ProjectOffline/tree/main/documentation"
+Repository = "https://github.com/RolandKaechele/ProjectOffline"
+Issues = "https://github.com/RolandKaechele/ProjectOffline/issues"
+
+[project.scripts]
+ProjectOffline = "main:main"
+
+[tool.setuptools]
+packages = ["src"]
+package-dir = {"" = "."}
+
+[tool.setuptools.dynamic]
+version = {attr = "src._version.BUILD_VERSION"}
+
+[tool.setuptools.package-data]
+src = ["icons/*.ico", "icons/*.png"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests/pytests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html:tests/documentation/htmlcov",
+    "--cov-report=xml:tests/documentation/coverage.xml",
+]
+qt_api = "pyqt5"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+markers = [
+    "systemtest: end-to-end GUI tests that launch the real application (requires Windows display)",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/lib/*",
+    "*/temp/*",
+    "*/build/*",
+    "*/dist/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

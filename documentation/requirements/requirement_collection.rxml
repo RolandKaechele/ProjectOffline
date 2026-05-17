@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <PACKAGE_FILE_PATHES>
+    <ELEMENT PATH="packageRxml\requirement_collection_Non_Functional_Requirements.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_System_Overview.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_App_Debug.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_File_Management.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Task_Management.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Gantt_Chart.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Team_Planner.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Resource_Management.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Advanced_Features.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Confluence_Integration.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Secondary_Calendar.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Kee_Pass_Integration.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Enterprise_Custom_Fields.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Active_Directory_Integration.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Email_Integration.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Jira_Integration.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Version_Control.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Export_Import.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_Critical_Path_Method.rxml"/>
+    <ELEMENT PATH="packageRxml\requirement_collection_DSI.rxml"/>
+  </PACKAGE_FILE_PATHES>
+  <ADDITIONAL_INFORMATION>
+    <CUSTOM_COMPONENTS/>
+    <IMPORT_FILE_PATHS/>
+  </ADDITIONAL_INFORMATION>
+</root>

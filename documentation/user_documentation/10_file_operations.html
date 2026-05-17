@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open, Save &amp; Export — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html" class="active">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Open, Save &amp; Export</h1>
+    <p>Open project files in multiple Microsoft Project formats, save as MSPDI XML, and export the Gantt chart as an image.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Open, Save &amp; Export</div>
+
+    <h2>Opening a Project</h2>
+    <p>Use <strong>File &rarr; Open&hellip;</strong> (<code>Ctrl+O</code>) or the toolbar
+    button.  The file is read by the <strong>MPXJ</strong> library, which supports
+    all Microsoft Project formats:</p>
+    <table>
+      <thead><tr><th>Extension</th><th>Format</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>.mpp</code></td><td>Microsoft Project binary</td><td>Read-only source format; the app always saves as XML</td></tr>
+        <tr><td><code>.xml</code> / <code>.mspdi</code></td><td>Microsoft Project XML</td><td>Native save format (MSPDI schema)</td></tr>
+        <tr><td><code>.mpt</code></td><td>Microsoft Project template</td><td></td></tr>
+        <tr><td><code>.mpx</code></td><td>Microsoft Project Exchange</td><td>Legacy text-based format</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>MPP files</strong>
+      When you open an <code>.mpp</code> file and then save, the file is written as
+      MSPDI XML — <em>not</em> back to binary MPP format.  Choose a new filename with
+      an <code>.xml</code> extension to keep both files.
+    </div>
+
+    <h2>Saving</h2>
+    <p>Use <strong>File &rarr; Save</strong> (<code>Ctrl+S</code>) or
+    <strong>File &rarr; Save As&hellip;</strong> to write the current project to disk.
+    Files are always saved in <strong>MSPDI XML</strong> format.  Microsoft Project
+    2016+ can open MSPDI XML files directly.</p>
+
+    <h2>Recent Files</h2>
+    <p><strong>File &rarr; Recent Files</strong> shows the last-opened projects.
+    Select one to open it immediately without the file browser.</p>
+
+    <h2>Exporting the Gantt Chart</h2>
+    <p>Use <strong>File &rarr; Export Gantt Chart&hellip;</strong> to render the
+    current Gantt chart view as a PNG image or PDF.  The export dialog lets you
+    choose:</p>
+    <table>
+      <thead><tr><th>Option</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Date range</td><td>Export all tasks, or a specific date window</td></tr>
+        <tr><td>Format</td><td>PNG (raster) or PDF (vector-friendly)</td></tr>
+        <tr><td>Scale</td><td>Pixel/day zoom — use higher values for print quality</td></tr>
+        <tr><td>Include baseline</td><td>Whether to draw baseline strips on the exported bars</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>Exporting for presentations</strong>
+      Set the zoom to 14 px/day or higher before exporting to get readable day labels in
+      the calendar header.  The Timeline strip can also be exported separately from
+      <strong>File &rarr; Export Timeline&hellip;</strong>.
+    </div>
+
+    <h2>Auto-Save</h2>
+    <p>Project Offline writes a backup copy every few minutes to the system temp folder.
+    If the application closes unexpectedly, the backup is offered for recovery on the
+    next launch.</p>
+  </div>
+</div>
+
+</body>
+</html>

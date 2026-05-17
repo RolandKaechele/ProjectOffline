@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Jira Push Preview – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:680px;height:520px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ── */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* ── Dialog body ── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:14px 16px 10px;overflow:hidden;background:#fff;gap:10px}
+
+/* ── Summary row ── */
+.summary{display:flex;gap:16px;flex-shrink:0}
+.summary-pill{background:#eef3fb;border:1px solid #c6d2e3;border-radius:12px;padding:4px 12px;font-size:11px;color:#1a3f7a;font-weight:600}
+.summary-pill span{color:#e07b1a;font-weight:700}
+
+/* ── Table ── */
+.tbl-wrap{flex:1;overflow-y:auto;border:1px solid #c6d2e3;border-radius:3px}
+table{width:100%;border-collapse:collapse}
+thead th{background:#eef3fb;color:#2B579A;font-size:11px;font-weight:700;padding:5px 8px;text-align:left;border-bottom:1px solid #c6d2e3;position:sticky;top:0}
+tbody tr{border-bottom:1px solid #e8eef6}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:5px 8px;font-size:11px;color:#222;vertical-align:middle}
+
+/* ── Checkbox ── */
+.cb{width:14px;height:14px;border:2px solid #2B579A;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff}
+.cb.checked{background:#2B579A}
+.cb.checked::after{content:'✓';color:#fff;font-size:9px;line-height:1}
+
+/* ── Action badges ── */
+.act{display:inline-block;border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.act-create{background:#d4edda;color:#1a6e2e;border:1px solid #a8d5b5}
+.act-update{background:#d0e8fb;color:#0c4a80;border:1px solid #9ac4e8}
+.act-transition{background:#fff3cd;color:#7a5200;border:1px solid #e8d899}
+.act-skip{background:#e8e8e8;color:#666;border:1px solid #ccc}
+
+/* ── Jira key ── */
+.jkey{font-family:monospace;color:#2B579A;font-size:11px}
+.jkey-new{font-family:monospace;color:#e07b1a;font-style:italic;font-size:11px}
+
+/* ── Footer ── */
+.dlg-footer{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid #d8e4f0;background:#fafbfc;flex-shrink:0}
+.footer-note{font-size:10.5px;color:#8090a8}
+.btn-row{display:flex;gap:8px}
+.btn{border:1px solid #888;border-radius:3px;padding:6px 20px;font-size:12px;font-weight:600;cursor:default}
+.btn-primary{background:#2B579A;color:#fff;border-color:#1a3f7a}
+.btn-secondary{background:#e8e8e8;color:#333;border-color:#999}
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="dlg-header">
+    <h2>Sync to Jira — Preview</h2>
+    <p>Review the planned actions before pushing to Jira. Uncheck rows to exclude individual tasks.</p>
+  </div>
+
+  <div class="dlg-body">
+    <!-- Summary pills -->
+    <div class="summary">
+      <div class="summary-pill">Create: <span>2</span></div>
+      <div class="summary-pill">Update: <span>4</span></div>
+      <div class="summary-pill">Transition: <span>1</span></div>
+      <div class="summary-pill">Skip: <span>1</span></div>
+    </div>
+
+    <!-- Preview table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30px">✓</th>
+            <th style="width:200px">Task</th>
+            <th style="width:90px">Action</th>
+            <th style="width:90px">Jira Key</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>Project Kickoff</td>
+            <td><span class="act act-update">UPDATE</span></td>
+            <td><span class="jkey">PROJ-1</span></td>
+            <td style="color:#888">Name and dates changed since last push</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>Requirements Analysis</td>
+            <td><span class="act act-update">UPDATE</span></td>
+            <td><span class="jkey">PROJ-4</span></td>
+            <td style="color:#888">Summary updated</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>Backend Service Design</td>
+            <td><span class="act act-transition">TRANSITION</span></td>
+            <td><span class="jkey">PROJ-7</span></td>
+            <td style="color:#888">100% complete → transition to Done</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>API Integration Sprint</td>
+            <td><span class="act act-create">CREATE</span></td>
+            <td><span class="jkey-new">NEW</span></td>
+            <td style="color:#888">No linked Jira issue — will be created</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>Testing Phase</td>
+            <td><span class="act act-update">UPDATE</span></td>
+            <td><span class="jkey">PROJ-11</span></td>
+            <td style="color:#888">Assignee changed</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>UI Mockups</td>
+            <td><span class="act act-create">CREATE</span></td>
+            <td><span class="jkey-new">NEW</span></td>
+            <td style="color:#888">No linked Jira issue — will be created</td>
+          </tr>
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>Deployment Preparation</td>
+            <td><span class="act act-update">UPDATE</span></td>
+            <td><span class="jkey">PROJ-15</span></td>
+            <td style="color:#888">Priority changed to High</td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td style="color:#aaa">Documentation Review</td>
+            <td><span class="act act-skip">SKIP</span></td>
+            <td><span class="jkey">PROJ-18</span></td>
+            <td style="color:#aaa">Jira updated more recently (conflict)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="dlg-footer">
+    <span class="footer-note">7 of 8 tasks included &mdash; 1 conflict skipped</span>
+    <div class="btn-row">
+      <button class="btn btn-primary">Run Push</button>
+      <button class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

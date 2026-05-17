@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: App Debug &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; App Debug</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#app_debug">app debug</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">56</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">56</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="app_debug">
+  <div class="module-header"><h2>app_debug.py</h2><span class="badge">56 tests</span></div>
+  <div class="module-desc">Debug flag, build version constant, and project-state dump helpers. Tests verify toggling and persistence of the global debug flag, export of <code>_BUILD_VERSION</code>, and the behaviour of <code>dump_project_state()</code>: output path, automatic directory creation, JSON structure, and key ordering. <code>jira_project_props</code> block is read from the <code>jira2project</code> container (filter, filter_type, all 36 field_checkboxes as booleans).</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSetDebug — Set Debug</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-01</span>
+          <span class="test-name">Set debug true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.set_debug(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>app_debug.is_debug()</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.is_debug() is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-02</span>
+          <span class="test-name">Set debug false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.set_debug(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>app_debug.is_debug()</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.is_debug() is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-03</span>
+          <span class="test-name">Set debug toggles</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.set_debug(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>app_debug.is_debug()</code> is <code>True</code>. app_debug.set_debug(False) <code>app_debug.is_debug()</code> is <code>False</code>. … and 2 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.is_debug() is True</code><br><code>app_debug.set_debug(False)</code><br><code>assert app_debug.is_debug() is False</code><br><code>app_debug.set_debug(True)</code><br><code>assert app_debug.is_debug() is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestIsDebug — Is Debug</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-04</span>
+          <span class="test-name">Initial state is false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.set_debug(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>app_debug.is_debug()</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.is_debug() is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-05</span>
+          <span class="test-name">Persists after multiple calls</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.set_debug(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>app_debug.is_debug()</code> is <code>True</code>. <code>app_debug.is_debug()</code> is <code>True</code>. <code>app_debug.is_debug()</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.is_debug() is True</code><br><code>assert app_debug.is_debug() is True</code><br><code>assert app_debug.is_debug() is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestBuildVersion — Build Version</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-06</span>
+          <span class="test-name">Build version is exported</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module imported; <code>_version.py</code> present or absent (falls back to <code>"dev"</code>).</div>
+          <div class="block"><div class="block-label">Run</div><code>hasattr(app_debug, '_BUILD_VERSION')</code></div>
+          <div class="block"><div class="block-label">Expect</div>The attribute <code>_BUILD_VERSION</code> exists on the module.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(app_debug, '_BUILD_VERSION')</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-07</span>
+          <span class="test-name">Build version is string</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module imported.</div>
+          <div class="block"><div class="block-label">Run</div><code>isinstance(app_debug._BUILD_VERSION, str)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_BUILD_VERSION</code> is a <code>str</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(app_debug._BUILD_VERSION, str)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-08</span>
+          <span class="test-name">Build version is non-empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module imported.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug._BUILD_VERSION != ""</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_BUILD_VERSION</code> is not the empty string.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug._BUILD_VERSION != ""</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDumpProjectState — Dump Project State</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-09</span>
+          <span class="test-name">Returns empty string for None project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module imported; no project object.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.dump_project_state(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returns <code>""</code>; no file is written.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert app_debug.dump_project_state(None) == ""</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-10</span>
+          <span class="test-name">Returns file path</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched to <code>tmp_path/app_debug.py</code>; minimal <code>MagicMock</code> project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Returned value is a path to an existing file.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.path.isfile(result)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-11</span>
+          <span class="test-name">Output in dump subdirectory</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>The immediate parent directory of the returned path is named <code>dump</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.path.basename(os.path.dirname(result)) == "dump"</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-12</span>
+          <span class="test-name">Dump directory is created automatically</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; <code>dump/</code> sub-directory does not exist yet.</div>
+          <div class="block"><div class="block-label">Run</div><code>app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>tmp_path/dump/</code> is created.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert (tmp_path / "dump").is_dir()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-13</span>
+          <span class="test-name">JSON build_version is first key</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code>; load JSON.</div>
+          <div class="block"><div class="block-label">Expect</div>The first key in the top-level JSON object is <code>"build_version"</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert list(data.keys())[0] == 'build_version'</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-14</span>
+          <span class="test-name">JSON build_version matches module constant</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code>; load JSON.</div>
+          <div class="block"><div class="block-label">Expect</div><code>data["build_version"]</code> equals <code>app_debug._BUILD_VERSION</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert data['build_version'] == app_debug._BUILD_VERSION</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-15</span>
+          <span class="test-name">JSON contains dump_timestamp</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code>; load JSON.</div>
+          <div class="block"><div class="block-label">Expect</div><code>data["dump_timestamp"]</code> exists and is a non-empty string.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 'dump_timestamp' in data</code><br><code>assert isinstance(data['dump_timestamp'], str)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-16</span>
+          <span class="test-name">JSON contains project block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code>; load JSON.</div>
+          <div class="block"><div class="block-label">Expect</div><code>data["project"]</code> exists and is a <code>dict</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 'project' in data</code><br><code>assert isinstance(data['project'], dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-17</span>
+          <span class="test-name">JSON filename contains timestamp</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Filename starts with <code>debug_project_dump_</code> and ends with <code>.json</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.path.basename(result).startswith('debug_project_dump_')</code><br><code>assert result.endswith('.json')</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-18</span>
+          <span class="test-name">Bundled dump next to executable</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>sys.frozen</code> monkeypatched to <code>True</code>; <code>sys.executable</code> monkeypatched to <code>tmp_path/ProjectOffline.exe</code>; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Dump file is created inside <code>&lt;tmp_path&gt;/dump/</code> — i.e. next to the executable, not inside <code>_internal/</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert os.path.dirname(os.path.dirname(result)) == str(tmp_path)</code><br><code>assert os.path.basename(os.path.dirname(result)) == 'dump'</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-19</span>
+          <span class="test-name">JSON contains confluence calendar props block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JSON payload contains key <code>'confluence_calendar_props'</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 'confluence_calendar_props' in data</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-20</span>
+          <span class="test-name">JSON confluence calendar props empty for mock project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project without real CALENDAR fields.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data['confluence_calendar_props']</code> is a <code>dict</code> (may be empty when CALENDAR fields are absent).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(data['confluence_calendar_props'], dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-21</span>
+          <span class="test-name">JSON contains jira project props block</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>JSON payload contains key <code>'jira_project_props'</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 'jira_project_props' in data</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-22</span>
+          <span class="test-name">JSON jira project props empty for mock project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; <code>app_debug.__file__</code> monkeypatched; minimal mock project without real JIRA fields.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data['jira_project_props']</code> is a <code>dict</code> (may be empty when JIRA fields are absent).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(data['jira_project_props'], dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-23</span>
+          <span class="test-name">JSON jira project props contains field checkboxes</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; mock project with custom properties: <code>JIRA Sync Field jira_status</code> = <code>"True"</code>, <code>JIRA Sync Field jira_assignee</code> = <code>"False"</code>, <code>JIRA Sync Field jira_priority</code> = <code>"True"</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>data['jira_project_props']</code> contains <code>'field_checkboxes'</code> dict.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 'field_checkboxes' in data['jira_project_props']</code><br><code>assert isinstance(data['jira_project_props']['field_checkboxes'], dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-24</span>
+          <span class="test-name">JSON jira field checkboxes parses true false strings</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; mock project with field properties: <code>jira_status</code> = <code>"True"</code>, <code>jira_assignee</code> = <code>"False"</code>, <code>jira_priority</code> = <code>"True"</code>, <code>jira_description</code> = <code>None</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>"True"</code> strings → <code>True</code> boolean, <code>"False"</code> strings → <code>False</code> boolean, <code>None</code>/unset → <code>False</code> boolean.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert checkboxes['jira_status'] is True</code><br><code>assert checkboxes['jira_priority'] is True</code><br><code>assert checkboxes['jira_assignee'] is False</code><br><code>assert checkboxes['jira_description'] is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-25</span>
+          <span class="test-name">JSON jira field checkboxes contains all 36 fields</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; mock project with all fields unset.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>field_checkboxes</code> dict contains all 36 expected field names.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(checkboxes) == 36</code><br><code>for field_name in expected_fields: assert field_name in checkboxes</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-26</span>
+          <span class="test-name">JSON jira field checkboxes all false by default</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; mock project with all fields unset (return <code>None</code>).</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>All field checkboxes default to <code>False</code> when not explicitly set.</div>
+          <div class="block"><div class="block-label">Check</div><code>for field_name, enabled in checkboxes.items(): assert enabled is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">AD-27</span>
+          <span class="test-name">JSON jira project props includes filter and filter type</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; mock project with <code>jira2project</code> container = <code>{"filter": "project = MYPROJ", "filter_type": "jql"}</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>jira_project_props</code> contains <code>filter</code>, <code>filter_type</code>, and <code>filter_set</code> fields.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert jira_props['filter'] == "project = MYPROJ"</code><br><code>assert jira_props['filter_type'] == "jql"</code><br><code>assert jira_props['filter_set'] is True</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestDumpProjectCalendarsBlock &mdash; Dump Project Calendars Block</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-28</span><span class="test-name">Project calendars block present</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; minimal mock project.</div><div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div><div class="block"><div class="block-label">Expect</div>JSON output contains key <code>project_calendars</code>.</div><div class="block"><div class="block-label">Check</div><code>assert 'project_calendars' in data</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-29</span><span class="test-name">Project calendars block is dict</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; minimal mock project.</div><div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div><div class="block"><div class="block-label">Expect</div><code>data['project_calendars']</code> is a <code>dict</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(data['project_calendars'], dict)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-30</span><span class="test-name">Project calendars has installed calendars key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>tmp_path</code> fixture; minimal mock project.</div><div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div><div class="block"><div class="block-label">Expect</div><code>data['project_calendars']</code> contains key <code>installed_calendars</code> that is a list.</div><div class="block"><div class="block-label">Check</div><code>assert 'installed_calendars' in pc</code><br><code>assert isinstance(pc['installed_calendars'], list)</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestDumpProjectState (Project &rarr; Jira) &mdash; Project-to-Jira export config dump</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-31</span><span class="test-name">Project to Jira props contains export settings</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock project with <code>project2jira</code> JSON in custom properties containing export_scope, create_update_mode, conflict_policy, dry_run, fields, issue_type_map, transition_map.</div><div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div><div class="block"><div class="block-label">Expect</div><code>data['jira_project_to_jira_props']</code> reflects all export config fields.</div><div class="block"><div class="block-label">Check</div><code>assert props['export_scope'] == 'full_project'</code><br><code>assert props['fields']['jira_status']['enabled'] is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-32</span><span class="test-name">Project to Jira props redacts sensitive keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock project with <code>project2jira</code> JSON containing an <code>api_token</code> key.</div><div class="block"><div class="block-label">Run</div><code>result = app_debug.dump_project_state(project)</code></div><div class="block"><div class="block-label">Expect</div>Sensitive key <code>api_token</code> is replaced with <code>'&lt;redacted&gt;'</code>.</div><div class="block"><div class="block-label">Check</div><code>assert props['api_token'] == '&lt;redacted&gt;'</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestBuildCpmEntry &mdash; CPM Per-Task Entry (Phase 5 calendar-aware fields)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-33</span><span class="test-name">Returns None when no float data for task</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ui_state = {"float_data": {}}</code></div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("99", ui_state)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code> when task id absent from float_data.</div><div class="block"><div class="block-label">Check</div><code>assert result is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-34</span><span class="test-name">Returns None when ui_state is None</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>ui_state = None</code></div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", None)</code></div><div class="block"><div class="block-label">Expect</div>Returns <code>None</code> when ui_state is absent.</div><div class="block"><div class="block-label">Check</div><code>assert result is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-35</span><span class="test-name">Returns dict with 13 keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Phase 5 float_data entry with all fields set.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div>Result is a dict with exactly 13 keys (7 legacy + 6 Phase 5).</div><div class="block"><div class="block-label">Check</div><code>assert len(result) == 13</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-36</span><span class="test-name">calendar_aware True when total_float_wh set</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>total_float_wh=8.0</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>calendar_aware</code> is <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["calendar_aware"] is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-37</span><span class="test-name">calendar_aware False when total_float_wh None</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Legacy float_data entry with <code>total_float_wh=None</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>calendar_aware</code> is <code>False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["calendar_aware"] is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-38</span><span class="test-name">total_float_wh exposed for Phase 5 data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>total_float_wh=6.5</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>total_float_wh</code> is <code>6.5</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_wh"] == 6.5</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-39</span><span class="test-name">free_float_wh exposed for Phase 5 data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>free_float_wh=3.25</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>free_float_wh</code> is <code>3.25</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["free_float_wh"] == 3.25</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-40</span><span class="test-name">total_float_wh None when not Phase 5</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Legacy float_data entry (<code>total_float_wh=None</code>).</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>result["total_float_wh"]</code> is <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_wh"] is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-41</span><span class="test-name">total_float_d uses work_day_hours</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>total_float_wh=16.0, work_day_hours=8.0</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>total_float_d = 16.0 / 8.0 = 2.0</code> working days.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_d"] == 2.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-42</span><span class="test-name">total_float_d uses custom wdh</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>total_float_wh=10.0, work_day_hours=10.0</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>total_float_d = 10.0 / 10.0 = 1.0</code> working day.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_d"] == 1.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-43</span><span class="test-name">total_float_d falls back to 8h when wdh None</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Legacy entry: <code>total_float=timedelta(hours=8), work_day_hours=None</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div>Defaults to 8 h/day: <code>total_float_d = 8.0 / 8.0 = 1.0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_d"] == 1.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-44</span><span class="test-name">Legacy total_float_h comes from timedelta</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Legacy entry: <code>total_float=timedelta(hours=4), total_float_wh=None</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>total_float_h = 4.0</code> from timedelta.</div><div class="block"><div class="block-label">Check</div><code>assert result["total_float_h"] == 4.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-45</span><span class="test-name">Critical flag preserved</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>critical=True</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>result["critical"]</code> is <code>True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["critical"] is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-46</span><span class="test-name">work_day_hours in result</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>work_day_hours=9.0</code>.</div><div class="block"><div class="block-label">Run</div><code>_build_cpm_entry("1", ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>result["work_day_hours"] == 9.0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert result["work_day_hours"] == 9.0</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestDumpCpmBlocks &mdash; CPM Settings &amp; Summary Blocks (Phase 5 via dump_project_state)</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-47</span><span class="test-name">cpm_settings block present in dump</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Minimal mock project, <code>ui_state=None</code>.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state=None)</code></div><div class="block"><div class="block-label">Expect</div>JSON contains key <code>cpm_settings</code> as dict.</div><div class="block"><div class="block-label">Check</div><code>assert "cpm_settings" in data</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-48</span><span class="test-name">cpm_summary block present in dump</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Minimal mock project, <code>ui_state=None</code>.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state=None)</code></div><div class="block"><div class="block-label">Expect</div>JSON contains key <code>cpm_summary</code> as dict.</div><div class="block"><div class="block-label">Check</div><code>assert "cpm_summary" in data</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-49</span><span class="test-name">calendar_aware_active True when float_data has wh</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>float_data</code> contains entry with <code>total_float_wh=8.0</code>.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div>Both settings and summary have <code>calendar_aware_active=True</code>.</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_settings"]["calendar_aware_active"] is True</code><br><code>assert data["cpm_summary"]["calendar_aware_active"] is True</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-50</span><span class="test-name">calendar_aware_active False when no wh</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>float_data</code> entry with <code>total_float_wh=None</code>.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div>Both blocks have <code>calendar_aware_active=False</code>.</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_settings"]["calendar_aware_active"] is False</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-51</span><span class="test-name">project_wdh is median of task wdh</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Three tasks with <code>work_day_hours</code> 6, 8, 10.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>project_wdh = 8.0</code> (median of [6, 8, 10]).</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_settings"]["project_wdh"] == 8.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-52</span><span class="test-name">project_wdh defaults to 8 when no float data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty <code>float_data</code> dict.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, {"float_data": {}})</code></div><div class="block"><div class="block-label">Expect</div><code>project_wdh = 8.0</code> (default fallback).</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_settings"]["project_wdh"] == 8.0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-53</span><span class="test-name">critical_count correct</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>3 tasks: 2 critical, 1 non-critical.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>critical_count = 2</code>.</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_summary"]["critical_count"] == 2</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-54</span><span class="test-name">near_critical_count uses calendar-aware wdh</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>critical_slack_days=1</code>; task2: 6wh/8wdh=0.75d≤1; task3: 16wh/8wdh=2.0d&gt;1.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>near_critical_count = 1</code> (only task2 qualifies).</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_summary"]["near_critical_count"] == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-55</span><span class="test-name">project_duration_d None when no datetime in float_data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>float_data entry with <code>es=None, ef=None</code> (JSON-safe).</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>project_duration_d</code> is <code>None</code> when no datetime values are present.</div><div class="block"><div class="block-label">Check</div><code>assert data["cpm_summary"]["project_duration_d"] is None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">AD-56</span><span class="test-name">Task cpm entry has Phase 5 keys</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Mock task with <code>getID()=1</code>; float_data["1"] has Phase 5 fields.</div><div class="block"><div class="block-label">Run</div><code>dump_project_state(project, ui_state)</code></div><div class="block"><div class="block-label">Expect</div><code>tasks[0]["cpm"]</code> contains <code>total_float_wh, free_float_wh, work_day_hours, total_float_d, free_float_d, calendar_aware</code>.</div><div class="block"><div class="block-label">Check</div><code>assert cpm["calendar_aware"] is True</code><br><code>assert cpm["total_float_d"] == 1.0</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

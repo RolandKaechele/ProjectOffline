@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git &amp; SVN Integration – Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html" class="active">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Git &amp; SVN Integration</h1>
+    <p>Auto-commit on save, view commit history, restore any revision, manage branches, and sync with remote repositories — all from within Project Offline, using KeePass credentials.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>›</span> Git &amp; SVN Integration</div>
+
+    <h2>What Is Version Control Integration?</h2>
+    <p>Project Offline includes built-in version control support for both <strong>Git</strong> and <strong>Subversion (SVN)</strong> repositories. When you open a project file that lives inside a repository, a dedicated <strong>VERSION CONTROL</strong> ribbon tab appears automatically. It gives you commit, history, restore, and branch operations without leaving the application.</p>
+
+    <p>Key benefits over manual file backups:</p>
+    <ul>
+      <li><strong>Auto-commit on save</strong> — every save captures a timestamped snapshot with zero extra effort.</li>
+      <li><strong>Instant restore</strong> — return to any previous state in seconds; no hunting through dated ZIP archives.</li>
+      <li><strong>Scenario branches (Git)</strong> — create a branch for a what-if schedule, keep it isolated, merge or discard later.</li>
+      <li><strong>Team sync</strong> — pull changes from colleagues or push your plan to a shared remote.</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Automatic Detection</strong>
+      The VERSION CONTROL ribbon tab is hidden when no repository is detected and revealed automatically when a project file inside a Git or SVN working copy is opened. No manual activation is needed.
+    </div>
+
+    <!-- ── Prerequisites ── -->
+    <h2>Prerequisites</h2>
+    <table>
+      <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Git or SVN binary</td>
+          <td>
+            <ul style="margin: 5px 0; padding-left: 20px;">
+              <li><strong>Git:</strong> bundled under <code>tools/git/</code> or a system <code>git.exe</code> on <code>PATH</code>. Custom path settable in VCS settings.</li>
+              <li><strong>SVN:</strong> bundled TortoiseSVN CLI binaries under <code>tools/svn/</code>, or a system <code>svn.exe</code>. Custom path settable in VCS settings.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>Repository</td>
+          <td>The project file must be inside a Git repository (<code>.git/</code> ancestor) or SVN working copy (<code>.svn/</code> ancestor). Project Offline will detect the repository root automatically.</td>
+        </tr>
+        <tr>
+          <td>KeePass Database (for remote operations)</td>
+          <td>A configured and unlocked KeePass database with an entry for the remote repository credentials. Required only for <em>push</em>, <em>pull</em>, and <em>SVN update</em>; local commit and history work without credentials. See <a href="13_keepass.html">KeePass Credentials</a> for setup.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Ribbon Overview ── -->
+    <h2>VERSION CONTROL Ribbon Tab</h2>
+    <p>The ribbon tab is divided into button groups. Availability of each button depends on the detected VCS type:</p>
+
+    <table>
+      <thead><tr><th>Button</th><th>Git</th><th>SVN</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Commit</strong></td><td>&#10003;</td><td>&#10003;</td><td>Commit staged/tracked changes to the local repository.</td></tr>
+        <tr><td><strong>Log / History</strong></td><td>&#10003;</td><td>&#10003;</td><td>Open the commit log dialog with diff preview and restore.</td></tr>
+        <tr><td><strong>Pull</strong></td><td>&#10003;</td><td>&#10007;</td><td>Fetch and merge changes from the remote (git pull).</td></tr>
+        <tr><td><strong>SVN Update</strong></td><td>&#10007;</td><td>&#10003;</td><td>Fetch and apply changes from the SVN server (svn update).</td></tr>
+        <tr><td><strong>SVN Cleanup</strong></td><td>&#10007;</td><td>&#10003;</td><td>Remove stale locks and repair interrupted operations.</td></tr>
+        <tr><td><strong>Branches</strong></td><td>&#10003;</td><td>&#10007;</td><td>List branches, create a new branch, or switch the working copy.</td></tr>
+        <tr><td><strong>Settings</strong></td><td>&#10003;</td><td>&#10003;</td><td>Open VCS configuration (KeePass entry, auto-commit, binary paths).</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Configuration ── -->
+    <h2>Step 1 – Configure VCS Settings</h2>
+    <p>Click <strong>Settings</strong> in the VERSION CONTROL tab (or open it from <strong>Settings &rarr; Version Control…</strong>) to open the VCS configuration dialog.</p>
+
+    <h3>KeePass Entry</h3>
+    <p>Select the KeePass entry that holds the credentials for your remote repository (e.g. a GitHub / GitLab / Bitbucket / SVN server account). The entry is looked up by title from the open KeePass database. If KeePass is locked, a prompt to unlock it appears when a remote operation is triggered.</p>
+
+    <h3>Auto-Commit</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Enable auto-commit on save</td><td>On</td><td>Trigger a commit 3 seconds after every successful project save.</td></tr>
+        <tr><td>Commit message template</td><td><code>Auto-commit: {project_name} saved at {timestamp}</code></td><td>Placeholders <code>{project_name}</code> and <code>{timestamp}</code> are replaced at commit time.</td></tr>
+        <tr><td>Commit scope</td><td>Project file only</td><td><em>Project file only</em> commits just the <code>.mpp</code>/<code>.xml</code> file; <em>All tracked changes</em> stages all modified tracked files.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Binary Paths (Optional)</h3>
+    <p>If the bundled binaries are not used, enter the full path to <code>git.exe</code> or <code>svn.exe</code> using the Browse buttons. Leave blank to use the bundled tool or the system PATH.</p>
+
+    <!-- ── Commit ── -->
+    <h2>Committing Changes</h2>
+    <h3>Manual Commit</h3>
+    <p>Click <strong>Commit</strong> in the ribbon. A small dialog prompts for a commit message. Click <strong>OK</strong> to commit. The result is shown in a status bar message.</p>
+
+    <h3>Auto-Commit</h3>
+    <p>When auto-commit is enabled, saving the project file (<kbd>Ctrl</kbd>+<kbd>S</kbd> or <strong>File &rarr; Save</strong>) starts a 3-second timer. After the delay, the commit runs in the background without interrupting your work. If you save again within the 3-second window the timer resets, preventing commit storms during rapid saves.</p>
+
+    <div class="callout tip">
+      <strong>No Changes = No Commit</strong>
+      Auto-commit is silently skipped if the repository has no staged or tracked changes since the last commit.
+    </div>
+
+    <!-- ── Log / History ── -->
+    <h2>Viewing Commit History</h2>
+    <p>Click <strong>Log / History</strong> to open the <strong>Commit Log</strong> dialog:</p>
+    <ul>
+      <li>The left panel lists all commits (newest first) with hash/revision, author, date, and message.</li>
+      <li>Click any row to load a <strong>unified diff preview</strong> in the right panel, showing exactly what changed in that commit.</li>
+      <li>Select a commit and click <strong>Restore…</strong> to restore the project file to that state (see <a href="#restoring-a-revision">Restoring a Revision</a> below).</li>
+    </ul>
+
+    <!-- ── Restore ── -->
+    <h2 id="restoring-a-revision">Restoring a Revision</h2>
+    <p>To return the project file to a previous state:</p>
+    <ol>
+      <li>Open <strong>Log / History</strong>.</li>
+      <li>Select the desired commit row.</li>
+      <li>Click <strong>Restore…</strong>.</li>
+      <li>A confirmation dialog appears. Confirm to proceed.</li>
+    </ol>
+    <p>Before restoring, Project Offline automatically:</p>
+    <ul>
+      <li>Creates a <strong>safety snapshot</strong> commit of the current state so you can always undo the restore.</li>
+      <li>For Git: uses <code>git checkout &lt;hash&gt; -- &lt;file&gt;</code> to restore only the project file, leaving other files untouched.</li>
+      <li>For SVN: uses <code>svn update -r &lt;revision&gt; &lt;file&gt;</code>.</li>
+    </ul>
+
+    <div class="callout warning">
+      <strong>Unsaved Changes</strong>
+      Save the project before restoring. Any unsaved in-memory changes will be overwritten by the restore operation.
+    </div>
+
+    <!-- ── Branches (Git) ── -->
+    <h2>Branch Management (Git Only)</h2>
+    <p>Click <strong>Branches</strong> to open the <strong>Branch Manager</strong> dialog:</p>
+    <ul>
+      <li><strong>Current branch</strong> is highlighted at the top of the list.</li>
+      <li>Click <strong>New Branch…</strong> to create a branch from the current HEAD and optionally switch to it immediately.</li>
+      <li>Select a branch and click <strong>Switch</strong> to checkout that branch. Any uncommitted changes must be committed first.</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>Scenario Planning with Branches</strong>
+      Create a branch (e.g. <em>scenario-optimistic</em>) to explore a compressed schedule, then switch back to <em>main</em> for the baseline plan. Branches are isolated until you merge them.
+    </div>
+
+    <!-- ── Pull / SVN Update ── -->
+    <h2>Syncing with Remote (Pull / SVN Update)</h2>
+    <h3>Git — Pull (&#9660; Split-Button)</h3>
+    <p>The <strong>Pull</strong> ribbon button is a <strong>split-button</strong>.
+    Clicking the main area runs the default <code>git pull</code> (merge strategy).
+    Click the &#9660; arrow to choose a pull mode:</p>
+    <table>
+      <thead><tr><th>Mode</th><th>Command</th><th>When to use</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Pull (merge)</strong></td>
+          <td><code>git pull</code></td>
+          <td>Default. Creates a merge commit if diverged from the remote.</td>
+        </tr>
+        <tr>
+          <td><strong>Pull (rebase)</strong></td>
+          <td><code>git pull --rebase</code></td>
+          <td>Reapplies your local commits on top of the remote. Keeps a linear history.</td>
+        </tr>
+        <tr>
+          <td><strong>Fetch only</strong></td>
+          <td><code>git fetch --all</code></td>
+          <td>Downloads remote changes without merging or rebasing. Useful to inspect what changed before integrating.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Credentials are supplied automatically via the GIT_ASKPASS mechanism using the KeePass entry configured in VCS Settings. All modes run in the background; progress is shown in the status bar.</p>
+
+    <h3>Git — Commit (&#9660; Split-Button)</h3>
+    <p>The <strong>Commit</strong> ribbon button is also a <strong>split-button</strong>.
+    Click the &#9660; arrow to access an additional mode:</p>
+    <table>
+      <thead><tr><th>Mode</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Commit tracked changes</strong> (default)</td>
+          <td>Commits files according to the <em>Commit scope</em> setting in VCS Config
+              (project file only, or all tracked changes).</td>
+        </tr>
+        <tr>
+          <td><strong>Commit all tracked changes</strong></td>
+          <td>Overrides the <em>Commit scope</em> setting for this one operation and stages
+              all modified tracked files. Useful as a one-off without changing the saved
+              configuration.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>SVN — Update</h3>
+    <p>Click <strong>SVN Update</strong> to run <code>svn update --non-interactive</code>. When KeePass credentials are configured and available, <code>--username</code>, <code>--password</code>, and <code>--no-auth-cache</code> are also passed. When no KeePass credentials are configured, these flags are omitted so SVN can authenticate using the OS credential cache (e.g. Windows Credential Manager).</p>
+
+    <h3>SVN — Cleanup</h3>
+    <p>If an SVN update is interrupted (power loss, network failure), the working copy may become locked. Click <strong>SVN Cleanup</strong> to run <code>svn cleanup</code> and repair the working copy, then retry the update.</p>
+
+    <!-- ── Conflict Handling ── -->
+    <h2>Conflict Detection &amp; Resolution</h2>
+    <p>After a <em>Pull</em> or <em>SVN Update</em>, Project Offline checks for conflicts. If conflicts are found, the <strong>Conflict Resolution</strong> dialog opens automatically and lists every conflicting file. For each file you can:</p>
+    <ul>
+      <li><strong>Resolve…</strong> — mark the conflict as resolved after you have manually edited the file.</li>
+      <li><strong>Revert Selected</strong> — discard local changes and accept the incoming version.</li>
+      <li><strong>Retry</strong> — re-check conflict status after external resolution.</li>
+    </ul>
+    <p>All subprocess output is shown in the dialog for diagnosis, with credentials redacted.</p>
+
+    <!-- ── Credential Security ── -->
+    <h2>Credential Security</h2>
+    <p>Project Offline takes several measures to prevent credential leakage:</p>
+    <ul>
+      <li><strong>Git:</strong> Credentials are never passed as command-line arguments. A small helper script is generated at runtime into a temporary file and registered as <code>GIT_ASKPASS</code>. Git calls this script when it needs a username or password; the script reads the values from short-lived environment variables that are deleted after the subprocess exits.</li>
+      <li><strong>SVN:</strong> <code>--non-interactive</code> is always passed so SVN never prompts interactively. <code>--no-auth-cache</code> and explicit <code>--username</code>/<code>--password</code> flags are only added when KeePass credentials are available. When no KeePass entry is configured, SVN uses the OS credential cache so that operations like <code>svn log</code> succeed with previously-saved credentials.</li>
+      <li><strong>Log sanitisation:</strong> Before subprocess output is written to the debug log, all occurrences of the active KeePass password and username are replaced with <code>[REDACTED]</code>.</li>
+      <li><strong>KeePass-only storage:</strong> Credentials are never written to QSettings, the project file, or any sidecar JSON.</li>
+    </ul>
+
+    <!-- ── Troubleshooting ── -->
+    <h2>Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Symptom</th><th>Likely Cause</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>VERSION CONTROL tab not visible</td>
+          <td>No <code>.git/</code> or <code>.svn/</code> directory found in the project file's ancestor chain.</td>
+          <td>Ensure the project file is saved inside a Git repository or SVN working copy. Initialise a repo if needed (<code>git init</code> / <code>svn checkout</code>), then re-open the project.</td>
+        </tr>
+        <tr>
+          <td>Auto-commit never runs</td>
+          <td>Auto-commit disabled, or repository has no changes after save.</td>
+          <td>Check <strong>VCS Settings → Enable auto-commit on save</strong>. Verify the project file is tracked (<code>git status</code>).</td>
+        </tr>
+        <tr>
+          <td>Pull/Push fails with authentication error</td>
+          <td>KeePass locked, wrong entry selected, or entry credentials outdated.</td>
+          <td>Open KeePass, verify the entry URL and credentials, then retry. Select the correct KeePass entry in VCS Settings.</td>
+        </tr>
+        <tr>
+          <td>SVN update fails: "Working copy locked"</td>
+          <td>A previous SVN operation was interrupted.</td>
+          <td>Click <strong>SVN Cleanup</strong> in the ribbon, then retry <strong>SVN Update</strong>.</td>
+        </tr>
+        <tr>
+          <td>Commit blocked: "merge/rebase in progress"</td>
+          <td>Git working copy is in a mid-merge or mid-rebase state.</td>
+          <td>Resolve the merge/rebase manually in a terminal (<code>git merge --abort</code> or <code>git rebase --abort</code>), then return to Project Offline.</td>
+        </tr>
+        <tr>
+          <td>Restore did not reload the file</td>
+          <td>The restore succeeded but the file was not re-opened automatically.</td>
+          <td>Close and reopen the project file (<strong>File &rarr; Open Recent</strong>) to load the restored version.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div><!-- /content -->
+</div><!-- /page-wrapper -->
+
+</body>
+</html>

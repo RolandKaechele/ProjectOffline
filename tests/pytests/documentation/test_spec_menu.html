@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Menu & CPM Results View &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Menu & CPM Results View</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#menu">menu</a>
+  <a href="#cpm_results_view">cpm results view</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">31</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">31</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">2</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="menu">
+  <div class="module-header"><h2>menu.py</h2><span class="badge">18 tests</span></div>
+  <div class="module-desc">Menu bar: construction, save-enabled toggle, close-enabled toggle, recent-files list (max 10), view-toggle checkmarks, edit-action state. Mock fixture includes open_jira_config, open_jira_settings, and open_cpm_settings methods.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>Module-level tests</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-01</span>
+          <span class="test-name">Menu bar init</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar.logic is logic</code> is truthy. <code>menu_bar.file_handler is file_handler</code> is truthy. <code>menu_bar.parent() is mock_parent</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar.logic is logic</code><br><code>assert menu_bar.file_handler is file_handler</code><br><code>assert menu_bar.parent() is mock_parent</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-02</span>
+          <span class="test-name">Menu bar has file menu</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menus = [menu_bar.actions()[i].text() for i in range(len(menu_bar.actions()))]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;&amp;File&quot;</code> is contained in <code>menus</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;&amp;File&quot; in menus</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-03</span>
+          <span class="test-name">Menu bar has options menu</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menus = [menu_bar.actions()[i].text() for i in range(len(menu_bar.actions()))]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;&amp;Options&quot;</code> is contained in <code>menus</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;&amp;Options&quot; in menus</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-04</span>
+          <span class="test-name">Set save enabled true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_save_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._save_act.isEnabled()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar._save_act.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-05</span>
+          <span class="test-name">Set save enabled false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code><br><code>menu_bar.set_save_enabled(True)  # Enable first</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_save_enabled(False)  # Then disable</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._save_act.isEnabled()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not menu_bar._save_act.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-06</span>
+          <span class="test-name">Update recent files empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.update_recent_files([])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._recent_menu.isEnabled()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not menu_bar._recent_menu.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-07</span>
+          <span class="test-name">Update recent files with files</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.update_recent_files([&quot;project1.mpp&quot;, &quot;project2.xml&quot;])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._recent_menu.isEnabled()</code> is truthy. actions = menu_bar._recent_menu.actions() <code>len(actions)</code> is = <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar._recent_menu.isEnabled()</code><br><code>actions = menu_bar._recent_menu.actions()</code><br><code>assert len(actions) &gt;= 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-08</span>
+          <span class="test-name">Update recent files max limit</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar, MAX_RECENT</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code><br><code>files = [f&quot;project{i}.mpp&quot; for i in range(MAX_RECENT + 3)]</code><br><code>menu_bar.update_recent_files(files)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>actions = menu_bar._recent_menu.actions()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(actions) &lt;= MAX_RECENT + 2</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(actions) &lt;= MAX_RECENT + 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-09</span>
+          <span class="test-name">Set resource units checked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_resource_units_checked(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._res_units_act.isChecked()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar._res_units_act.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-10</span>
+          <span class="test-name">Set show sundays checked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_show_sundays_checked(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._show_sundays_act.isChecked()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not menu_bar._show_sundays_act.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-11</span>
+          <span class="test-name">Set zero float critical checked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_zero_float_critical_checked(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._zero_float_act.isChecked()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar._zero_float_act.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-12</span>
+          <span class="test-name">Update edit actions</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.update_edit_actions(&quot;Insert Task&quot;, &quot;Delete Task&quot;, enabled=True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True  # Test passes if no exceptions</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True  # Test passes if no exceptions</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-13</span>
+          <span class="test-name">Set delete enabled</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_delete_enabled(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-14</span>
+          <span class="test-name">Menu actions connected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>logic = MagicMock()</code><br><code>file_handler = MagicMock()</code><br><code>menu_bar = ProjectMenuBar(mock_parent, logic, file_handler)</code><br><code>menu_bar._save_act.setEnabled(True)</code><br><code>menu_bar._save_act.trigger()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_parent.save_project.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>menu actions connected</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>File ? Close action</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-15</span>
+          <span class="test-name">Close action disabled by default</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>menu_bar = ProjectMenuBar(mock_parent, MagicMock(), MagicMock())</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._close_act.isEnabled()</code> is <code>False</code> — no project is open at startup.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not menu_bar._close_act.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-16</span>
+          <span class="test-name">Set close enabled true</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>menu_bar = ProjectMenuBar(mock_parent, MagicMock(), MagicMock())</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_close_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._close_act.isEnabled()</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert menu_bar._close_act.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-17</span>
+          <span class="test-name">Set close enabled false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>menu_bar = ProjectMenuBar(mock_parent, MagicMock(), MagicMock())</code><br><code>menu_bar.set_close_enabled(True)  # enable first</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar.set_close_enabled(False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>menu_bar._close_act.isEnabled()</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not menu_bar._close_act.isEnabled()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">ME-18</span>
+          <span class="test-name">Close action triggers close project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from menu import ProjectMenuBar</code><br><code>menu_bar = ProjectMenuBar(mock_parent, MagicMock(), MagicMock())</code><br><code>menu_bar.set_close_enabled(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>menu_bar._close_act.trigger()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>mock_parent.close_project</code> called exactly once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_parent.close_project.assert_called_once()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="module" id="cpm_results_view">
+  <div class="module-header"><h2>views/cpm_results_view.py</h2><span class="badge">13 tests</span></div>
+  <div class="module-desc">CpmResultsView widget (Phase 3): table with 9 columns (Task ID, Name, Status, TF h, FF h, TF wh, FF wh, WD h, Float bar), filter-by-critical, status label, phase-5 wh fields, sort critical first.</div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>TestCpmResultsView — CPM results table widget</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-01</span><span class="test-name">Widget created</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>from cpm_results_view import CpmResultsView; w = CpmResultsView()</code></div><div class="block"><div class="block-label">Run</div>—</div><div class="block"><div class="block-label">Expect</div>Instance created without error.</div><div class="block"><div class="block-label">Check</div><code>assert w is not None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-02</span><span class="test-name">Column count is nine</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>w = CpmResultsView()</code></div><div class="block"><div class="block-label">Run</div><code>w._table.columnCount()</code></div><div class="block"><div class="block-label">Expect</div><code>9</code>.</div><div class="block"><div class="block-label">Check</div><code>assert w._table.columnCount() == 9</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-03</span><span class="test-name">Column headers match</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>w = CpmResultsView()</code></div><div class="block"><div class="block-label">Run</div>Collect header labels via <code>_table.horizontalHeaderItem(i).text()</code>.</div><div class="block"><div class="block-label">Expect</div>Headers match expected list (Task ID, Name, Status, TF h, FF h, TF wh, FF wh, WD h, Float bar).</div><div class="block"><div class="block-label">Check</div><code>assert headers == EXPECTED_HEADERS</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-04</span><span class="test-name">Refresh empty data shows zero rows</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>w = CpmResultsView()</code></div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[], float_data={}, critical_ids=set())</code></div><div class="block"><div class="block-label">Expect</div><code>w._table.rowCount() == 0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert w._table.rowCount() == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-05</span><span class="test-name">Refresh populates rows</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One task + matching float_data entry.</div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[t], float_data=fd, critical_ids=set())</code></div><div class="block"><div class="block-label">Expect</div><code>w._table.rowCount() == 1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert w._table.rowCount() == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-06</span><span class="test-name">Critical row shows critical status</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>critical=True</code> in float_data.</div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[t], float_data=fd, critical_ids={1})</code></div><div class="block"><div class="block-label">Expect</div>Status column item text is <code>"CRITICAL"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert w._table.item(0, 2).text() == "CRITICAL"</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-07</span><span class="test-name">Non critical row shows ok status</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Task with <code>critical=False</code> in float_data.</div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[t], float_data=fd, critical_ids=set())</code></div><div class="block"><div class="block-label">Expect</div>Status column item text is <code>"OK"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert w._table.item(0, 2).text() == "OK"</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-08</span><span class="test-name">Critical filter shows only critical rows</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One critical task, one non-critical.</div><div class="block"><div class="block-label">Run</div><code>w._filter_chk.setChecked(True)</code></div><div class="block"><div class="block-label">Expect</div>Only 1 row visible.</div><div class="block"><div class="block-label">Check</div><code>visible = [i for i in range(w._table.rowCount()) if not w._table.isRowHidden(i)]; assert len(visible) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-09</span><span class="test-name">Status label shows total and critical count</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Two tasks, one critical.</div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[t1, t2], float_data=fd, critical_ids={1})</code></div><div class="block"><div class="block-label">Expect</div>Status label contains <code>"2"</code> (total) and <code>"1"</code> (critical).</div><div class="block"><div class="block-label">Check</div><code>assert "2" in w._status_lbl.text(); assert "1" in w._status_lbl.text()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-10</span><span class="test-name">Refresh with phase5 wh fields</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Float data entry with <code>total_float_wh=timedelta(hours=8)</code>, <code>free_float_wh=timedelta(hours=8)</code>, <code>working_day_hours=8</code>.</div><div class="block"><div class="block-label">Run</div><code>w.refresh(...)</code></div><div class="block"><div class="block-label">Expect</div>TF wh and FF wh columns show <code>"1.0d"</code> (8h / 8wdh = 1 day).</div><div class="block"><div class="block-label">Check</div><code>assert "1.0d" in w._table.item(0, 5).text()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-11</span><span class="test-name">Critical rows sorted first</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Non-critical task t1 (id=1), critical task t2 (id=2).</div><div class="block"><div class="block-label">Run</div><code>w.refresh(tasks=[t1, t2], float_data=fd, critical_ids={2})</code></div><div class="block"><div class="block-label">Expect</div>First row is the critical task (id=2).</div><div class="block"><div class="block-label">Check</div><code>assert w._table.item(0, 2).text() == "CRITICAL"</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-12</span><span class="test-name">Double click emits task double clicked signal</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>One task (id=42) refreshed into the table; signal receiver connected.</div><div class="block"><div class="block-label">Run</div><code>v._on_double_click(0, 0)</code></div><div class="block"><div class="block-label">Expect</div><code>task_double_clicked</code> emitted with <code>42</code>.</div><div class="block"><div class="block-label">Check</div><code>assert received == [42]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">CRV-13</span><span class="test-name">Double click on invalid row does not emit</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Empty table (no rows populated); signal receiver connected.</div><div class="block"><div class="block-label">Run</div><code>v._on_double_click(0, 0)</code></div><div class="block"><div class="block-label">Expect</div>No signal emitted.</div><div class="block"><div class="block-label">Check</div><code>assert received == []</code></div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_09_ConfluenceIntegration	PO-CONF-	Project Offline – Confluence Calendar Integration Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Confluence Calendar Sync			1	1_Heading.0	Not relevant		
+	Requirements for importing public holidays and team vacations from a Confluence Team Calendar via Playwright SSO.	information	1.1	PO-CONF-INFO-001.0	Not relevant		
+1.1 Confluence Sync Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall import public holiday and vacation blocks from a Confluence Team Calendar into the project and resource calendars.	functional requirement	1.1.1	PO-CONF-001.0	Not relevant	approved	aligned
+	The sync shall authenticate with Confluence via Playwright-driven SSO without requiring manual credential entry during sync.	functional requirement	1.1.2	PO-CONF-002.0	Not relevant	approved	aligned
+	The sync shall automatically create project resources for Confluence calendar members who do not yet exist in the resource sheet.	functional requirement	1.1.3	PO-CONF-003.0	Not relevant	approved	aligned
+	The sync shall remove stale calendar entries that were cancelled in Confluence on every sync run.	functional requirement	1.1.4	PO-CONF-004.0	Not relevant	approved	aligned
+	The sync shall prune calendar exceptions older than 30 days from all resource calendars.	functional requirement	1.1.5	PO-CONF-005.0	Not relevant	approved	aligned
+	The entire Confluence Calendar Sync operation shall be fully undoable with a single Ctrl+Z.	functional requirement	1.1.6	PO-CONF-006.0	Not relevant	approved	aligned
+	The system shall provide a Confluence Calendar Config dialog allowing the user to configure: Confluence Base URL, Space Key, Timezone (IANA zone, editable QComboBox with all 598 zones, default Europe/Berlin), and Days Ahead.	functional requirement	1.1.7	PO-CONF-007.0	Not relevant	approved	aligned
+	The Confluence Calendar Config dialog shall include a KeePass/Auth section offering a choice between Manual SSO and KeePass entry auto-fill.	functional requirement	1.1.8	PO-CONF-008.0	Not relevant	approved	aligned
+	Confluence calendar configuration (Base URL, Space Key, Timezone, Days Ahead) shall be stored as enterprise custom fields on the project summary task (UID=0).	functional requirement	1.1.9	PO-CONF-009.0	Not relevant	approved	aligned
+	The ribbon shall include a Confluence Calendar Config button (always enabled) and a Confluence Sync button (enabled when a project is open).	functional requirement	1.1.10	PO-CONF-010.0	Not relevant	approved	aligned
+	The Confluence calendar enterprise custom fields shall include at minimum: CALENDAR Base URL, CALENDAR Space Key, CALENDAR Timezone, and CALENDAR Days Ahead.	functional requirement	1.1.11	PO-CONF-011.0	Not relevant	approved	aligned
+	When writing public-holiday events from Confluence to the project default calendar, the system shall skip any event whose end date differs from its start date (event duration > 0 days). Only events where start == end (single calendar day) shall be written as calendar exceptions. Multi-day spans such as school-holiday blocks ("Schulferien") and collective closures shall not be applied to the project default calendar; writing them would grey out entire weeks for all resources in the Team Planner.	functional requirement	1.1.12	PO-CONF-012.0	Not relevant	approved	aligned
+</OBJECTS>

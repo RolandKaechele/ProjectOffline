@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Critical Path Method &mdash; Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="22_critical_path_method.html" class="active">Critical Path Method</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Critical Path Method (CPM)</h1>
+    <p>Automatically identify the tasks that determine your project finish date
+       and analyse schedule float for every task &mdash; entirely offline.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Critical Path Method</div>
+
+    <h2>What Is the Critical Path?</h2>
+    <p>The <strong>critical path</strong> is the longest chain of dependent tasks in your project.
+       Any delay to a task on this path directly delays the project finish date.
+       Tasks <em>not</em> on the critical path have <strong>float</strong> (slack) &mdash; spare time
+       that can absorb small delays without affecting the end date.</p>
+
+    <p>Project Offline runs a <strong>forward pass</strong> (earliest possible start/finish for every task)
+       and a <strong>backward pass</strong> (latest allowable start/finish without delaying the project) to
+       compute two float values per task:</p>
+
+    <table>
+      <thead><tr><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Total Float</strong></td><td>How much the task can slip before the project is delayed. Tasks with Total Float &le; 0 are <strong>critical</strong>.</td></tr>
+        <tr><td><strong>Free Float</strong></td><td>How much the task can slip before it delays the <em>next</em> task (without affecting the project end).</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>Offline calculation</strong> &mdash; CPM runs entirely within Project Offline using your
+      project&rsquo;s existing task dates, durations, and dependency links.
+      No server connection or additional licence is required.
+    </div>
+
+    <h2>Opening the CPM Results Panel</h2>
+    <ol>
+      <li>Open a project file.</li>
+      <li>Click the <strong>REPORT</strong> ribbon tab.</li>
+      <li>In the <strong>Views</strong> group, click <strong>CPM Results</strong>.</li>
+    </ol>
+    <p>The <strong>CPM Results</strong> tab appears at the right of the tab bar and becomes active.
+       Alternatively, enable <strong>Show CPM Results panel</strong> in
+       <a href="#cpm-settings">CPM Settings</a> to make it permanently visible.</p>
+
+    <h2>Reading the CPM Results Table</h2>
+    <p>The table shows one row per task (summary tasks are included but computed from their leaf descendants).
+       Rows are colour-coded:</p>
+
+    <table>
+      <thead><tr><th>Colour</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td style="background:#fdecef;color:#c0392b;font-weight:700">Red</td><td>Critical &mdash; Total Float &le; threshold (default 0 days). Any delay here delays the project.</td></tr>
+        <tr><td style="background:#fef9e7">Amber</td><td>Near-critical &mdash; small float; worth monitoring closely.</td></tr>
+        <tr><td>White / grey</td><td>Non-critical &mdash; has comfortable float.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Columns</h3>
+    <table>
+      <thead><tr><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Task Name</td><td>Task name from the project.</td></tr>
+        <tr><td>Duration</td><td>Task duration in working days.</td></tr>
+        <tr><td>Early Start</td><td>Earliest possible start date (forward pass).</td></tr>
+        <tr><td>Early Finish</td><td>Earliest possible finish date (forward pass).</td></tr>
+        <tr><td>Late Start</td><td>Latest allowable start without delaying the project (backward pass).</td></tr>
+        <tr><td>Late Finish</td><td>Latest allowable finish without delaying the project (backward pass).</td></tr>
+        <tr><td>Total Float</td><td>Late Finish &minus; Early Finish, in working days.</td></tr>
+        <tr><td>Free Float</td><td>Slack before the next successor task is delayed, in working days.</td></tr>
+        <tr><td>Status</td><td><code>CRITICAL</code>, <code>near-critical</code>, or &mdash;</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Filter and Export</h3>
+    <ul>
+      <li><strong>Critical tasks only</strong> checkbox &mdash; hides non-critical rows so you can focus on blockers.</li>
+      <li><strong>Export CSV&hellip;</strong> button &mdash; saves the currently visible rows (respecting the filter) as a UTF-8 CSV file for use in Excel or other tools.</li>
+    </ul>
+
+    <p>The <strong>status bar</strong> at the bottom of the panel always shows the total count of critical and near-critical tasks.</p>
+
+    <h2>Opening a Task from the CPM Results Panel</h2>
+    <p>Double-click any row in the CPM Results table to open the <strong>Task Information</strong> dialog
+       for that task.  The dialog's <strong>Schedule</strong> tab will show the correct critical status
+       and float values computed by the CPM engine.</p>
+
+    <h2 id="cpm-settings">CPM Settings</h2>
+    <p>Open <strong>REPORT ribbon &rarr; CPM Settings</strong> to customise the analysis.</p>
+
+    <h3>Calculation Settings (saved per project)</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Critical slack threshold</td>
+          <td>0 days</td>
+          <td>Tasks with Total Float &le; this value are highlighted as critical.
+              MS&nbsp;Project uses 0 by default. Raise to 2&ndash;3 days to also flag near-critical tasks as critical.</td>
+        </tr>
+        <tr>
+          <td>Dependency types</td>
+          <td>All types</td>
+          <td>Choose between <em>All dependency types</em> (Finish-to-Start, Start-to-Start, Finish-to-Finish, Start-to-Finish)
+              or <em>Finish-to-Start only</em> for a simpler, traditional CPM model.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>These settings are saved in the project sidecar file (<code>.custom-props.json</code>) and travel with the project.</p>
+
+    <h3>Display Preferences (global)</h3>
+    <table>
+      <thead><tr><th>Option</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Show total-float overlay bar on Gantt</td>
+          <td>Draws a light-blue bar on each Gantt task bar proportional to its total float, giving an at-a-glance view of slack directly in the Gantt Chart.</td>
+        </tr>
+        <tr>
+          <td>Show Free Float column in Task Sheet</td>
+          <td>Adds a <strong>Free Float</strong> column to the Task Sheet view.</td>
+        </tr>
+        <tr>
+          <td>Show CPM Results panel</td>
+          <td>Makes the CPM Results tab permanently visible without having to click the ribbon button each time.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Display preferences are global (not per-project) and are stored in the Windows registry via QSettings.</p>
+
+    <p>Click <strong>Restore MS Project Defaults</strong> to reset all settings to their defaults (0-day threshold, all dependency types, all display options off).</p>
+
+    <h2>Sending the CPM Report by Email</h2>
+    <p>The <strong>CPM Report</strong> split-button in <strong>REPORT &rarr; Export</strong> sends the analysis by email.
+       It requires <em>both</em> an open project <em>and</em> a configured SMTP account.</p>
+
+    <div class="callout note">
+      If no SMTP account is configured, the CPM Report button is <strong>disabled</strong> and its tooltip
+      directs you to <strong>Email Accounts</strong> and <strong>Email Config</strong> in the Report ribbon.
+      See <a href="15_email_integration.html">Email Integration</a> for setup instructions.
+    </div>
+
+    <p>Two send actions are available via the drop-down arrow (&#9660;):</p>
+    <table>
+      <thead><tr><th>Action</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Email CPM Report</td><td>Sends the CPM results table as an HTML email.</td></tr>
+        <tr><td>Email CPM Report + Gantt</td><td>Sends the results table with the full Gantt chart SVG attached.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>How the CPM Engine Works</h2>
+    <p>For users who want to understand the calculation:</p>
+    <ol>
+      <li><strong>Forward pass</strong> &mdash; computes the earliest start and finish for every task, propagating through dependency links.</li>
+      <li><strong>Backward pass</strong> &mdash; starting from the project finish date, computes the latest start and finish without delaying the project.</li>
+      <li><strong>Float calculation</strong> &mdash; Total Float = Late Finish &minus; Early Finish; Free Float = earliest successor Early Start &minus; own Early Finish.</li>
+      <li><strong>Completed tasks</strong> &mdash; tasks at 100% completion are never marked critical, even if their dates would otherwise place them on the critical path.</li>
+      <li><strong>Summary tasks</strong> &mdash; a summary task is marked critical if <em>any</em> of its leaf descendants is critical (matching MS&nbsp;Project behaviour).</li>
+    </ol>
+
+    <div class="callout tip">
+      <strong>Tip:</strong> After updating task dependencies or durations, the CPM results refresh automatically
+      when you switch back to the CPM Results tab or when a project reload occurs.
+      You do not need to manually trigger a recalculation.
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /page-wrapper -->
+
+</body>
+</html>

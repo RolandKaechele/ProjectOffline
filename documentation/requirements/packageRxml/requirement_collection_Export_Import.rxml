@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <Project_Offline depth="0">
+    <Export_Import depth="1">
+      <GROUP_TYPES>
+        <TYPES Name="teRequirementObjectType" Basetype="Enumeration" minValue="" maxValue="" Strings="functional requirement,non functional requirement,information" Values="" Colors=""/>
+        <TYPES Name="t_Status_Sup" Basetype="Enumeration" minValue="" maxValue="" Strings="open,clarify,approved,to be deleted" Values="" Colors=""/>
+        <TYPES Name="t_Status_ZF" Basetype="Enumeration" minValue="" maxValue="" Strings="new,modified,to be clarified,aligned,to be deleted" Values="" Colors=""/>
+        <TYPES Name="teVariant" Basetype="Enumeration" minValue="" maxValue="" Strings="" Values="" Colors=""/>
+      </GROUP_TYPES>
+      <GROUP_ATTRIBUTES>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="aRequirementObjectType" Type="teRequirementObjectType"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Text" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Heading" Type="String"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_Variant" Type="teVariant"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_PO_Status" Type="t_Status_Sup"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF_PO_Status" Type="t_Status_ZF"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_RequestedInCR_PO" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB4ZF_PO_Comment" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF4EB_PO_Comment" Type="Text"/>
+      </GROUP_ATTRIBUTES>
+      <GROUP_ATTRIBUTEVALUES/>
+      <GROUP_FILEINFO>
+        <FILEINFO Annotation="-" Creation_Date="1777892400" Creator="Project Offline" Description="Project Offline – Export and Import Requirements" Encoding="65001" Export_type="6.1" Internal_links_module="" Module="PO_17_ExportImport" Prefix="PO-EXP-" Scriptversion="1.0" Steps="0" Suffix="-" Version_number="1.0"/>
+      </GROUP_FILEINFO>
+      <GROUP_FORMALMODULES/>
+      <GROUP_LINKMODULES/>
+      <GROUP_PASSEDATTRIBUTES/>
+      <GROUP_PICTURES/>
+      <GROUP_OBJECT_IDS/>
+      <GROUP_OBJECTS>
+        <OBJECTS ID.Status="1_Heading.0" Object_Heading="1 PlantUML Export" Object_Text="" Section_number="1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1_1_Heading.0" Object_Heading="1.1 PlantUML Export Requirements" Object_Text="" Section_number="1.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1.0" Object_Heading="" Object_Text="The system shall export the current project schedule as PlantUML @startgantt markup via the Export ribbon button." Section_number="1.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2.0" Object_Heading="" Object_Text="The PlantUML export shall include all tasks, their start/finish dates, progress, and dependency links." Section_number="1.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="3.0" Object_Heading="" Object_Text="The Timeline View shall provide a separate PlantUML export of the pinned milestones and task bars." Section_number="1.1.3" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2_Heading.0" Object_Heading="2 SVG Export" Object_Text="" Section_number="2" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2_1_Heading.0" Object_Heading="2.1 SVG Export Requirements" Object_Text="" Section_number="2.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="4.0" Object_Heading="" Object_Text="The system shall export the Gantt Chart view as an SVG image." Section_number="2.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="5.0" Object_Heading="" Object_Text="The system shall export the Team Planner view as an SVG image." Section_number="2.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="6.0" Object_Heading="" Object_Text="The Timeline View shall provide an SVG export of the timeline strip." Section_number="2.1.3" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="7.0" Object_Heading="" Object_Text="The system shall export the Resource Usage Graph view as an SVG image." Section_number="2.1.4" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="3_Heading.0" Object_Heading="3 PlantUML Import" Object_Text="" Section_number="3" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="3_1_Heading.0" Object_Heading="3.1 PlantUML Import Requirements" Object_Text="" Section_number="3.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="8.0" Object_Heading="" Object_Text="The system shall import a @startgantt PlantUML file and create tasks from it." Section_number="3.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="4_Heading.0" Object_Heading="4 Dependency View" Object_Text="" Section_number="4" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="4_1_Heading.0" Object_Heading="4.1 Dependency View Requirements" Object_Text="" Section_number="4.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="9.0" Object_Heading="" Object_Text="The system shall provide a Dependency View showing all task links in a table with columns: From Task, Link Type, To Task." Section_number="4.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="10.0" Object_Heading="" Object_Text="The Dependency View shall allow adding and deleting task dependency links." Section_number="4.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="11.0" Object_Heading="" Object_Text="Adding or deleting a dependency link shall update the Gantt Chart dependency arrows immediately." Section_number="4.1.3" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="12.0" Object_Heading="" Object_Text="The system shall support FS (Finish-to-Start), SS (Start-to-Start), FF (Finish-to-Finish), and SF (Start-to-Finish) dependency link types." Section_number="4.1.4" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+      </GROUP_OBJECTS>
+    </Export_Import>
+  </Project_Offline>
+</root>

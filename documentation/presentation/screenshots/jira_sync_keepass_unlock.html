@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>KeePass Unlock Prompt – Jira Sync</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#2b3a50;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center;height:100vh}
+
+.app-bg{position:fixed;inset:0;background:rgba(30,40,60,.55);display:flex;align-items:center;justify-content:center;z-index:10}
+
+/* Message box */
+.msgbox{background:#fff;border-radius:5px;box-shadow:0 12px 40px rgba(0,0,0,.5);width:420px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #8090a0}
+.msgbox-title{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:6px 12px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.msgbox-close{color:#fff;font-size:16px;cursor:default;opacity:.8;background:none;border:none;font-family:inherit;padding:0 2px}
+
+.msgbox-body{padding:20px 20px 16px;display:flex;gap:16px;align-items:flex-start}
+.msgbox-icon{font-size:38px;flex-shrink:0;line-height:1}
+.msgbox-text{flex:1}
+.msgbox-text h3{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.msgbox-text p{font-size:12px;color:#444;line-height:1.6}
+.msgbox-text code{background:#eef3fb;border:1px solid #c8d8f0;border-radius:3px;padding:1px 5px;font-size:11px;color:#2B579A;font-family:"Consolas","Courier New",monospace}
+
+.msgbox-footer{background:#f0f4f8;border-top:1px solid #D0DDF0;padding:8px 16px;display:flex;justify-content:flex-end;gap:8px}
+.btn{padding:5px 20px;border-radius:3px;font-size:12px;font-family:"Segoe UI",Arial,sans-serif;font-weight:700;cursor:default;border:1px solid}
+.btn-yes{background:#2B579A;color:#fff;border-color:#1A3F7A}
+.btn-no{background:#fff;color:#2B579A;border-color:#a0b8d0}
+</style>
+</head>
+<body>
+<div class="app-bg">
+  <div class="msgbox">
+    <div class="msgbox-title">
+      KeePass Locked
+      <button class="msgbox-close">✕</button>
+    </div>
+    <div class="msgbox-body">
+      <div class="msgbox-icon">🔐</div>
+      <div class="msgbox-text">
+        <h3>KeePass is required to connect to Jira</h3>
+        <p>
+          The configured Jira server uses <code>KeePass</code> for credential storage,
+          but KeePass is currently locked.<br/><br/>
+          Would you like to unlock KeePass now to proceed with
+          <strong>'Sync from Jira'</strong>?
+        </p>
+      </div>
+    </div>
+    <div class="msgbox-footer">
+      <button class="btn btn-no">No</button>
+      <button class="btn btn-yes">Yes</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

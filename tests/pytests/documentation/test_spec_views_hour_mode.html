@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Hour Mode Engine &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Hour Mode Engine</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#hour_mode">hour mode</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">31</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">31</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="hour_mode">
+  <div class="module-header"><h2>hour_mode.py</h2><span class="badge">31 tests</span></div>
+  <div class="module-desc">Hour-mode helpers: read_work_hours, working_day_count, date_to_working_day_idx, datetime_to_hourly_x, HourModeHeader widget paint.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestReadWorkHours — Read Work Hours</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-01</span>
+          <span class="test-name">Returns default when no calendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import read_work_hours</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = read_work_hours(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>(8, 17, 9, frozenset())  # 8am to 5pm, 9 hours, no breaks</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (8, 17, 9, frozenset())  # 8am to 5pm, 9 hours, no breaks</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-02</span>
+          <span class="test-name">Returns default when none project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import read_work_hours</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = read_work_hours(None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>(8, 17, 9, frozenset())</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (8, 17, 9, frozenset())</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-03</span>
+          <span class="test-name">Reads work hours from calendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import read_work_hours</code><br><code>project = MagicMock()</code><br><code>calendar = MagicMock()</code><br><code>start_time = MagicMock()</code><br><code>start_time.getHour.return_value = 9</code><br><code>finish_time = MagicMock()</code><br><code>finish_time.getHour.return_value = 18</code><br><code>hours = MagicMock()</code><br><code>hours.getStart.return_value = start_time</code><br><code>hours.getEnd.return_value = finish_time</code><br><code>calendar.getCalendarHours.return_value = [hours]</code><br><code>project.getDefaultCalendar.return_value = calendar</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = read_work_hours(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>(9, 18, 9, frozenset())  # 9am to 6pm, 9 hours, no breaks</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (9, 18, 9, frozenset())  # 9am to 6pm, 9 hours, no breaks</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-04</span>
+          <span class="test-name">Handles empty calendar hours list</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import read_work_hours</code><br><code>project = MagicMock()</code><br><code>calendar = MagicMock()</code><br><code>calendar.getCalendarHours.return_value = []</code><br><code>project.getDefaultCalendar.return_value = calendar</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = read_work_hours(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>(8, 17, 9, frozenset())</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (8, 17, 9, frozenset())</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-05</span>
+          <span class="test-name">Handles exception gracefully</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import read_work_hours</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.side_effect = Exception(&quot;Calendar error&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = read_work_hours(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>(8, 17, 9, frozenset())</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == (8, 17, 9, frozenset())</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestWorkingDayCount — Working Day Count</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-06</span>
+          <span class="test-name">Zero days returns zero</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>start = QDate(2025, 1, 6)  # Monday</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(start, 0)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-07</span>
+          <span class="test-name">One weekday returns one</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(monday, 1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-08</span>
+          <span class="test-name">Five days monday to friday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(monday, 5)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>5</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 5</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-09</span>
+          <span class="test-name">Seven days includes weekend</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(monday, 7)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>5  # Only weekdays counted</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 5  # Only weekdays counted</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-10</span>
+          <span class="test-name">Fourteen days two work weeks</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(monday, 14)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>10</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 10</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-11</span>
+          <span class="test-name">Starts on saturday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>saturday = QDate(2025, 1, 11)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(saturday, 3)  # Sat, Sun, Mon</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>1  # Only Monday counts</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 1  # Only Monday counts</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-12</span>
+          <span class="test-name">Starts on sunday</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import working_day_count</code><br><code>sunday = QDate(2025, 1, 12)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = working_day_count(sunday, 2)  # Sun, Mon</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>1  # Only Monday counts</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 1  # Only Monday counts</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDateToWorkingDayIdx — Date To Working Day Idx</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-13</span>
+          <span class="test-name">Same date returns zero</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import date_to_working_day_idx</code><br><code>monday = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = date_to_working_day_idx(monday, monday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-14</span>
+          <span class="test-name">Next weekday returns one</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import date_to_working_day_idx</code><br><code>monday = QDate(2025, 1, 6)</code><br><code>tuesday = QDate(2025, 1, 7)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = date_to_working_day_idx(tuesday, monday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-15</span>
+          <span class="test-name">Friday after monday returns four</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import date_to_working_day_idx</code><br><code>monday = QDate(2025, 1, 6)</code><br><code>friday = QDate(2025, 1, 10)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = date_to_working_day_idx(friday, monday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>4</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 4</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-16</span>
+          <span class="test-name">Weekend days not counted</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import date_to_working_day_idx</code><br><code>friday = QDate(2025, 1, 10)</code><br><code>monday_next = QDate(2025, 1, 13)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = date_to_working_day_idx(monday_next, friday)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>1  # Only Monday next week is 1 working day from Friday</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 1  # Only Monday next week is 1 working day from Friday</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-17</span>
+          <span class="test-name">Two weeks later</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import date_to_working_day_idx</code><br><code>monday1 = QDate(2025, 1, 6)</code><br><code>monday2 = QDate(2025, 1, 20)  # 10 working days later</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = date_to_working_day_idx(monday2, monday1)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>10</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 10</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDatetimeToHourlyX — Datetime To Hourly X</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-18</span>
+          <span class="test-name">Start of day first working day</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 6, 8, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 8, 9, False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-19</span>
+          <span class="test-name">Noon on first day</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 6, 12, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 8, 9, False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>4 * 40  # 160 pixels</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 4 * 40  # 160 pixels</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-20</span>
+          <span class="test-name">End of day first working day</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 6, 17, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 8, 9, False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>pytest.approx(9 * 40, abs=1)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == pytest.approx(9 * 40, abs=1)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-21</span>
+          <span class="test-name">Second working day start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 7, 8, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 8, 9, False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>9 * 40  # 360 pixels</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 9 * 40  # 360 pixels</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-22</span>
+          <span class="test-name">Before work hours clamps to start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 6, 6, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 8, 9, False)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is less than <code>40  # Close to 0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result &lt; 40  # Close to 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-23</span>
+          <span class="test-name">After work hours uses actual hour</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import datetime_to_hourly_x</code><br><code>dt = make_mock_ldt(2025, 1, 6, 20, 0)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = datetime_to_hourly_x(dt, start, 40, 0, 24, True)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>20 * 40</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == 20 * 40</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestHourModeHeaderInit — Hour Mode Header Init</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-24</span>
+          <span class="test-name">Widget is created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import HourModeHeader</code></div>
+          <div class="block"><div class="block-label">Run</div><code>header = HourModeHeader(header_height=42)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>header is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert header is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-25</span>
+          <span class="test-name">Has correct height</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hour_header.height()</code> equals <code>42</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hour_header.height() == 42</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-26</span>
+          <span class="test-name">Stores project start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from PyQt5.QtCore import QDate</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hour_header._project_start</code> equals <code>QDate(2025, 1, 6)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hour_header._project_start == QDate(2025, 1, 6)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-27</span>
+          <span class="test-name">Stores work days</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hour_header._total_days</code> equals <code>10</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hour_header._total_days == 10</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-28</span>
+          <span class="test-name">Stores work hours</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hour_header._work_hour_start</code> equals <code>8</code>. <code>hour_header._clock_day_span</code> equals <code>9</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hour_header._work_hour_start == 8</code><br><code>assert hour_header._clock_day_span == 9</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-29</span>
+          <span class="test-name">Stores pixels per hour</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hour_header._day_width</code> equals <code>40</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hour_header._day_width == 40</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestHourModeHeaderPaintEvent — Hour Mode Header Paint Event</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-30</span>
+          <span class="test-name">Paint does not crash</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from PyQt5.QtGui import QPaintEvent</code><br><code>from PyQt5.QtCore import QRect</code><br><code>event = QPaintEvent(QRect(0, 0, hour_header.width(), hour_header.height()))</code></div>
+          <div class="block"><div class="block-label">Run</div><code>hour_header.paintEvent(event)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">HO-31</span>
+          <span class="test-name">Calculates total width</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from hour_mode import HourModeHeader</code><br><code>header = HourModeHeader(header_height=42)</code><br><code>start = QDate(2025, 1, 6)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>header.configure(start, 5, 40, 8, 9, frozenset())</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>header.width()</code> is greater than <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert header.width() &gt; 0</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

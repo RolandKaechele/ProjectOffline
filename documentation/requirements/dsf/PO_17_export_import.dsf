@@ -1,0 +1,55 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_17_ExportImport	PO-EXP-	Project Offline – Export and Import Requirements	1777892400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 PlantUML Export			1	1_Heading.0	Not relevant		
+1.1 PlantUML Export Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall export the current project schedule as PlantUML @startgantt markup via the Export ribbon button.	functional requirement	1.1.1	PO-EXP-001.0	Not relevant	approved	aligned
+	The PlantUML export shall include all tasks, their start/finish dates, progress, and dependency links.	functional requirement	1.1.2	PO-EXP-002.0	Not relevant	approved	aligned
+	The Timeline View shall provide a separate PlantUML export of the pinned milestones and task bars.	functional requirement	1.1.3	PO-EXP-003.0	Not relevant	approved	aligned
+2 SVG Export			2	2_Heading.0	Not relevant		
+2.1 SVG Export Requirements			2.1	2_1_Heading.0	Not relevant		
+	The system shall export the Gantt Chart view as an SVG image.	functional requirement	2.1.1	PO-EXP-004.0	Not relevant	approved	aligned
+	The system shall export the Team Planner view as an SVG image.	functional requirement	2.1.2	PO-EXP-005.0	Not relevant	approved	aligned
+	The Timeline View shall provide an SVG export of the timeline strip.	functional requirement	2.1.3	PO-EXP-006.0	Not relevant	approved	aligned
+	The system shall export the Resource Usage Graph view as an SVG image.	functional requirement	2.1.4	PO-EXP-007.0	Not relevant	approved	aligned
+3 PlantUML Import			3	3_Heading.0	Not relevant		
+3.1 PlantUML Import Requirements			3.1	3_1_Heading.0	Not relevant		
+	The system shall import a @startgantt PlantUML file and create tasks from it.	functional requirement	3.1.1	PO-IMP-001.0	Not relevant	approved	aligned
+4 Dependency View			4	4_Heading.0	Not relevant		
+4.1 Dependency View Requirements			4.1	4_1_Heading.0	Not relevant		
+	The system shall provide a Dependency View showing all task links in a table with columns: From Task, Link Type, To Task.	functional requirement	4.1.1	PO-DEP-001.0	Not relevant	approved	aligned
+	The Dependency View shall allow adding and deleting task dependency links.	functional requirement	4.1.2	PO-DEP-002.0	Not relevant	approved	aligned
+	Adding or deleting a dependency link shall update the Gantt Chart dependency arrows immediately.	functional requirement	4.1.3	PO-DEP-003.0	Not relevant	approved	aligned
+	The system shall support FS (Finish-to-Start), SS (Start-to-Start), FF (Finish-to-Finish), and SF (Start-to-Finish) dependency link types.	functional requirement	4.1.4	PO-DEP-004.0	Not relevant	approved	aligned
+</OBJECTS>

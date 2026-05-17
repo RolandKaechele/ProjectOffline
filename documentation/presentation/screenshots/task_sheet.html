@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Task Sheet – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+
+/* ── Window chrome ─────────────────────────────── */
+.window{display:flex;flex-direction:column;width:1100px;height:620px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Menu bar ──────────────────────────────────── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;padding:0;height:28px;gap:0;font-size:13px}
+.menubar span{padding:5px 12px;cursor:default}
+.menubar span:hover{background:#3A6EBC}
+
+/* ── Ribbon ─────────────────────────────────────── */
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:1px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:46px;padding:3px 5px;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn:hover{background:#dde8f5;border-color:#a0bcd8}
+.rbtn-icon{font-size:16px;line-height:1.2}
+.rgroup-lbl{font-size:9.5px;color:#667;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:2px}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:6px 3px;align-self:stretch}
+
+/* ── Tab bar ───────────────────────────────────── */
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 16px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+.tab:hover:not(.active){background:#C5D8F0}
+
+/* ── Main area ─────────────────────────────────── */
+.main-area{display:flex;flex:1;overflow:hidden}
+
+/* ── Task grid ─────────────────────────────────── */
+.task-grid{flex:1;display:flex;flex-direction:column;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead tr{background:linear-gradient(to bottom,#ECF3FB,#D8E8F5)}
+th{border-right:1px solid #B0C8E0;border-bottom:2px solid #2B579A;padding:4px 6px;font-size:12px;font-weight:700;color:#1A3F7A;text-align:left;white-space:nowrap;overflow:hidden}
+td{border-right:1px solid #D0DDF0;border-bottom:1px solid #D0DDF0;padding:3px 6px;white-space:nowrap;overflow:hidden;font-size:12px}
+tr.even td{background:#fff}
+tr.odd  td{background:#F0F5FF}
+tr.sel  td{background:#BDD7EE!important;color:#000}
+tr.summary td{font-weight:700;background:#E8EFF8!important}
+tr.summary.odd td{background:#DDE8F5!important}
+
+/* summary collapse triangle */
+.tri{display:inline-block;width:10px;font-size:10px;color:#555}
+
+/* indent */
+.i1{padding-left:10px} .i2{padding-left:22px}
+
+/* status icons */
+.icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;font-size:8px;font-weight:900;margin-right:1px}
+.ic-crit {background:#c0392b;color:#fff}
+.ic-late {background:#e07b1a;color:#fff}
+.ic-mile {background:#7b4bbf;color:#fff;border-radius:0;transform:rotate(45deg);width:10px;height:10px;margin-right:3px;font-size:7px}
+.ic-note {background:#2B579A;color:#fff;border-radius:2px;font-size:8px}
+
+/* progress bar in % col */
+.pbar{display:flex;align-items:center;gap:4px}
+.pbar-track{flex:1;height:8px;background:#e0e8f0;border-radius:4px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:4px;background:#2B579A}
+.pbar-fill.done{background:#2e8b57}
+.pbar-fill.partial{background:#2B579A}
+
+/* status bar */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 8px;display:flex;gap:16px;height:22px;align-items:center}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <!-- Menu bar -->
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+
+  <!-- Ribbon (TASK tab active) -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab active">TASK</button>
+      <button class="rtab">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn" style="background:#dde8f5;border-color:#a0bcd8"><div class="rbtn-icon">📋</div><div class="rbtn-lbl">Task<br>Sheet</div></div>
+        </div>
+        <div class="rgroup-lbl">Sheet</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">⊟</div><div class="rbtn-lbl">Gantt<br>Chart</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⤢</div><div class="rbtn-lbl">Depend-<br>encies</div></div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📋</div><div class="rbtn-lbl">Paste</div></div>
+          <div class="rbtn"><div class="rbtn-icon">✂</div><div class="rbtn-lbl">Cut</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⎘</div><div class="rbtn-lbl">Copy</div></div>
+        </div>
+        <div class="rgroup-lbl">Clipboard</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">🔗</div><div class="rbtn-lbl">Jira Sync<br>Config</div></div>
+          <div class="rbtn"><div class="rbtn-icon">🔄</div><div class="rbtn-lbl">Sync from<br>Jira</div></div>
+        </div>
+        <div class="rgroup-lbl">Jira</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabbar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab active">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+  </div>
+
+  <!-- Grid -->
+  <div class="task-grid">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28px"></th>
+          <th style="width:28px">#</th>
+          <th style="width:260px">Task Name</th>
+          <th style="width:70px">Duration</th>
+          <th style="width:100px">% Complete</th>
+          <th style="width:100px">Start</th>
+          <th style="width:100px">Finish</th>
+          <th style="width:130px">Assigned To</th>
+          <th>Predecessors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Summary: Requirements -->
+        <tr class="summary even">
+          <td></td><td>1</td>
+          <td><span class="tri">▼</span> Requirements</td>
+          <td>5d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill done" style="width:100%"></div></div>100%</div></td>
+          <td>01 Apr 2026</td><td>07 Apr 2026</td><td>—</td><td></td>
+        </tr>
+        <tr class="odd">
+          <td><span class="icon ic-note">📝</span></td><td>2</td>
+          <td class="i1">Stakeholder interviews</td>
+          <td>2d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill done" style="width:100%"></div></div>100%</div></td>
+          <td>01 Apr 2026</td><td>02 Apr 2026</td><td>Alice</td><td></td>
+        </tr>
+        <tr class="even">
+          <td></td><td>3</td>
+          <td class="i1">Requirements document</td>
+          <td>3d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill done" style="width:100%"></div></div>100%</div></td>
+          <td>01 Apr 2026</td><td>07 Apr 2026</td><td>Alice</td><td>2 – Stakeholder interviews</td>
+        </tr>
+
+        <!-- Summary: Design -->
+        <tr class="summary odd">
+          <td></td><td>4</td>
+          <td><span class="tri">▼</span> Design</td>
+          <td>6d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:60%"></div></div>60%</div></td>
+          <td>08 Apr 2026</td><td>15 Apr 2026</td><td>—</td><td></td>
+        </tr>
+        <tr class="even">
+          <td></td><td>5</td>
+          <td class="i1">Architecture review</td>
+          <td>1d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill done" style="width:100%"></div></div>100%</div></td>
+          <td>08 Apr 2026</td><td>08 Apr 2026</td><td>Bob</td><td>3 – Requirements document</td>
+        </tr>
+        <tr class="odd sel">
+          <td></td><td>6</td>
+          <td class="i1">Component design</td>
+          <td>5d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:40%"></div></div>40%</div></td>
+          <td>09 Apr 2026</td><td>15 Apr 2026</td><td>Carol</td><td>5 – Architecture review</td>
+        </tr>
+
+        <!-- Summary: Implementation -->
+        <tr class="summary even">
+          <td></td><td>7</td>
+          <td><span class="tri">▶</span> Implementation</td>
+          <td>14d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>16 Apr 2026</td><td>05 May 2026</td><td>—</td><td></td>
+        </tr>
+        <tr class="odd">
+          <td><span class="icon ic-crit">●</span></td><td>8</td>
+          <td class="i1">Module A coding</td>
+          <td>8d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>16 Apr 2026</td><td>25 Apr 2026</td><td>Dave</td><td>6 – Component design</td>
+        </tr>
+        <tr class="even">
+          <td><span class="icon ic-crit">●</span></td><td>9</td>
+          <td class="i1">Module B coding</td>
+          <td>6d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>16 Apr 2026</td><td>23 Apr 2026</td><td>Eve</td><td>6 – Component design</td>
+        </tr>
+        <tr class="odd">
+          <td></td><td>10</td>
+          <td class="i1">Unit tests</td>
+          <td>3d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>28 Apr 2026</td><td>30 Apr 2026</td><td>Dave</td><td>8 – Module A coding</td>
+        </tr>
+        <tr class="even">
+          <td></td><td>11</td>
+          <td class="i1">Integration module</td>
+          <td>4d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>24 Apr 2026</td><td>29 Apr 2026</td><td>Bob</td><td>9 – Module B coding</td>
+        </tr>
+
+        <!-- Summary: QA -->
+        <tr class="summary odd">
+          <td></td><td>12</td>
+          <td><span class="tri">▼</span> Integration &amp; QA</td>
+          <td>5d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>05 May 2026</td><td>11 May 2026</td><td>—</td><td></td>
+        </tr>
+        <tr class="even">
+          <td><span class="icon ic-crit">●</span></td><td>13</td>
+          <td class="i1">Integration testing</td>
+          <td>4d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>05 May 2026</td><td>08 May 2026</td><td>Frank</td><td>10 – Unit tests,&nbsp; 11 – Integration module</td>
+        </tr>
+        <tr class="odd">
+          <td><span class="icon ic-late">●</span></td><td>14</td>
+          <td class="i1">User acceptance testing</td>
+          <td>3d</td><td><div class="pbar"><div class="pbar-track"><div class="pbar-fill partial" style="width:0%"></div></div>0%</div></td>
+          <td>11 May 2026</td><td>13 May 2026</td><td>Alice</td><td>13 – Integration testing</td>
+        </tr>
+        <tr class="even">
+          <td><span class="icon ic-mile" style="transform:rotate(45deg)">◆</span></td><td>15</td>
+          <td class="i1">Release sign-off</td>
+          <td>0d</td><td></td>
+          <td>14 May 2026</td><td>14 May 2026</td><td>—</td><td>14 – User acceptance testing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span>Tasks: 14</span>
+    <span>|</span>
+    <span>Critical: 4</span>
+    <span>|</span>
+    <span>Project: Software Module Release v2.1</span>
+  </div>
+</div>
+</body>
+</html>

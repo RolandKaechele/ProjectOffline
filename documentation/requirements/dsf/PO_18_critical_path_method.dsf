@@ -1,0 +1,68 @@
+﻿<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_18_CriticalPathMethod	PO-CPM-	Project Offline – Critical Path Method (CPM) Requirements	1778929200	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 CPM Computation			1	1_Heading.0	Not relevant		
+	Requirements for computing early/late dates, float values, and critical path identification for project tasks.	information	1.1	PO-CPM-INFO-001.0	Not relevant		
+1.1 CPM Algorithm Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall compute the critical path using a forward/backward pass algorithm (_compute_critical_ids) that calculates Early Start (ES), Early Finish (EF), Late Start (LS), Late Finish (LF), Total Float, and Free Float for each non-completed task.	functional requirement	1.1.1	PO-CPM-001.0	Not relevant	approved	aligned
+	The CPM algorithm shall support two dependency-type modes: 'all' (all dependency types included) and 'fs_only' (only Finish-to-Start dependencies).	functional requirement	1.1.2	PO-CPM-002.0	Not relevant	approved	aligned
+	A configurable "critical slack days" threshold (default 0) shall determine which tasks are highlighted as critical; tasks with total float ≤ threshold working days shall be considered critical.	functional requirement	1.1.3	PO-CPM-003.0	Not relevant	approved	aligned
+	Completed tasks (% complete = 100) shall be excluded from critical path computation.	functional requirement	1.1.4	PO-CPM-004.0	Not relevant	approved	aligned
+	Summary tasks shall be marked as critical when at least one of their descendant leaf tasks is critical.	functional requirement	1.1.5	PO-CPM-005.0	Not relevant	approved	aligned
+2 CPM Settings			2	2_Heading.0	Not relevant		
+	Requirements for persisting and editing CPM analysis configuration.	information	2.1	PO-CPM-INFO-002.0	Not relevant		
+2.1 CPM Settings Requirements			2.1	2_1_Heading.0	Not relevant		
+	The system shall provide a CpmSettingsDialog with the title "Critical Path Settings", accessible from the Report ribbon panel, allowing configuration of: critical slack days (integer ≥ 0, default 0), dependency type selection ('all' or 'fs_only'), show float bar toggle, show free float column toggle, and show CPM results panel toggle.	functional requirement	2.1.1	PO-CPM-006.0	Not relevant	approved	aligned
+	The "Restore Defaults" button in CpmSettingsDialog shall reset all controls to their default values without saving.	functional requirement	2.1.2	PO-CPM-007.0	Not relevant	approved	aligned
+	CPM settings (critical slack days, dependency types, show float bar, show free float column, show CPM results panel) shall be persisted via the SettingsManager using QSettings.	functional requirement	2.1.3	PO-CPM-008.0	Not relevant	approved	aligned
+	The SettingsManager shall clamp negative critical slack days values to 0 and reject invalid dependency-type strings (reverting to 'all') when loading settings.	functional requirement	2.1.4	PO-CPM-009.0	Not relevant	approved	aligned
+3 CPM Results View			3	3_Heading.0	Not relevant		
+	Requirements for displaying the CPM analysis results in a dedicated panel.	information	3.1	PO-CPM-INFO-003.0	Not relevant		
+3.1 CPM Results View Requirements			3.1	3_1_Heading.0	Not relevant		
+	The system shall provide a CPM Results panel (CpmResultsView) that displays a table with 9 columns: Task ID, Name, Early Start, Early Finish, Late Start, Late Finish, Total Float, Free Float, and Status.	functional requirement	3.1.1	PO-CPM-010.0	Not relevant	approved	aligned
+	Float values in the CPM Results table shall be displayed as fractional days (total_float_wh ÷ working_day_hours, rounded to one decimal place).	functional requirement	3.1.2	PO-CPM-011.0	Not relevant	approved	aligned
+	Critical tasks (Status = "CRITICAL") shall be sorted before non-critical tasks (Status = "OK") in the CPM Results table.	functional requirement	3.1.3	PO-CPM-012.0	Not relevant	approved	aligned
+	The CPM Results panel shall include a "Show critical tasks only" filter checkbox that, when checked, hides all non-critical rows.	functional requirement	3.1.4	PO-CPM-013.0	Not relevant	approved	aligned
+	The CPM Results panel status label shall display the total task count and the number of critical tasks.	functional requirement	3.1.5	PO-CPM-014.0	Not relevant	approved	aligned
+3.2 CPM Results View Interaction			3.2	3_2_Heading.0	Not relevant		
+	Double-clicking a task row in the CPM Results panel shall emit the task_double_clicked(int) signal; the MainWindow shall handle this signal by opening the Task Information dialog for the selected task.	functional requirement	3.2.1	PO-CPM-020.0	Not relevant	approved	aligned
+4 CPM Report Ribbon Button			4	4_Heading.0	Not relevant		
+	Requirements for the CPM Report ribbon button in the Report panel, which sends the critical path analysis report by email.	information	4.1	PO-CPM-INFO-004.0	Not relevant		
+4.1 CPM Report Button Requirements			4.1	4_1_Heading.0	Not relevant		
+	The Report ribbon panel shall include a "CPM Report" button (ProjectRibbon._cpm_exp_btn) for emailing the critical path analysis report; this button shall be included in the _project_btns list so it is disabled when no project is open.	functional requirement	4.1.1	PO-CPM-015.0	Not relevant	approved	aligned
+	The CPM Report ribbon button shall be email-only: when no SMTP account is configured (SettingsManager.get_email_configs() returns an empty list or no active account name matches), the entire button shall be disabled and its tooltip shall indicate that no email account is configured and provide guidance on how to add one via "Email Accounts" in the Report ribbon.	functional requirement	4.1.2	PO-CPM-016.0	Not relevant	approved	aligned
+	When a valid SMTP account is configured, the CPM Report button shall be enabled only if a project is also open; calling set_project_open(True) shall not re-enable the button if email is not configured (the _email_actions_enabled flag shall take precedence).	functional requirement	4.1.3	PO-CPM-017.0	Not relevant	approved	aligned
+	When email configuration is restored (set_email_actions_enabled(True)), the CPM Report button tooltip shall revert to its original descriptive text and the button shall be enabled if and only if a project is open.	functional requirement	4.1.4	PO-CPM-018.0	Not relevant	approved	aligned
+	The MainWindow shall call _update_email_actions_state() immediately after set_project_open() in _reload_all_views() to ensure the CPM Report button reflects both the project-open and email-configured state on every project open/close.	functional requirement	4.1.5	PO-CPM-019.0	Not relevant	approved	aligned
+</OBJECTS>

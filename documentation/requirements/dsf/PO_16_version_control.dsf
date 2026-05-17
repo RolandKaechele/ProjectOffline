@@ -1,0 +1,90 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_16_VersionControl	PO-VCS-	Project Offline – Version Control Integration Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	PO_16_VersionControl	PO-VCS-	Project Offline – Version Control Integration Requirements	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Version Control Integration			1	1_Heading.0	Not relevant		
+	Requirements for Git and SVN version control integration: repository detection, credential management via KeePass, commit/log/branch/restore operations, auto-commit on save, conflict handling, and non-blocking background execution.	information	1.1	PO-VCS-INFO-001.0	Not relevant		
+10.1 Repository Detection and Initialisation			1.1	1_1_Heading.0	Not relevant		
+	The system shall detect whether the open project file resides in a Git or SVN working copy by walking the directory tree upward from the project file directory, looking for a .git directory or file (Git) or a .svn directory (SVN).	functional requirement	1.1.1	PO-VCS-001.0	Not relevant	approved	aligned
+	The detect_repo() function shall return a dict with keys type ("git" or "svn"), root (effective repository root path), and either branch (Git) or revision (SVN); it shall return an empty dict when no repository is detected.	functional requirement	1.1.2	PO-VCS-002.0	Not relevant	approved	aligned
+	Repository detection shall handle nested repositories by stopping at the first .git or .svn found when walking upward, so the effective root always refers to the innermost enclosing repository.	functional requirement	1.1.3	PO-VCS-003.0	Not relevant	approved	aligned
+	The module shall expose init(project_file_path) to run detection on project open and reset() to clear all state on project close; the auto-commit debounce timer, if active, shall be cancelled by reset().	functional requirement	1.1.4	PO-VCS-004.0	Not relevant	approved	aligned
+	The VERSION CONTROL ribbon tab shall be hidden by default and made visible only when init() detects a repository for the open project; it shall be hidden again when the project is closed.	functional requirement	1.1.5	PO-VCS-005.0	Not relevant	approved	aligned
+	The Git-specific ribbon groups (branch management, pull) shall be visible only when the detected repository type is "git"; the SVN-specific groups (update, cleanup) shall be visible only when the type is "svn".	functional requirement	1.1.6	PO-VCS-006.0	Not relevant	approved	aligned
+10.2 Credential Management			1.2	1_2_Heading.0	Not relevant		
+	VCS credentials shall be retrieved exclusively from the KeePass integration using a configurable entry name stored in QSettings under the vcs/keepass_entry key; credentials shall never be stored in QSettings, log files, or debug dumps.	functional requirement	1.2.1	PO-VCS-007.0	Not relevant	approved	aligned
+	For Git operations requiring authentication, the system shall inject credentials via the GIT_ASKPASS mechanism: a temporary .bat helper script shall be written to a system temp file, and GIT_ASKPASS_USERNAME and GIT_ASKPASS_PASSWORD environment variables shall be set in the subprocess environment so that credentials are never passed as command-line arguments.	functional requirement	1.2.2	PO-VCS-008.0	Not relevant	approved	aligned
+	The GIT_ASKPASS helper script shall be generated at runtime into a tempfile.mkstemp() path and cached for reuse; it shall be regenerated automatically if the cached file is deleted.	functional requirement	1.2.3	PO-VCS-009.0	Not relevant	approved	aligned
+	For SVN subprocesses, --non-interactive shall always be included in every svn command invocation. The --no-auth-cache flag and explicit --username/--password credential arguments shall be appended only when non-empty KeePass credentials are available; when no KeePass credentials are configured or available, --no-auth-cache shall be omitted so that SVN can authenticate using its local OS credential cache (e.g. Windows Credential Manager), enabling operations such as svn log to succeed without KeePass.	functional requirement	1.2.4	PO-VCS-010.0	Not relevant	approved	aligned
+	The GIT_TERMINAL_PROMPT environment variable shall be set to "0" for all git subprocess calls to prevent interactive credential prompts.	functional requirement	1.2.5	PO-VCS-011.0	Not relevant	approved	aligned
+	The _sanitise_output() function shall replace live credential values (username and password) in subprocess stdout/stderr with the tokens <username> and <password> before any output is logged or shown in the UI.	functional requirement	1.2.6	PO-VCS-012.0	Not relevant	approved	aligned
+	When KeePass is locked or the entry is not configured, the system shall present the user with options to unlock KeePass (via the standard KeePass unlock dialog), enter credentials manually for the current operation only, or skip the operation; plaintext credentials provided manually shall never be persisted.	functional requirement	1.2.7	PO-VCS-013.0	Not relevant	approved	aligned
+10.3 VCS Configuration Dialog			1.3	1_3_Heading.0	Not relevant		
+	The VERSION CONTROL ribbon Setup group shall contain a VCS Config button (always enabled) that opens the VcsConfigDialog.	functional requirement	1.3.1	PO-VCS-014.0	Not relevant	approved	aligned
+	The VcsConfigDialog shall include a KeePass entry selector with a three-state QStackedWidget showing: not configured (with a Configure KeePass button), locked (with an Unlock KeePass button), and unlocked (with an entry selector combo).	functional requirement	1.3.2	PO-VCS-015.0	Not relevant	approved	aligned
+	The VcsConfigDialog shall include controls for auto-commit configuration: an enable/disable checkbox, a commit message template QLineEdit (default "Auto-commit: {project_name} saved at {timestamp}"), and a scope selector (project file only vs. all tracked changes).	functional requirement	1.3.3	PO-VCS-016.0	Not relevant	approved	aligned
+	The VcsConfigDialog shall include optional path override fields for git.exe and svn.exe, each with a Browse button; when left empty the system uses the bundled executables or falls back to PATH.	functional requirement	1.3.4	PO-VCS-017.0	Not relevant	approved	aligned
+	All VCS settings shall be persisted via the SettingsManager under the vcs/ QSettings prefix: vcs/keepass_entry, vcs/auto_commit_enabled, vcs/auto_commit_template, vcs/auto_commit_scope, vcs/git_path, vcs/svn_path.	functional requirement	1.3.5	PO-VCS-018.0	Not relevant	approved	aligned
+10.4 Commit Operation			1.4	1_4_Heading.0	Not relevant		
+	The Commit button shall be enabled only when a project is open and a repository is detected; clicking it shall prompt the user for a commit message via QInputDialog.	functional requirement	1.4.1	PO-VCS-019.0	Not relevant	approved	aligned
+	Before executing a commit, the system shall perform pre-flight checks: for Git, detect any merge, rebase, or cherry-pick in progress by inspecting the .git directory; for SVN, detect working-copy locks by parsing svn status --xml; if a blocking condition is found, the commit shall be aborted with a user-facing explanation.	functional requirement	1.4.2	PO-VCS-020.0	Not relevant	approved	aligned
+	The commit scope shall respect the vcs/auto_commit_scope setting: "project" commits only the open project file; "all" commits all tracked changes in the working copy.	functional requirement	1.4.3	PO-VCS-021.0	Not relevant	approved	aligned
+	The "Commit" ribbon button shall be a split-button; selecting "Commit all tracked changes" from the dropdown shall commit all tracked changes in the working copy, overriding the vcs/auto_commit_scope setting for that single operation without modifying the saved configuration.	functional requirement	1.4.4	PO-VCS-042.0	Not relevant	approved	aligned
+10.5 Auto-Commit on Save			1.5	1_5_Heading.0	Not relevant		
+	When vcs/auto_commit_enabled is True and a repository is detected, the system shall schedule a debounced auto-commit 3 seconds after each project save, so that rapid successive saves result in only one commit.	functional requirement	1.5.1	PO-VCS-022.0	Not relevant	approved	aligned
+	The auto-commit message shall be built from the vcs/auto_commit_template string by substituting {project_name} and {timestamp} placeholders.	functional requirement	1.5.2	PO-VCS-023.0	Not relevant	approved	aligned
+	The auto-commit shall be silently skipped if pre-flight checks detect a Git in-progress state or SVN lock, or if there are no staged changes to commit.	functional requirement	1.5.3	PO-VCS-024.0	Not relevant	approved	aligned
+10.6 Log, Diff, and Restore			1.6	1_6_Heading.0	Not relevant		
+	The View Log button shall retrieve up to 100 history entries (configurable) from git log or svn log and display them in VcsLogDialog as a selectable list.	functional requirement	1.6.1	PO-VCS-025.0	Not relevant	approved	aligned
+	When a log entry is selected in VcsLogDialog, the system shall fetch and display the diff for that revision in a read-only monospace text panel below the list.	functional requirement	1.6.2	PO-VCS-026.0	Not relevant	approved	aligned
+	The VcsLogDialog shall include a Restore This Revision button that, after confirming with the user, calls restore_revision() for the selected entry.	functional requirement	1.6.3	PO-VCS-027.0	Not relevant	approved	aligned
+	Before any restore operation, the system shall create a safety snapshot of the current project file by copying it to a timestamped file named <basename>.vcs-snapshot.<ISO-timestamp>.<ext> in the same directory.	functional requirement	1.6.4	PO-VCS-028.0	Not relevant	approved	aligned
+	The restore operation shall support two modes: file-only (restores only the project file to its state at the selected revision) and full working copy (performs git checkout or svn revert to the selected revision across all files).	functional requirement	1.6.5	PO-VCS-029.0	Not relevant	approved	aligned
+10.7 Branch Management (Git)			1.7	1_7_Heading.0	Not relevant		
+	The Branch Management button shall be visible and enabled only when the detected repository type is "git".	functional requirement	1.7.1	PO-VCS-030.0	Not relevant	approved	aligned
+	The VcsBranchDialog shall display the current list of local Git branches, allow the user to create a new branch, and allow the user to switch to an existing branch.	functional requirement	1.7.2	PO-VCS-031.0	Not relevant	approved	aligned
+10.8 Pull / Update			1.8	1_8_Heading.0	Not relevant		
+	The Pull button (Git) shall run git pull in a background worker; the Update button (SVN) shall run svn update with an optional target revision.	functional requirement	1.8.1	PO-VCS-032.0	Not relevant	approved	aligned
+	After a pull or update operation completes, the system shall call get_conflicts() to scan for conflict markers; if conflicts are detected, VcsConflictDialog shall be opened listing the conflicting files with options to revert selected files or dismiss.	functional requirement	1.8.2	PO-VCS-033.0	Not relevant	approved	aligned
+	The "Pull" ribbon button (Git) shall be a split-button with three dropdown actions: "Pull (merge)" runs git pull with the default merge strategy, "Pull (rebase)" runs git pull --rebase, and "Fetch only" runs git fetch --all without merging.	functional requirement	1.8.3	PO-VCS-043.0	Not relevant	approved	aligned
+	The VCS integration module shall expose a git_fetch() function that executes git fetch --all; VcsWorker shall route the operation code "fetch" to git_fetch() so the fetch runs in a background thread.	functional requirement	1.8.4	PO-VCS-044.0	Not relevant	approved	aligned
+10.9 Non-Blocking Execution			1.9	1_9_Heading.0	Not relevant		
+	All VCS subprocess operations (commit, pull, SVN update, SVN cleanup, diff, restore) shall be executed in a VcsWorker(QThread) background thread so the UI remains responsive during long-running network or disk operations.	functional requirement	1.9.1	PO-VCS-034.0	Not relevant	approved	aligned
+	VcsWorker shall emit a finished(bool, str) signal when the operation completes, carrying success status and sanitised output text.	functional requirement	1.9.2	PO-VCS-035.0	Not relevant	approved	aligned
+	All subprocess calls shall enforce a configurable timeout (default 30 s for standard operations); a timed-out call shall return returncode -1 with the message "Command timed out."	functional requirement	1.9.3	PO-VCS-036.0	Not relevant	approved	aligned
+10.10 SVN File Registration			1.10	1_10_Heading.0	Not relevant		
+	The VERSION CONTROL ribbon Setup group shall display a 'Register with VCS' button (initially hidden) that becomes visible and enabled only when the detected repository type is 'svn' and the svn_is_unversioned() function returns True for the currently open project file; the button shall be hidden when no SVN repository is configured or the project file is already tracked by SVN.	functional requirement	1.10.1	PO-VCS-038.0	Not relevant	approved	aligned
+	The svn_is_unversioned(file_path) function shall run 'svn status -- <file_path>' as a subprocess and return True if the output contains a line whose first non-whitespace character is '?'; it shall return False if the output is empty (file is already tracked) or if the SVN executable is not found or no SVN repository is configured.	functional requirement	1.10.2	PO-VCS-039.0	Not relevant	approved	aligned
+	The svn_add(file_path) function shall run 'svn add -- <file_path>' as a subprocess, return a (bool, str) tuple where the bool indicates success (return code 0) and the str is the combined stdout/stderr output, and store operation='svn_add' in _last_status_result; VcsWorker shall route the operation code 'svn_add' to svn_add(**kwargs) so that the add runs in a background thread.	functional requirement	1.10.3	PO-VCS-040.0	Not relevant	approved	aligned
+	After a successful svn add operation, the system shall refresh the VCS ribbon state by calling _update_vcs_ribbon_state(), which shall hide the 'Register with VCS' button because svn_is_unversioned() will then return False for the newly registered file.	functional requirement	1.10.4	PO-VCS-041.0	Not relevant	approved	aligned
+</OBJECTS>

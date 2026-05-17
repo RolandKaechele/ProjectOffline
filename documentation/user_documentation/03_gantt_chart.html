@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gantt Chart — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html" class="active">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Gantt Chart</h1>
+    <p>Understand and navigate the Gantt chart panel — task bars, zoom levels, critical path and today indicator.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Gantt Chart</div>
+
+    <h2>Reading the Chart</h2>
+    <p>The Gantt chart occupies the right half of the <strong>Gantt Chart</strong> tab.
+    Each task has a horizontal bar whose position represents its start date and whose
+    width represents its duration.  The two-row header shows months (top band) and
+    day numbers (bottom band).</p>
+    <table>
+      <thead><tr><th>Visual element</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Blue bar</td><td>Normal in-progress task</td></tr>
+        <tr><td>Red bar</td><td>Critical path task (zero float, project finish depends on it)</td></tr>
+        <tr><td>Diamond &#9670;</td><td>Milestone (0-day duration)</td></tr>
+        <tr><td>Dark strip below bar</td><td>Baseline (when a baseline is set; shows planned dates)</td></tr>
+        <tr><td>Green vertical line</td><td>Today indicator — bold line with downward triangle</td></tr>
+        <tr><td>Grey columns</td><td>Saturdays and public holidays</td></tr>
+        <tr><td>Blue-tint column</td><td>Sundays (can be hidden via Options)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Zooming</h2>
+    <p>Use the zoom slider in the toolbar or the <strong>Zoom In / Zoom Out</strong> buttons
+    (<code>+</code> / <code>-</code>).  There are four display modes:</p>
+    <table>
+      <thead><tr><th>Pixel width / day</th><th>Mode</th><th>Header bottom row</th></tr></thead>
+      <tbody>
+        <tr><td>4–6 px</td><td>Month overview</td><td>Week numbers</td></tr>
+        <tr><td>7–13 px</td><td>Week overview</td><td>Week numbers + day abbreviations</td></tr>
+        <tr><td>14–59 px</td><td>Day detail (default ~22 px)</td><td>Day numbers</td></tr>
+        <tr><td>60–80 px</td><td>Hourly</td><td>Hour slots from the project calendar</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Navigation Buttons</h2>
+    <p>Above the calendar header:</p>
+    <table>
+      <thead><tr><th>Button</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>&#9664;&#9664; First</td><td>Scroll to 1 week before the first task's start</td></tr>
+        <tr><td>&#9664; Today</td><td>Scroll to 1 week before today</td></tr>
+        <tr><td>Last &#9654;&#9654;</td><td>Scroll to 1 week before the last task's finish</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Critical Path</h2>
+    <p>Enable via <strong>Options &rarr; Show Critical Path</strong> or the toolbar toggle.
+    Tasks on the critical path are redrawn in <strong>red</strong>.  A task is critical
+    when its total float is zero (or — if <em>Zero Float = Critical</em> is active —
+    exactly zero float).  The Gantt chart and Task Sheet both reflect the current state.</p>
+
+    <h2>Opening Task Information</h2>
+    <p>Double-click a task row in the <strong>task panel</strong> (the left-hand grid showing task names) to open
+    the <strong>Task Information</strong> dialog.  The dialog receives the current CPM critical-path data so
+    the <strong>Schedule</strong> tab displays the correct critical status and float values without
+    needing to switch to the CPM Results panel first.</p>
+
+    <h2>Drag-Moving Tasks</h2>
+    <p>Click and drag a task bar horizontally to reschedule it.  A ghost bar shows the
+    proposed position while you drag.  Releasing the mouse updates the task start date
+    and emits a <code>task_moved</code> event so downstream logic can recalculate
+    dependencies.  Summary task bars cannot be dragged directly.</p>
+
+    <div class="callout note">
+      <strong>Sundays</strong>
+      Toggle Sunday column visibility via <strong>Options &rarr; Show Sundays</strong>.
+      When hidden, the Gantt skips Sunday entirely and the day-pixel mapping compensates
+      so bar widths remain correct.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

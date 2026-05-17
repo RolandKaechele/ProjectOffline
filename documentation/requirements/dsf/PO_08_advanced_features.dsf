@@ -1,0 +1,110 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_08_AdvancedFeatures	PO-ADV-	Project Offline – Advanced Features Requirements	1777892400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Baseline Tracking			1	1_Heading.0	Not relevant		
+	Requirements for capturing, comparing, and displaying baseline schedules.	information	1.1	PO-BASE-INFO-001.0	Not relevant		
+1.1 Baseline Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall support up to 11 baseline slots (BL-0 through BL-10), each storing baseline start, finish, and duration for every task.	functional requirement	1.1.1	PO-BASE-001.0	Not relevant	approved	aligned
+	The system shall provide a 'Set Baseline' action in the Baseline ribbon tab that captures a snapshot of the current schedule into the selected baseline slot.	functional requirement	1.1.2	PO-BASE-002.0	Not relevant	approved	aligned
+	The system shall provide a 'Clear Baseline' action that removes all data from the selected baseline slot.	functional requirement	1.1.3	PO-BASE-003.0	Not relevant	approved	aligned
+	The Baseline ribbon tab shall include a 'View Baseline' dropdown listing all available baseline slots.	functional requirement	1.1.4	PO-BASE-004.0	Not relevant	approved	aligned
+	The Gantt Chart baseline diff mode shall offer options to: show schedule differences (bars in different colours), show duration variance (as % difference), show start date variance (in days), and show finish date variance (in days).	functional requirement	1.1.5	PO-BASE-005.0	Not relevant	approved	aligned
+	The system shall provide a dedicated Baseline tab (BaselineView) displaying a comparison table with columns: ID, Name, BL Start, Current Start, Start Delta, BL Finish, Current Finish, Finish Delta, BL Duration, Current Duration, Duration %.	functional requirement	1.1.6	PO-BASE-006.0	Not relevant	approved	aligned
+	Cells showing variance in the Baseline tab shall be colour-coded by magnitude. Current/comparison cells shall be highlighted yellow when they differ from the baseline.	functional requirement	1.1.7	PO-BASE-007.0	Not relevant	approved	aligned
+	Baseline tracking shall correctly account for split tasks.	functional requirement	1.1.8	PO-BASE-008.0	Not relevant	approved	aligned
+	The "Set Baseline" ribbon button shall be a split-button; selecting "Set into next free slot" shall automatically identify the lowest-numbered unoccupied baseline slot (BL-0 through BL-10) and snapshot the current schedule into it without showing the Set Baseline dialog.	functional requirement	1.1.9	PO-BASE-009.0	Not relevant	approved	aligned
+	The "Set Baseline" split-button shall include a "Set all slots (bulk)" action that snapshots the current schedule into all 11 baseline slots (BL-0 through BL-10) simultaneously.	functional requirement	1.1.10	PO-BASE-010.0	Not relevant	approved	aligned
+	The "Clear Baseline" ribbon button shall be a split-button; selecting "Clear all baselines" shall remove all data from all 11 baseline slots (BL-0 through BL-10) simultaneously without showing the Clear Baseline dialog.	functional requirement	1.1.11	PO-BASE-011.0	Not relevant	approved	aligned
+2 Timeline View			2	2_Heading.0	Not relevant		
+	Requirements for the Timeline strip above the tab area, providing an executive-overview of milestones and key tasks.	information	2.1	PO-TL-INFO-001.0	Not relevant		
+2.1 Timeline View Requirements			2.1	2_1_Heading.0	Not relevant		
+	The system shall provide a Timeline View strip displayed above the main tab widget, showing the full project span with pinned milestones as diamonds and pinned tasks as labelled bars.	functional requirement	2.1.1	PO-TL-001.0	Not relevant	approved	aligned
+	The Timeline View shall be toggled on/off via a 'Timeline' button in the VIEW ribbon panel. The on/off state shall be persisted via QSettings.	functional requirement	2.1.2	PO-TL-002.0	Not relevant	approved	aligned
+	The Timeline View shall be shown only when the active view is one of the configured views (e.g. Gantt Chart, Team Planner, Resource Usage Graph). The set of views is configurable via QSettings.	functional requirement	2.1.3	PO-TL-003.0	Not relevant	approved	aligned
+	The Timeline View date range shall be initialised to the same time range as the Gantt Chart.	functional requirement	2.1.4	PO-TL-004.0	Not relevant	approved	aligned
+	Pinned tasks and milestones shall be saved to a sidecar JSON file (<projectname>.timeline.json) and loaded when the project is opened. The sidecar shall be cleared on project close and new project.	functional requirement	2.1.5	PO-TL-005.0	Not relevant	approved	aligned
+	Task and milestone context menus (in Gantt Chart and Team Planner) shall include 'Add to Timeline' and 'Remove from Timeline' actions.	functional requirement	2.1.6	PO-TL-006.0	Not relevant	approved	aligned
+	Right-clicking a task bar or milestone diamond directly in the Timeline canvas shall provide a 'Remove from Timeline' action.	functional requirement	2.1.7	PO-TL-007.0	Not relevant	approved	aligned
+	The Task Information dialog shall include a checkbox showing whether the task is pinned to the Timeline View and allowing the user to add/remove it.	functional requirement	2.1.8	PO-TL-008.0	Not relevant	approved	aligned
+	The Report ribbon panel shall include export buttons to export the Timeline View as an SVG image and as PlantUML markup.	functional requirement	2.1.9	PO-TL-009.0	Not relevant	approved	aligned
+3 Task Splitting and Merging			3	3_Heading.0	Not relevant		
+	Requirements for splitting a task into non-contiguous segments and merging adjacent segments.	information	3.1	PO-SPLIT-INFO-001.0	Not relevant		
+3.1 Split and Merge Requirements			3.1	3_1_Heading.0	Not relevant		
+	The system shall support splitting a task into two non-contiguous segments at a specified date (split_task(task_id, split_date)).	functional requirement	3.1.1	PO-SPLIT-001.0	Not relevant	approved	aligned
+	The system shall support merging two adjacent segments of a split task back into one continuous task (merge_task(task_id_1, task_id_2)).	functional requirement	3.1.2	PO-SPLIT-002.0	Not relevant	approved	aligned
+	Split task gaps shall be rendered in the Gantt Chart as dashed lines between the task bar segments.	functional requirement	3.1.3	PO-SPLIT-003.0	Not relevant	approved	aligned
+	A tooltip on a split task bar shall show the total duration and the date ranges of each segment.	functional requirement	3.1.4	PO-SPLIT-004.0	Not relevant	approved	aligned
+	Context menus for tasks in the Gantt Chart and Team Planner shall include 'Split Task' and 'Merge Task' actions.	functional requirement	3.1.5	PO-SPLIT-005.0	Not relevant	approved	aligned
+	The ribbon shall display 'Split Task' and 'Merge Task' buttons only when the active view is Gantt Chart or Team Planner.	functional requirement	3.1.6	PO-SPLIT-006.0	Not relevant	approved	aligned
+	Split task data shall be persisted in a sidecar JSON file (<projectname>.splits.json) alongside the project file.	functional requirement	3.1.7	PO-SPLIT-007.0	Not relevant	approved	aligned
+	On project open, existing split tasks from MPP/XML files shall be loaded using Task.getSplits() from MPXJ.	functional requirement	3.1.8	PO-SPLIT-008.0	Not relevant	approved	aligned
+	Split and merge operations shall be undoable via the undo/redo history.	functional requirement	3.1.9	PO-SPLIT-009.0	Not relevant	approved	aligned
+4 Undo and Redo History			4	4_Heading.0	Not relevant		
+4.1 Undo and Redo Requirements			4.1	4_1_Heading.0	Not relevant		
+	The system shall maintain per-view undo/redo snapshot stacks for all editing operations.	functional requirement	4.1.1	PO-HIST-001.0	Not relevant	approved	aligned
+	The user shall be able to undo the last operation with Ctrl+Z and redo with Ctrl+Y.	functional requirement	4.1.2	PO-HIST-002.0	Not relevant	approved	aligned
+	The undo/redo history shall cover all editing operations including task edits, resource edits, dependency edits, Confluence sync, baseline set/clear, task split/merge, and timeline pin/unpin.	functional requirement	4.1.3	PO-HIST-003.0	Not relevant	approved	aligned
+	Undo/redo snapshots shall be stored as MPXJ XML snapshots (one per edit event).	functional requirement	4.1.4	PO-HIST-004.0	Not relevant	approved	aligned
+5 Calendar Management			5	5_Heading.0	Not relevant		
+	Requirements for project calendar management including holiday calendars, ICS import, and calendar editor UI.	information	5.1	PO-CAL-INFO-001.0	Not relevant		
+5.1 Holiday Calendar Module			5.1	5_1_Heading.0	Not relevant		
+	The system shall provide a holidays module (holidays.py) that computes public holidays for Germany (national), all 15 German federal states, France, India, Romania, China, and Japan.	functional requirement	5.1.1	PO-CAL-001.0	Not relevant	approved	aligned
+	The holiday module shall cover a year range of (current year − 2) through (current year + 12) by default.	functional requirement	5.1.2	PO-CAL-002.0	Not relevant	approved	aligned
+	German national holidays shall include: Neujahr, Karfreitag, Ostermontag, Tag der Arbeit, Christi Himmelfahrt, Pfingstmontag, Tag der Deutschen Einheit, 1. and 2. Weihnachtstag.	functional requirement	5.1.3	PO-CAL-003.0	Not relevant	approved	aligned
+	Each German federal state calendar shall contain only the state-specific extra public holidays beyond the national set: Heilige Drei Könige (BW, BY, ST), Internationaler Frauentag (BE), Reformationstag (BB, HB, HH, MV, NI, SN, SH, TH), Fronleichnam (BW, BY, HE, RP, SL), Mariä Himmelfahrt (BY, SL), Allerheiligen (BW, BY, RP, SL), Buß- und Bettag (SN), Weltkindertag (TH, from 2019).	functional requirement	5.1.4	PO-CAL-004.0	Not relevant	approved	aligned
+	Movable holidays for India (Holi, Diwali, Eid al-Fitr), China (Spring Festival, Qingming, Dragon Boat, Mid-Autumn), and Japan (Vernal/Autumnal Equinox) shall be pre-computed for the years 2018–2040.	functional requirement	5.1.5	PO-CAL-005.0	Not relevant	approved	aligned
+5.2 Calendar Editor UI			5.2	5_2_Heading.0	Not relevant		
+	The Project Information → Calendars tab shall display a list of all project calendars on the left with the buttons: Add, Remove, Import ICS…, and Add Holidays….	functional requirement	5.2.1	PO-CAL-006.0	Not relevant	approved	aligned
+	All buttons and interactive elements in the Calendars tab shall have descriptive tooltips.	functional requirement	5.2.2	PO-CAL-007.0	Not relevant	approved	aligned
+	The calendar exception table (From Date / To Date columns) shall use a fixed column width of at least 110 px to ensure date values are fully visible.	functional requirement	5.2.3	PO-CAL-008.0	Not relevant	approved	aligned
+	The working-days and exceptions table rows shall have a minimum height of 28 px to accommodate ComboBox and DateEdit widgets without clipping.	functional requirement	5.2.4	PO-CAL-009.0	Not relevant	approved	aligned
+	The calendar name list in the Project Information → Calendars tab shall be sized so that calendar names are displayed in full without truncation.	functional requirement	5.2.5	PO-CAL-021.0	Not relevant	approved	aligned
+5.3 ICS Import			5.3	5_3_Heading.0	Not relevant		
+	The "Import ICS…" button shall first open a file picker for iCalendar (.ics / .ical) files, then prompt the user to select a target calendar (any existing calendar or a new one to be created).	functional requirement	5.3.1	PO-CAL-010.0	Not relevant	approved	aligned
+	The ICS importer shall parse VEVENT blocks, handling line-folding, DTSTART, DTEND, DURATION:PnD, and RRULE:FREQ=YEARLY.	functional requirement	5.3.2	PO-CAL-011.0	Not relevant	approved	aligned
+	VEVENT entries with RRULE:FREQ=YEARLY shall be expanded into one exception per year across the full project year range.	functional requirement	5.3.3	PO-CAL-012.0	Not relevant	approved	aligned
+	Each imported VEVENT shall be inserted as a non-working calendar exception with the SUMMARY value as the exception name and the computed from/to dates.	functional requirement	5.3.4	PO-CAL-013.0	Not relevant	approved	aligned
+	If the user selects "Create new calendar…" during ICS import, the system shall prompt for a name, create the calendar with default working hours, and use it as the import target.	functional requirement	5.3.5	PO-CAL-014.0	Not relevant	approved	aligned
+5.4 Add Holidays Dialog			5.4	5_4_Heading.0	Not relevant		
+	The "Add Holidays…" button shall open a picker showing only the national/state holiday calendars that are not yet installed in the project.	functional requirement	5.4.1	PO-CAL-015.0	Not relevant	approved	aligned
+	German state calendars added via "Add Holidays…" shall be derived from the project default calendar (via setParent()) and store only state-specific extra holidays.	functional requirement	5.4.2	PO-CAL-016.0	Not relevant	approved	aligned
+	Country holiday calendars added via "Add Holidays…" shall be standalone calendars with default working hours.	functional requirement	5.4.3	PO-CAL-017.0	Not relevant	approved	aligned
+	If all available holiday calendars are already installed, "Add Holidays…" shall display an informational message instead of the picker dialog.	functional requirement	5.4.4	PO-CAL-018.0	Not relevant	approved	aligned
+6 Progress Dialogs			6	6_Heading.0	Not relevant		
+	Requirements for the modal progress dialog framework used during long-running operations.	information	6.1	PO-PROG-INFO-001.0	Not relevant		
+6.1 Progress Dialog Requirements			6.1	6_1_Heading.0	Not relevant		
+	All long-running operations (file open, file save, Jira sync, Confluence calendar sync, VCS commit/pull/update/cleanup, Active Directory sync, SVG/PlantUML export) shall be executed in a background thread so that the main GUI thread is not blocked.	functional requirement	6.1.1	PO-PROG-001.0	Not relevant	approved	aligned
+	During any long-running background operation, the application shall display a modal progress dialog showing the operation title and the current progress percentage (0–100 %). Operations that cannot report an exact percentage shall display an indeterminate (bouncing) progress bar instead.	functional requirement	6.1.2	PO-PROG-002.0	Not relevant	approved	aligned
+	Operations for which user cancellation is not meaningful (file save, file open, SVG/PlantUML export) shall display the progress dialog without a Cancel button.	functional requirement	6.1.3	PO-PROG-003.0	Not relevant	approved	aligned
+</OBJECTS>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jira API Test Report – 2026-05-14 15:53:45</title>
+<style>
+:root {
+  --pass:    #16a34a;
+  --fail:    #dc2626;
+  --error:   #ea580c;
+  --skip:    #6b7280;
+  --info:    #2563eb;
+  --pass-bg: #dcfce7;
+  --fail-bg: #fee2e2;
+  --error-bg:#ffedd5;
+  --skip-bg: #f3f4f6;
+  --bg:      #f8fafc;
+  --card:    #ffffff;
+  --border:  #e2e8f0;
+  --text:    #0f172a;
+  --muted:   #64748b;
+  --code-bg: #1e293b;
+  --code-fg: #e2e8f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       background: var(--bg); color: var(--text); font-size: 14px; }
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f2342 100%);
+  color: #fff; padding: 24px 32px;
+}
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.header .meta { font-size: 12px; color: #94a3b8; }
+.summary-bar {
+  display: flex; gap: 16px; padding: 16px 32px;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 9999px;
+  font-size: 13px; font-weight: 600;
+}
+.badge.pass  { background: var(--pass-bg);  color: var(--pass);  }
+.badge.fail  { background: var(--fail-bg);  color: var(--fail);  }
+.badge.error { background: var(--error-bg); color: var(--error); }
+.badge.skip  { background: var(--skip-bg);  color: var(--skip);  }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.container { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
+.category {
+  margin-bottom: 20px; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+.cat-header {
+  background: var(--card); border: 1px solid var(--border);
+  padding: 12px 16px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: 14px;
+  border-radius: 8px 8px 0 0;
+  user-select: none;
+}
+.cat-header:hover { background: #f1f5f9; }
+.cat-header .cat-badges { display: flex; gap: 8px; }
+.cat-header .badge { padding: 2px 10px; font-size: 12px; }
+.cat-body { border: 1px solid var(--border); border-top: none; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f8fafc; font-size: 12px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+      padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8fafc; }
+.status-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 9999px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap;
+}
+.status-badge.PASS  { background: var(--pass-bg);  color: var(--pass);  }
+.status-badge.FAIL  { background: var(--fail-bg);  color: var(--fail);  }
+.status-badge.ERROR { background: var(--error-bg); color: var(--error); }
+.status-badge.SKIP  { background: var(--skip-bg);  color: var(--skip);  }
+.status-badge.INFO  { background: #dbeafe;          color: var(--info);  }
+.dur { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.msg { font-size: 13px; }
+.msg.fail  { color: var(--fail);  }
+.msg.error { color: var(--error); }
+.msg.skip  { color: var(--skip);  font-style: italic; }
+details summary { cursor: pointer; font-size: 12px; color: var(--info); margin-top: 4px; }
+details summary:hover { text-decoration: underline; }
+pre.output {
+  background: var(--code-bg); color: var(--code-fg);
+  font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+  font-size: 12px; line-height: 1.5; padding: 12px; border-radius: 6px;
+  overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+  margin-top: 6px; max-height: 300px; overflow-y: auto;
+}
+.progress-bar-wrap {
+  height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;
+  margin-top: 2px; width: 80px;
+}
+.progress-bar { height: 100%; border-radius: 3px; }
+.progress-bar.fast   { background: var(--pass); }
+.progress-bar.medium { background: #eab308; }
+.progress-bar.slow   { background: var(--fail); }
+.env-info {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px; margin-bottom: 20px; font-size: 13px;
+}
+.env-info h3 { font-size: 14px; margin-bottom: 10px; color: var(--muted); }
+.env-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.env-item { background: #f8fafc; border-radius: 4px; padding: 6px 10px; }
+.env-item .key { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.env-item .val { font-weight: 600; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>&#128200; Jira API Integration Test Report</h1>
+  <div class="meta">Generated: 2026-05-14 15:53:45 &nbsp;|&nbsp; Server: (not executed) &nbsp;|&nbsp; Auth: (not executed) &nbsp;|&nbsp; Project: (not executed)</div>
+</div>
+<div class="summary-bar">
+  <span class="badge pass"><span class="dot"></span>0 Passed</span>
+  <span class="badge fail"><span class="dot"></span>0 Failed</span>
+  <span class="badge error"><span class="dot"></span>0 Errors</span>
+  <span class="badge skip"><span class="dot"></span>115 Skipped</span>
+  <span style="margin-left:auto;color:var(--muted);font-size:13px;align-self:center">115 tests &nbsp;|&nbsp; 0 ms total</span>
+  
+</div>
+<div class="container">
+  <div class="env-info">
+    <h3>Environment</h3>
+    <div class="env-grid">
+      <div class="env-item"><div class="key">Python</div><div class="val">3.12.6</div></div><div class="env-item"><div class="key">Platform</div><div class="val">win32</div></div><div class="env-item"><div class="key">Server</div><div class="val">(not executed)</div></div><div class="env-item"><div class="key">Auth Type</div><div class="val">(not executed)</div></div><div class="env-item"><div class="key">Project Key</div><div class="val">(not executed)</div></div><div class="env-item"><div class="key">Dry Run</div><div class="val">No</div></div><div class="env-item"><div class="key">Total Tests</div><div class="val">115</div></div><div class="env-item"><div class="key">Jira Lib</div><div class="val">3.10.5</div></div>
+    </div>
+  </div>
+  
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;A – Datetime Normalisation</span>
+    <span class="cat-badges"><span class="badge skip">8 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A1: None input → None/empty<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A2: Empty string → empty<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A3: Date-only string → unchanged<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A4: With .000Z suffix → UTC Z string<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A5: +00:00 offset → Z suffix<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A6: +02:00 offset → correct UTC<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A7: -05:00 offset → correct UTC<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>A8: Milliseconds stripped from output<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;B – Filter ID Extraction</span>
+    <span class="cat-badges"><span class="badge skip">7 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B1: Full ?filter= URL<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B2: Bare fragment filter=ID → empty (requires ?/&amp; prefix)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B3: Plain numeric string<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B4: Non-numeric string → empty<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B5: Empty string → empty<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B6: &amp;filter= inside URL<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>B7: URL without filter param<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;C – Sidecar I/O</span>
+    <span class="cat-badges"><span class="badge skip">6 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C1: load_sidecar_task_data – missing file → {}<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C2: load_sidecar_task_data – valid file → correct dict<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C3: save_sidecar_task_data → load → same data<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C4: load_sidecar_task_data – corrupted JSON → {}<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C5: get_last_result – returns None or dict<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>C6: save_sidecar_task_data – preserves other sidecar sections<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;D – record_filter_test</span>
+    <span class="cat-badges"><span class="badge skip">3 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>D1: Success case – _last_filter_test populated correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>D2: Error case – success=False, error stored<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>D3: Repeated calls – _last_filter_test always reflects latest call<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;E – resolve_filter_to_jql (local)</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>E1: filter_type='jql' → passthrough, no error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>E2: filter_type='jql' with empty string → empty, no error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>E3: filter_type='filter' non-numeric → empty jql + error message<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>E4: filter_type='filter' with URL but no client → extracts ID, returns error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;F – Connection Tests</span>
+    <span class="cat-badges"><span class="badge skip">7 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F1: test_connection – valid credentials → success<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F2: test_connection – wrong credentials → failure + error message<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F3: test_connection – invalid URL → failure<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F4: test_connection – empty credentials → failure (non-PAT mode)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F5: get_jira_client – valid credentials → client returned<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F6: get_jira_client – invalid URL → None + error message<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>F7: test_connection – PAT mode with empty token → failure<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;G – Server Info</span>
+    <span class="cat-badges"><span class="badge skip">6 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G1: get_config_summary – returns dict with expected structure<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G2: get_config_summary – server count &gt;= 1<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G3: jira.myself() – returns user info dict<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G4: jira.server_info() – returns server metadata<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G5: jira.issue_types() – returns non-empty list<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>G6: jira.projects() – returns list (may be empty)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;H – JQL Filter Tests</span>
+    <span class="cat-badges"><span class="badge skip">10 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H1: Basic JQL search – project filter executes without error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H2: JQL with status filter – executes without error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H3: JQL with assignee is EMPTY – executes without error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H4: Invalid JQL → server rejects with error (expected failure)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H5: JQL for non-existent key → 0 results<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H6: record_filter_test after search – _last_filter_test updated<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H7: resolve_filter_to_jql with jql type → unchanged passthrough<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H8: Dialog-supplied JQL filter executes on server<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H9: JQL with date-range filter (created &gt;= -30d)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>H10: JQL with priority filter<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;I – Saved Filter Tests</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>I1: resolve_filter_to_jql – non-numeric ID → empty + error<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>I2: resolve_filter_to_jql – non-existent filter ID → error returned<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>I3: resolve_filter_to_jql – filter URL form → ID extracted, error on missing filter<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>I4: Dialog saved filter → resolved JQL executes on server<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;J – Issue CRUD</span>
+    <span class="cat-badges"><span class="badge skip">8 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J1: Create Story issue – returns issue with key<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J2: Create Task issue – different issue type<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J3: Fetch issue by key – issue retrieved correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J4: Update issue summary – field updated on server<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J5: Add comment to issue – comment created<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J6: JQL search finds the freshly created issue<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J7: Stress – create 3 issues in rapid succession<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>J8: Cleanup – delete all test-created issues<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;K – Epic Hierarchy</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>K1: Create Epic issue<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>K2: Create Story as child of Epic<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>K3: Verify Epic child relationship via JQL parent query<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>K-cleanup: Delete Epic hierarchy test issues<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;L – Pagination</span>
+    <span class="cat-badges"><span class="badge skip">3 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>L1: Paginate with maxResults=1 – two pages return different issues<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>L2: Multi-page fetch – no duplicate keys across pages<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>L3: Selective field fetch (sync fields only) – all fields accessible<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;M – Performance / Timing</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>M1: test_connection latency &lt; 15 s<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>M2: JQL search response time &lt; 30 s<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>M3: Three consecutive searches – average &lt; 20 s each<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>M4: get_jira_client round-trip time &lt; 15 s<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;N – Authentication Variants</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>N1: basic_auth (token) – connection succeeds<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>N2: basic_auth with empty username → failure (non-PAT)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>N3: PAT auth test (skip – server uses basic auth)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>N4: Wrong password → auth failure<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;O – Config Summary &amp; Debug</span>
+    <span class="cat-badges"><span class="badge skip">4 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>O1: get_config_summary – includes last_connection_test after test<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>O2: get_config_summary – includes last_filter_test after record_filter_test<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>O3: get_config_summary – no credentials exposed<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>O4: jira_sync.get_last_result() – returns None or dict<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;P – J2P Field Flag Config</span>
+    <span class="cat-badges"><span class="badge skip">14 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P1: All 34 field flags default to False (PO-J2P-005.0)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P2: Each flag individually set to True is read back as True<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P3: All 34 flags enabled simultaneously – all read True<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P4: Mixed flags – enabled and disabled coexist without bleed-over<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P5: Dependent flags stored independently; controller state is separate<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P6: At least 34 field flags are defined (PO-J2P-004.0 count)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P7: _status_to_percent – returns int for key status names<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P8: _status_to_percent – correct percentage values for known statuses<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P9: _status_to_percent – unknown status → 0 (safe default)<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P10: _sanitize_text – Jira wiki-markup stripped correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P11: _sanitize_text – empty/None input returns empty string<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P12: J2P config round-trip via sidecar JSON string<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P13: _get_advanced_config – all expected keys present in defaults<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>P14: _get_advanced_config – override merges without losing defaults<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="category">
+  <div class="cat-header">
+    <span><span class="arrow">▾</span>&nbsp;&nbsp;Q – P2J Push Config &amp; Engine</span>
+    <span class="cat-badges"><span class="badge skip">19 Skip</span></span>
+  </div>
+  <div class="cat-body">
+    <table>
+      <thead><tr><th style="width:90px">Status</th><th>Test</th><th style="width:120px">Duration</th></tr></thead>
+      <tbody><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q1: get_last_push_result – returns None or dict before any push<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q2: _p2j_field_enabled – reads enabled/disabled correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q3: _p2j_jira_field – returns mapped jira_field or default<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q4: All expected P2J config keys are present<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q5: _with_retry – succeeds on first attempt, no retry<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q6: _with_retry – non-transient error propagates immediately<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q7: _with_retry – transient 503 error retried up to max_retries<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q8: _with_retry – max_retries=0 means no retry even for transient<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q9: _is_transient_error – correct classification for HTTP codes<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q10: P2J sidecar sections (task_p2j, jira_push_meta) preserved on read<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q11: P2J dry_run flag read from config correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q12: export_scope – all three variants stored and retrieved<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q13: create_update_mode – all three variants stored and retrieved<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q14: conflict_policy – all three variants stored and retrieved<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q15: issue_type_map – all common issue types preserved in config<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q16: hierarchy_export config – all keys preserved<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q17: transition_map – maps stored and retrieved correctly<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q18: _task_to_jira_payload – summary always in payload<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr><tr><td><span class="status-badge SKIP">SKIP</span></td><td>Q19: _task_status_string – 0%-&gt;To Do, 50%-&gt;In Progress, 100%-&gt;Done<br><span class="msg skip">dummy report – not executed</span></td><td><span class="dur">0 ms</span><div class="progress-bar-wrap"><div class="progress-bar fast" style="width:0%"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+</div>
+<script>
+document.querySelectorAll('.cat-header').forEach(h => {
+  h.addEventListener('click', () => {
+    const body = h.nextElementSibling;
+    const arrow = h.querySelector('.arrow');
+    if (body.style.display === 'none') {
+      body.style.display = '';
+      if (arrow) arrow.textContent = '▾';
+    } else {
+      body.style.display = 'none';
+      if (arrow) arrow.textContent = '▸';
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Integration &mdash; Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html" class="active">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Email Integration</h1>
+    <p>Send project exports (SVG Gantt charts, Team Planner snapshots, resource graphs) 
+       as email attachments directly from the application via SMTP.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Email Integration</div>
+
+    <h2>What Is Email Integration?</h2>
+    <p>Project Offline includes built-in <strong>SMTP email support</strong> that lets you 
+    send project exports as email attachments without leaving the application. Email credentials 
+    are securely retrieved from your <strong>KeePass database</strong>, so no passwords are 
+    stored in application settings.</p>
+
+    <div class="callout note">
+      <strong>Secure by Design</strong>
+      SMTP passwords are retrieved from KeePass at send-time only. The application stores
+      only the SMTP server address and port&mdash;never passwords. SMTP account settings
+      (server, port, TLS) are saved in <code>email_configs.json</code> next to the
+      executable; the KeePass entry name stays in the Windows registry.
+      <strong>Sender address</strong> and <strong>Sender Name</strong> are saved
+      <em>per-project</em> in the project sidecar JSON (not in
+      <code>email_configs.json</code>), so different projects can send from different
+      addresses. The JSON file can be copied between machines to share your account list;
+      it is excluded from version control.
+    </div>
+
+    <!-- -- Prerequisites -- -->
+    <h2>Prerequisites</h2>
+    <table>
+      <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>KeePass Database</td>
+          <td>A configured and unlocked KeePass database with an entry containing your SMTP username and password. See <a href="13_keepass.html">KeePass Credentials</a> for setup.</td>
+        </tr>
+        <tr>
+          <td>SMTP Server Access</td>
+          <td>Access to an SMTP server (corporate mail server or email provider like Gmail, Outlook). Port 587 with STARTTLS is recommended.</td>
+        </tr>
+        <tr>
+          <td>SMTP Credentials</td>
+          <td>Valid username and password for SMTP authentication, stored in your KeePass database.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- -- Configuration -- -->
+    <h2>Step 1 &mdash; Configure Email Settings</h2>
+    <p>Open the <strong>Email Configuration</strong> dialog from the <strong>Report</strong>
+    ribbon tab by clicking <strong>Email Config</strong>. The dialog is always available
+    (not project-gated) since the KeePass entry is a global setting. When a project is open,
+    the <strong>active account</strong>, <strong>sender address</strong>, and
+    <strong>sender display name</strong> are stored per-project in the project sidecar JSON.</p>
+
+        <figure class="screenshot">
+      <svg viewBox="0 0 620 460" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <!-- Window chrome -->
+        <rect width="620" height="460" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="600" height="440" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="600" height="54" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="14" font-weight="bold">Email Configuration</text>
+        <text x="26" y="52" fill="#b8d0f0" font-size="11">Select email account and configure sender name for this project</text>
+        <!-- KeePass Section -->
+        <text x="30" y="88" fill="#222" font-size="12" font-weight="600">KeePass Credentials</text>
+        <rect x="30" y="96" width="560" height="1" fill="#ddd"/>
+        <!-- KeePass status: Unlocked -->
+        <rect x="30" y="108" width="560" height="50" fill="#e8f6e8" stroke="#107C10" rx="3"/>
+        <text x="40" y="128" fill="#107C10" font-size="11" font-weight="600">&#10003; KeePass Database Unlocked</text>
+        <text x="50" y="146" fill="#555" font-size="10">Entry:</text>
+        <rect x="90" y="135" width="250" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="100" y="149" fill="#222" font-size="10">Email/SMTP Credentials</text>
+        <!-- Account Selection Section -->
+        <text x="30" y="186" fill="#222" font-size="12" font-weight="600">Email Account</text>
+        <rect x="30" y="194" width="560" height="1" fill="#ddd"/>
+        <text x="50" y="218" fill="#444" font-size="11">Account:</text>
+        <rect x="180" y="206" width="260" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="190" y="221" fill="#222" font-size="11">Work &#9733; &#x2014; mail.corp.com</text>
+        <rect x="450" y="206" width="130" height="22" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="515" y="221" fill="#2B579A" font-size="10" text-anchor="middle">Manage Accounts&#x2026;</text>
+        <!-- Sender (Per-Project) Section -->
+        <text x="30" y="254" fill="#222" font-size="12" font-weight="600">Sender (Per-Project)</text>
+        <rect x="30" y="262" width="560" height="1" fill="#ddd"/>
+        <text x="50" y="286" fill="#444" font-size="11">Sender Address:</text>
+        <rect x="180" y="274" width="260" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="190" y="289" fill="#222" font-size="11">alice@corp.com</text>
+        <rect x="450" y="274" width="120" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="510" y="289" fill="#444" font-size="10" text-anchor="middle">From KeePass&#x2026;</text>
+        <text x="50" y="314" fill="#444" font-size="11">Sender Name:</text>
+        <rect x="180" y="302" width="300" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="190" y="317" fill="#222" font-size="11">Alice Smith</text>
+        <text x="50" y="338" fill="#999" font-size="10">Display name in From: header. Saved per-project in sidecar JSON.</text>
+        <!-- Buttons row -->
+        <rect x="50" y="356" width="120" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="110" y="372" fill="#2B579A" font-size="11" text-anchor="middle">Test Connection</text>
+        <rect x="180" y="356" width="140" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="250" y="372" fill="#2B579A" font-size="11" text-anchor="middle">Send Test Email</text>
+        <!-- Footer -->
+        <rect x="10" y="428" width="600" height="32" fill="#f0f4fb" stroke="#d0dce8" stroke-width="1"/>
+        <rect x="456" y="436" width="66" height="22" fill="#2B579A" rx="2"/>
+        <text x="489" y="451" fill="white" font-size="11" font-weight="600" text-anchor="middle">Save</text>
+        <rect x="530" y="436" width="60" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="560" y="451" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 1 &mdash; Redesigned Email Configuration dialog: KeePass entry selector, account dropdown, and per-project Sender Address + Sender Name fields with &ldquo;From KeePass&hellip;&rdquo; button.</figcaption>
+    </figure>
+
+    <table>
+      <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>KeePass Entry</td>
+          <td>Select the KeePass entry containing your SMTP username and password. Shared by all SMTP accounts. Only available when the KeePass database is unlocked.</td>
+        </tr>
+        <tr>
+          <td>Account</td>
+          <td>Select which named SMTP account to use for this project. Click <strong>Manage Accounts&hellip;</strong> to add, edit, or delete accounts.</td>
+        </tr>
+        <tr>
+          <td>Sender Address</td>
+          <td>The SMTP From: address for this project (e.g. <em>alice@corp.com</em>). Saved per-project in the sidecar JSON. Click <strong>From KeePass&hellip;</strong> to auto-fill by looking up the KeePass entry username in Active Directory.</td>
+        </tr>
+        <tr>
+          <td>Sender Name</td>
+          <td>Optional display name shown in the From: header (e.g. <em>Alice Smith</em>). The email is sent as <code>&quot;Alice Smith &lt;alice@corp.com&gt;&quot;</code> when set. Saved per-project in the sidecar JSON &mdash; different projects can have different sender names. Leave blank to send from the plain address.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>Corporate Mail Servers: use &ldquo;From KeePass&hellip;&rdquo; in Email Config</strong>
+      Many corporate SMTP servers require the sender address to match the authenticated username.
+      If you receive a &ldquo;5.7.60 Client does not have permissions to send as this sender&rdquo; error,
+      open <strong>Report &rarr; Email Config</strong> and click <strong>From KeePass&hellip;</strong>
+      next to the Sender Address field to auto-fill your email from Active Directory.
+    </div>
+
+    <!-- -- Test Connection -- -->
+    <h2>Step 2 &mdash; Test Your Connection</h2>
+    <p>Before sending emails, verify your SMTP configuration by clicking 
+    <strong>Test Connection</strong>. This validates the server connection and 
+    authentication <strong>without sending any email</strong>.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="400" height="160" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="380" height="140" fill="white" stroke="#999" rx="2"/>
+        <!-- Header -->
+        <rect x="10" y="10" width="380" height="45" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="13" font-weight="bold">Connection Test</text>
+        <text x="26" y="48" fill="#b8d0f0" font-size="10">SMTP connection and authentication result</text>
+        <!-- Success message -->
+        <rect x="26" y="70" width="348" height="40" fill="#e8f6e8" stroke="#107C10" rx="3"/>
+        <text x="40" y="94" fill="#107C10" font-size="11" font-weight="600">? Connection successful!</text>
+        <!-- Footer -->
+        <rect x="10" y="120" width="380" height="30" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="310" y="127" width="60" height="18" fill="#2B579A" rx="2"/>
+        <text x="340" y="140" fill="white" font-size="11" font-weight="600" text-anchor="middle">OK</text>
+      </svg>
+      <figcaption>Fig. 2 &mdash; Successful connection test result.</figcaption>
+    </figure>
+
+    <p>If the test fails, check:</p>
+    <ul>
+      <li>SMTP server hostname and port are correct</li>
+      <li>KeePass database is unlocked and the selected entry contains valid credentials</li>
+      <li>Your network allows outbound connections to the SMTP port</li>
+      <li>The SMTP server supports STARTTLS if enabled</li>
+    </ul>
+
+    <!-- -- Send Test Email -- -->
+    <h2>Step 3 &mdash; Send a Test Email</h2>
+    <p>After a successful connection test, click <strong>Send Test Email</strong> to verify 
+    end-to-end email delivery. You'll be prompted to enter a recipient address.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="450" height="180" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="430" height="160" fill="white" stroke="#999" rx="2"/>
+        <!-- Header -->
+        <rect x="10" y="10" width="430" height="45" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="13" font-weight="bold">Send Test Email</text>
+        <text x="26" y="48" fill="#b8d0f0" font-size="10">Enter recipient address for test message</text>
+        <!-- Recipient field -->
+        <text x="30" y="85" fill="#444" font-size="11">Recipient:</text>
+        <rect x="110" y="72" width="240" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="120" y="87" fill="#222" font-size="11">recipient@example.com</text>
+        <!-- Use My Email button -->
+        <rect x="360" y="72" width="70" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="395" y="87" fill="#333" font-size="10" text-anchor="middle">Use My Email</text>
+        <!-- Info -->
+        <text x="30" y="115" fill="#666" font-size="10">A test message with subject "Test Email from Project Offline" will be sent.</text>
+        <!-- Footer -->
+        <rect x="10" y="140" width="430" height="30" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="300" y="147" width="50" height="18" fill="#2B579A" rx="2"/>
+        <text x="325" y="160" fill="white" font-size="11" font-weight="600" text-anchor="middle">Send</text>
+        <rect x="360" y="147" width="60" height="18" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="390" y="160" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 3 &mdash; Send Test Email dialog with "Use My Email" button for self-test.</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <strong>Tip &mdash; Self-Test</strong>
+      Click <strong>Use My Email</strong> to automatically fill your own email address from 
+      Active Directory. This lets you verify email delivery by sending to yourself.
+    </div>
+
+    <!-- -- Multiple Email Accounts -- -->
+    <h2>Managing Multiple Email Accounts</h2>
+    <p>Project Offline supports <strong>multiple named SMTP configurations</strong> &mdash; for
+    example, a corporate mail server and a personal account. Click <strong>Email Accounts</strong>
+    in the Report ribbon tab to open the account manager.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="560" height="380" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="540" height="360" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="540" height="46" fill="#2B579A" rx="2"/>
+        <text x="26" y="31" fill="white" font-size="14" font-weight="bold">Email Accounts</text>
+        <text x="26" y="48" fill="#b8d0f0" font-size="11">Manage multiple SMTP email configurations</text>
+        <!-- List area -->
+        <rect x="26" y="72" width="390" height="200" fill="white" stroke="#b0c4dc" rx="2"/>
+        <!-- List items -->
+        <rect x="26" y="72" width="390" height="28" fill="#cce0f5"/>
+        <text x="36" y="90" fill="#1a3a6b" font-size="11" font-weight="600">Work ★ — mail.corp.com</text>
+        <rect x="26" y="100" width="390" height="28" fill="white"/>
+        <text x="36" y="118" fill="#333" font-size="11">Personal — smtp.gmail.com</text>
+        <!-- Buttons column -->
+        <rect x="428" y="72" width="108" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="482" y="88" fill="#2B579A" font-size="11" text-anchor="middle">Add…</text>
+        <rect x="428" y="102" width="108" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="482" y="118" fill="#2B579A" font-size="11" text-anchor="middle">Edit…</text>
+        <rect x="428" y="132" width="108" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="482" y="148" fill="#2B579A" font-size="11" text-anchor="middle">Delete</text>
+        <rect x="428" y="166" width="108" height="24" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="482" y="182" fill="#2B579A" font-size="11" text-anchor="middle">Set Active</text>
+        <rect x="428" y="196" width="108" height="24" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="482" y="212" fill="#555" font-size="11" text-anchor="middle">Move Up</text>
+        <rect x="428" y="226" width="108" height="24" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="482" y="242" fill="#555" font-size="11" text-anchor="middle">Move Down</text>
+        <!-- Legend -->
+        <text x="26" y="292" fill="#666" font-size="10">★ = active account used for sending emails</text>
+        <!-- Footer -->
+        <rect x="10" y="326" width="540" height="44" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="406" y="336" width="64" height="24" fill="#2B579A" rx="2"/>
+        <text x="438" y="352" fill="white" font-size="11" font-weight="600" text-anchor="middle">Save</text>
+        <rect x="480" y="336" width="60" height="24" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="510" y="352" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 4 &mdash; Email Accounts dialog showing two SMTP accounts. The active account is marked with ★.</figcaption>
+    </figure>
+
+    <table>
+      <thead><tr><th>Button</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Add…</td><td>Open the account editor to create a new named SMTP configuration.</td></tr>
+        <tr><td>Edit…</td><td>Open the account editor for the selected account.</td></tr>
+        <tr><td>Delete</td><td>Remove the selected account permanently.</td></tr>
+        <tr><td>Set Active</td><td>Mark the selected account as the one used for all email operations.</td></tr>
+        <tr><td>Move Up / Move Down</td><td>Reorder accounts in the list.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>Active Account</strong>
+      The account marked with ★ is used when sending emails. To switch accounts, select
+      the desired account and click <strong>Set Active</strong>, then <strong>Save</strong>.
+    </div>
+
+    <!-- -- Account Edit -- -->
+    <h2>Adding or Editing an Email Account</h2>
+    <p>Click <strong>Add&hellip;</strong> or <strong>Edit&hellip;</strong> to open the account editor.
+    Each account stores only its SMTP server settings (Name, Server, Port, TLS).
+    <strong>Sender address</strong> is stored per-project in <strong>Email Config</strong>.
+    KeePass credentials are configured <strong>separately</strong> via <strong>Email Config</strong>
+    and apply globally to all accounts.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="560" height="220" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="540" height="200" fill="white" stroke="#999" rx="2"/>
+        <!-- Header -->
+        <rect x="10" y="10" width="540" height="46" fill="#2B579A" rx="2"/>
+        <text x="26" y="31" fill="white" font-size="14" font-weight="bold">Add Email Account</text>
+        <text x="26" y="48" fill="#b8d0f0" font-size="11">Configure SMTP server settings for this account</text>
+        <!-- Name -->
+        <text x="36" y="84" fill="#444" font-size="11">Account Name:</text>
+        <rect x="170" y="72" width="220" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="180" y="87" fill="#222" font-size="11">Work</text>
+        <!-- SMTP Server -->
+        <text x="36" y="114" fill="#444" font-size="11">SMTP Server:</text>
+        <rect x="170" y="102" width="220" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="180" y="117" fill="#222" font-size="11">mail.corp.com</text>
+        <!-- Port + TLS -->
+        <text x="36" y="144" fill="#444" font-size="11">SMTP Port:</text>
+        <rect x="170" y="132" width="70" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="210" y="147" fill="#222" font-size="11" text-anchor="middle">587</text>
+        <rect x="252" y="134" width="14" height="14" fill="white" stroke="#2B579A" rx="1"/>
+        <line x1="254" y1="142" x2="258" y2="146" stroke="#2B579A" stroke-width="1.5"/>
+        <line x1="258" y1="146" x2="266" y2="135" stroke="#2B579A" stroke-width="1.5"/>
+        <text x="272" y="146" fill="#222" font-size="11">Use STARTTLS</text>
+        <!-- Info note -->
+        <rect x="36" y="162" width="488" height="30" fill="#f5f8ff" stroke="#b0c4dc" rx="3"/>
+        <text x="46" y="181" fill="#666" font-size="10">&#x2139; Sender address and KeePass credentials are configured per-project in Report &#x2192; Email Config.</text>
+        <!-- Footer -->
+        <rect x="10" y="194" width="540" height="16" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="406" y="196" width="64" height="12" fill="#2B579A" rx="2"/>
+        <text x="438" y="205" fill="white" font-size="9" font-weight="600" text-anchor="middle">Save</text>
+        <rect x="480" y="196" width="60" height="12" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="510" y="205" fill="#333" font-size="9" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 5 &mdash; Account editor with SMTP server fields only (Name, Server, Port, TLS). Sender address and KeePass credentials are configured per-project in <strong>Email Config</strong>.</figcaption>
+    </figure>
+
+    <div class="callout note">
+      <strong>Sender address and credentials are per-project</strong>
+      All email accounts share the KeePass entry configured in <strong>Report &rarr; Email Config</strong>.
+      The <strong>sender address</strong> is also set there, per-project, in the
+      &ldquo;Sender (Per-Project)&rdquo; section &mdash; not in the account editor.
+      Use <strong>From KeePass&hellip;</strong> to auto-fill it from Active Directory.
+    </div>
+
+    <div class="callout note">
+      <strong>Legacy Migration</strong>
+      If you previously configured a single email account using <strong>Email Config</strong>,
+      it is automatically migrated to the accounts list as an entry named
+      <strong>&ldquo;Default&rdquo;</strong> the first time you open <strong>Email Accounts</strong>.
+      No manual migration is required.
+    </div>
+
+    <!-- -- Sending Project Exports -- -->
+    <h2>Sending Project Exports</h2>
+    <p>Once email is configured, you can send project exports as email attachments. The following 
+    export formats are typically sent via email:</p>
+    <ul>
+      <li><strong>Gantt Chart (SVG)</strong> &mdash; Complete project Gantt chart as scalable vector graphics</li>
+      <li><strong>Team Planner Snapshot (SVG)</strong> &mdash; Current Team Planner view as SVG</li>
+      <li><strong>Resource Utilisation Graph (SVG)</strong> &mdash; Resource usage over time</li>
+    </ul>
+
+    <p>To send an export:</p>
+    <ol>
+      <li>Generate the export file using the appropriate export function (e.g., <strong>File ? Export ? Gantt Chart (SVG)</strong>)</li>
+      <li>Use the email integration API to attach the file and send it to recipients</li>
+    </ol>
+
+    <div class="callout note">
+      <strong>Note &mdash; Attachments</strong>
+      The email integration supports multiple attachments. Files are sent as MIME attachments 
+      with appropriate content types (e.g., <code>image/svg+xml</code> for SVG files).
+    </div>
+
+    <!-- -- When Email Is Not Yet Configured -- -->
+    <h2>When Email Is Not Yet Configured</h2>
+    <p>If you have not yet added an SMTP account, or have not selected an active account via
+    <strong>Email Config</strong>, the three email export actions in the Report ribbon are
+    automatically <strong>greyed out</strong> (disabled):</p>
+    <ul>
+      <li><strong>Email Gantt SVG</strong> &mdash; in the Gantt Export split-button popup</li>
+      <li><strong>Email to All Resources</strong> &mdash; in the Gantt Export and Resource SVG popups</li>
+      <li><strong>Email Timeline SVG</strong> &mdash; in the Timeline Export split-button popup</li>
+    </ul>
+    <p>Hovering over a greyed-out action shows a tooltip:</p>
+    <blockquote style="margin:10px 0 10px 20px;padding:8px 14px;border-left:4px solid #ccc;color:#555;font-style:italic">
+      No email account configured.<br>
+      Use Email Accounts in the Report ribbon to add an SMTP account,<br>
+      then select it via Email Config.
+    </blockquote>
+    <p>The enabled/disabled state is evaluated automatically:</p>
+    <ul>
+      <li>When the application starts</li>
+      <li>When the <strong>Email Accounts</strong> dialog closes</li>
+      <li>When the <strong>Email Config</strong> dialog closes</li>
+    </ul>
+    <div class="callout tip">
+      <strong>Tip &mdash; Getting Started</strong>
+      If the email export actions appear greyed out, open <strong>Report &rarr; Email Accounts</strong>
+      to add your SMTP account, then open <strong>Report &rarr; Email Config</strong> and select
+      the account you just added. The email actions will become active immediately when the
+      dialog closes.
+    </div>
+
+    <!-- -- Security Best Practices -- -->
+    <h2>Security Best Practices</h2>
+    <table>
+      <thead><tr><th>Practice</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Use KeePass for Credentials</td>
+          <td>Never enter SMTP passwords directly into the application. Always use KeePass to store and retrieve credentials securely.</td>
+        </tr>
+        <tr>
+          <td>Enable STARTTLS</td>
+          <td>Always enable <strong>Use STARTTLS</strong> when using port 587 to encrypt the connection between the application and the SMTP server.</td>
+        </tr>
+        <tr>
+          <td>Verify Sender Address</td>
+          <td>Ensure your sender address matches your authenticated username to avoid "send as" permission errors.</td>
+        </tr>
+        <tr>
+          <td>Lock KeePass When Not in Use</td>
+          <td>Lock your KeePass database when you're away to prevent unauthorized access to SMTP credentials.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warning">
+      <strong>Security Warning</strong>
+      Email credentials are never written to the Windows registry, log files, or debug dumps. 
+      The application stores only the SMTP server configuration and KeePass entry path. Passwords 
+      are retrieved from KeePass at send-time only.
+    </div>
+
+    <!-- -- Troubleshooting -- -->
+    <h2>Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>"Email integration not fully configured"</td>
+          <td>Ensure all required fields are filled: SMTP server, sender address, and KeePass entry. Click <strong>Save</strong> in the Email Configuration dialog.</td>
+        </tr>
+        <tr>
+          <td>"Failed to retrieve SMTP credentials"</td>
+          <td>Unlock your KeePass database and ensure the selected entry contains both username and password fields.</td>
+        </tr>
+        <tr>
+          <td>"SMTP authentication failed"</td>
+          <td>Verify the KeePass entry contains the correct username and password. Test with your email client to confirm the credentials work.</td>
+        </tr>
+        <tr>
+          <td>"Client does not have permissions to send as this sender"</td>
+          <td>Your sender address must match your authenticated username. Open <strong>Report &rarr; Email Config</strong> and click <strong>From KeePass&hellip;</strong> in the Sender section to auto-fill your email from Active Directory.</td>
+        </tr>
+        <tr>
+          <td>Connection timeout</td>
+          <td>Check your network connectivity and firewall settings. Ensure outbound connections to the SMTP port (587) are allowed.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>Tip &mdash; Debug Logging</strong>
+      Run the application with the <code>--debug</code> flag to enable detailed logging. The debug 
+      dump will include email configuration details (without passwords) to help diagnose issues.
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

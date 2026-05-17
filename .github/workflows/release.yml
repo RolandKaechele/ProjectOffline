@@ -1,0 +1,109 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0, v2026.05.01, etc.
+  workflow_dispatch:  # Allow manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=$(git describe --tags --exact-match | sed 's/^v//')
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$(git describe --tags --exact-match)" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog from commits
+        id: changelog
+        run: |
+          # Get commits since last tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # First release - get all commits
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            # Get commits between previous tag and current tag
+            COMMITS=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Write multiline output using heredoc syntax
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release (Draft)
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## Release ${{ steps.version.outputs.tag }}
+            
+            ### 📦 Installation
+            
+            Download the installer below and run it on Windows. The installer is self-contained and includes:
+            - Python runtime
+            - OpenJDK 17
+            - MPXJ library
+            - All dependencies
+            
+            **⚠️ Note:** The installer requires manual upload after building with `scons` and code signing.
+            
+            ### 📋 Changes
+            
+            ${{ steps.changelog.outputs.commits }}
+            
+            ### 🔧 Manual Build Instructions
+            
+            To build the signed installer locally:
+            
+            ```bash
+            # Ensure code signing certificate is available
+            scons SIGN_THUMBPRINT=<your-certificate-thumbprint>
+            
+            # The signed installer will be in: dist/ProjectOffline_${{ steps.version.outputs.tag }}_installer.exe
+            ```
+            
+            After building, upload the installer to this release and publish it.
+            
+            ---
+            
+            *This is a draft release. Please upload the signed installer before publishing.*
+
+      - name: Generate release summary
+        run: |
+          echo "## 🎉 Draft Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Draft (unpublished)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Build the signed installer locally:" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "   scons SIGN_THUMBPRINT=<your-cert-thumbprint>" >> $GITHUB_STEP_SUMMARY
+          echo '   ```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "2. Go to [Releases](https://github.com/${{ github.repository }}/releases)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Edit the draft release for ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "4. Upload the signed installer: \`dist/ProjectOffline_${{ steps.version.outputs.tag }}_installer.exe\`" >> $GITHUB_STEP_SUMMARY
+          echo "5. Review release notes and publish" >> $GITHUB_STEP_SUMMARY

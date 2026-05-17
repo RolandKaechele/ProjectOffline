@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+  <Project_Offline depth="0">
+    <Enterprise_Custom_Fields depth="1">
+      <GROUP_TYPES>
+        <TYPES Name="teRequirementObjectType" Basetype="Enumeration" minValue="" maxValue="" Strings="functional requirement,non functional requirement,information" Values="" Colors=""/>
+        <TYPES Name="t_Status_Sup" Basetype="Enumeration" minValue="" maxValue="" Strings="open,clarify,approved,to be deleted" Values="" Colors=""/>
+        <TYPES Name="t_Status_ZF" Basetype="Enumeration" minValue="" maxValue="" Strings="new,modified,to be clarified,aligned,to be deleted" Values="" Colors=""/>
+        <TYPES Name="teVariant" Basetype="Enumeration" minValue="" maxValue="" Strings="" Values="" Colors=""/>
+      </GROUP_TYPES>
+      <GROUP_ATTRIBUTES>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="aRequirementObjectType" Type="teRequirementObjectType"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Text" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="System Attribute" Name="Object_Heading" Type="String"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_Variant" Type="teVariant"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB_PO_Status" Type="t_Status_Sup"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF_PO_Status" Type="t_Status_ZF"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_RequestedInCR_PO" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_EB4ZF_PO_Comment" Type="Text"/>
+        <ATTRIBUTES Default="" Definitions="270" Description="" Name="a_ZF4EB_PO_Comment" Type="Text"/>
+      </GROUP_ATTRIBUTES>
+      <GROUP_ATTRIBUTEVALUES/>
+      <GROUP_FILEINFO>
+        <FILEINFO Annotation="-" Creation_Date="1777892400" Creator="Project Offline" Description="Project Offline – Enterprise Custom Fields Requirements" Encoding="65001" Export_type="6.1" Internal_links_module="" Module="PO_12_EnterpriseCustomFields" Prefix="PO-ECF-" Scriptversion="1.0" Steps="0" Suffix="-" Version_number="1.0"/>
+      </GROUP_FILEINFO>
+      <GROUP_FORMALMODULES/>
+      <GROUP_LINKMODULES/>
+      <GROUP_PASSEDATTRIBUTES/>
+      <GROUP_PICTURES/>
+      <GROUP_OBJECT_IDS/>
+      <GROUP_OBJECTS>
+        <OBJECTS ID.Status="1_Heading.0" Object_Heading="1 Enterprise Custom Fields" Object_Text="" Section_number="1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1_1_Heading.0" Object_Heading="1.1 Custom Field Requirements" Object_Text="" Section_number="1.1" aRequirementObjectType="" a_EB_Variant="" a_EB_PO_Status="" a_ZF_PO_Status="" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="1.0" Object_Heading="" Object_Text="The system shall store per-project configuration as MPXJ enterprise custom fields on the project summary task (UID=0)." Section_number="1.1.1" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+        <OBJECTS ID.Status="2.0" Object_Heading="" Object_Text="Enterprise custom field data shall be preserved when the project file is saved and loaded, making it portable across teams." Section_number="1.1.2" aRequirementObjectType="functional requirement" a_EB_Variant="" a_EB_PO_Status="approved" a_ZF_PO_Status="aligned" a_RequestedInCR_PO="" a_EB4ZF_PO_Comment="" a_ZF4EB_PO_Comment="" RequirementParent=""/>
+      </GROUP_OBJECTS>
+    </Enterprise_Custom_Fields>
+  </Project_Offline>
+</root>

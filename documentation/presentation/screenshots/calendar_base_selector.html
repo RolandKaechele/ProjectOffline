@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Calendar Base Selector - Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#f4f7fb;padding:12px}
+.win{width:760px;height:500px;border:1px solid #8aa0be;border-radius:6px;overflow:hidden;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.23);display:flex;flex-direction:column}
+.hd{background:#2B579A;color:#fff;padding:11px 15px}
+.hd h2{font-size:14px;font-weight:700;margin:0 0 2px}
+.hd p{font-size:11px;color:#c7d7f2}
+.bd{display:grid;grid-template-columns:220px 1fr;gap:12px;padding:12px;background:#f8fbff;flex:1}
+.list{background:#fff;border:1px solid #cad9ef;border-radius:5px;overflow:hidden}
+.list h3,.frm h3{font-size:12px;background:#e8f0fc;color:#1a3f7a;padding:7px 9px;border-bottom:1px solid #cad9ef}
+.items{padding:8px;display:flex;flex-direction:column;gap:6px}
+.it{font-size:11.5px;border:1px solid #d6e2f2;border-radius:4px;padding:6px 7px;background:#fff}
+.it.sel{background:#edf4ff;border-color:#2B579A;font-weight:700;color:#1a3f7a}
+.frm{background:#fff;border:1px solid #cad9ef;border-radius:5px;display:flex;flex-direction:column}
+.form{padding:10px 12px;display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:center}
+.lbl{font-size:11px;color:#465a7b;text-align:right}
+input,select{border:1px solid #adc2df;border-radius:3px;padding:5px 7px;font-size:12px}
+.note{margin:8px 12px 0;padding:8px 10px;border-left:3px solid #2B579A;background:#eef4ff;font-size:11px;color:#264069;line-height:1.45}
+.tbl{margin:10px 12px;border:1px solid #d4e0f1;border-radius:4px;overflow:hidden}
+.row{display:grid;grid-template-columns:1fr 140px;padding:6px 8px;font-size:11px;border-top:1px solid #e3ebf7}
+.row:first-child{border-top:none;background:#f2f6fd;font-weight:700;color:#344b73}
+.ft{border-top:1px solid #d0ddef;background:#f3f7fd;padding:9px 12px;display:flex;justify-content:flex-end;gap:8px}
+.btn{background:#fff;color:#2B579A;border:1px solid #9db3d2;border-radius:3px;padding:5px 11px;font-size:11px}
+.btnP{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 13px;font-size:11px;font-weight:700}
+.star{color:#e0a700;font-weight:700}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="hd">
+    <h2>Project Information - Calendars</h2>
+    <p>Base Calendar is editable and saved as parent calendar via setParent().</p>
+  </div>
+  <div class="bd">
+    <div class="list">
+      <h3>Project Calendars</h3>
+      <div class="items">
+        <div class="it">Standard (Deutschland)</div>
+        <div class="it sel">Muller, Max Calendar</div>
+        <div class="it">Bayern Holidays</div>
+        <div class="it">France Holidays</div>
+      </div>
+    </div>
+    <div class="frm">
+      <h3>Calendar Properties</h3>
+      <div class="form">
+        <div class="lbl">Name:</div><input value="Muller, Max Calendar"/>
+        <div class="lbl">Unique ID:</div><input value="104"/>
+        <div class="lbl">Base Calendar:</div>
+        <select>
+          <option>(none)</option>
+          <option selected>★ Standard (Deutschland)</option>
+          <option>Bayern Holidays</option>
+          <option>France Holidays</option>
+        </select>
+      </div>
+      <div class="note"><strong>Behavior:</strong> The currently edited calendar is excluded from the Base Calendar list. The project default calendar is shown first with a ★ prefix.</div>
+      <div class="tbl">
+        <div class="row"><div>Day</div><div>Working Time</div></div>
+        <div class="row"><div>Monday</div><div>08:00-12:00, 13:00-17:00</div></div>
+        <div class="row"><div>Tuesday</div><div>08:00-12:00, 13:00-17:00</div></div>
+        <div class="row"><div>Wednesday</div><div>08:00-12:00, 13:00-17:00</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="ft">
+    <button class="btn">Cancel</button>
+    <button class="btnP">Apply</button>
+    <button class="btnP">OK</button>
+  </div>
+</div>
+</body>
+</html>

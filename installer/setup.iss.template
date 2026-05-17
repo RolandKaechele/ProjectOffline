@@ -1,0 +1,98 @@
+; ============================================================================
+; Inno Setup Script — Project Offline
+; Template: installer/setup.iss.template
+;
+; HOW THIS WORKS
+; --------------
+; SConstruct reads this template at build time, substitutes the @@MARKER@@
+; placeholders, and writes setup.iss to the project root.  ISCC.exe then
+; compiles setup.iss into a versioned installer executable.
+;
+; USER-CONFIGURED VALUES  (edit once in this template, then commit)
+; -----------------------------------------------------------------
+;   MyAppPublisher  — company / author name shown in the installer UI
+;                     and in Programs & Features / Add / Remove Programs.
+;   MyAppURL        — product URL shown in Programs & Features.
+;   MyAppGUID       — stable AppId GUID; generate once in PowerShell:
+;                         [guid]::NewGuid() | Select-Object -ExpandProperty Guid
+;                     Use the SAME GUID for every future release of this product.
+;                     Changing it creates a duplicate entry in Programs & Features.
+;
+; BUILD-TIME VALUES  (injected by SConstruct — do not edit in this template)
+; --------------------------------------------------------------------------
+;   @@VERSION@@          e.g.  v2026.05.14-17.21
+;   @@SOURCE_DIR@@       absolute path to dist\ProjectOffline\
+;   @@OUTPUT_DIR@@       absolute path to the installer output directory (dist\)
+;   @@ICON_PATH@@        absolute path to src\icons\app.ico
+;   @@OUTPUT_FILENAME@@  installer output filename without .exe extension
+;                         e.g.  ProjectOffline_v2026.05.14-17.21_setup
+; ============================================================================
+
+; ── User-configured constants — edit here once, then commit ─────────────────
+#define MyAppPublisher   "TODO: Your Company Name"
+#define MyAppURL         "TODO: https://yourwebsite.com"
+
+; Generate a stable GUID (PowerShell):  [guid]::NewGuid()
+; Replace the zeroes below — do NOT regenerate between releases of this product.
+#define MyAppGUID        "00000000-0000-0000-0000-000000000000"
+
+; ── Build-time constants — substituted by SConstruct ────────────────────────
+#define MyAppName        "Project Offline"
+#define MyAppExeName     "ProjectOffline.exe"
+#define MyAppVersion     "@@VERSION@@"
+#define MySourceDir      "@@SOURCE_DIR@@"
+#define MyOutputDir      "@@OUTPUT_DIR@@"
+#define MyIconPath       "@@ICON_PATH@@"
+#define MyOutputFilename "@@OUTPUT_FILENAME@@"
+
+[Setup]
+; AppId uniquely identifies this product across all releases.
+; Use the same GUID for every release — changing it creates a separate entry.
+AppId={{{#MyAppGUID}}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+;AppVerName={#MyAppName} {#MyAppVersion}      ; redundant — auto-generated from AppName + AppVersion
+;AppPublisher={#MyAppPublisher}               ; optional — Programs & Features metadata
+;AppPublisherURL={#MyAppURL}                  ; optional — Programs & Features metadata
+;AppSupportURL={#MyAppURL}                    ; optional — Programs & Features metadata
+;AppUpdatesURL={#MyAppURL}                    ; optional — Programs & Features metadata
+DefaultDirName={autopf}\{#MyAppName}
+;DefaultGroupName={#MyAppName}                ; optional — Start Menu folder name
+;AllowNoIcons=yes                             ; optional — only relevant when DefaultGroupName is set
+; Admin rights required for installation into Program Files.
+PrivilegesRequired=admin
+OutputDir={#MyOutputDir}
+OutputBaseFilename={#MyOutputFilename}
+SetupIconFile={#MyIconPath}
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+; Minimum supported OS: Windows 10
+MinVersion=10.0
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+; Full application bundle produced by PyInstaller + SConstruct post-processing.
+; SCons sentinel files (.copied, .bundled) are excluded — they are internal
+; build markers and must not be shipped to end-users.
+Source: "{#MySourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".copied,.bundled"
+
+[Icons]
+Name: "{group}\{#MyAppName}";                         Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{cm:UninstallProgram,{#MyAppName}}";   Filename: "{uninstallexe}"
+Name: "{commondesktop}\{#MyAppName}";                 Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+; Remove runtime-generated directories the app may create after installation.
+Type: filesandordirs; Name: "{app}\__pycache__"
+Type: filesandordirs; Name: "{app}\logs"

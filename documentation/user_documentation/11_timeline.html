@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Strip — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html" class="active">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Timeline Strip</h1>
+    <p>The compact timeline above the tab bar — an executive-friendly overview of the full project span, key tasks and milestones.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Timeline Strip</div>
+
+    <h2>What Is the Timeline Strip?</h2>
+    <p>The <strong>Timeline Strip</strong> is a fixed-height bar displayed <em>above</em>
+    the tab bar.  It mirrors Microsoft Project's Timeline view: the full project span
+    is shown on a condensed time axis with selected task bars and milestone diamonds
+    pinned at their scheduled positions.  It is ideal for executive summaries and
+    slide exports.</p>
+
+    <h2>Enabling / Disabling</h2>
+    <p>Toggle via <strong>Options &rarr; Show Timeline Strip</strong>.
+    The strip is visible by default on the <strong>Gantt Chart</strong> and
+    <strong>Team Planner</strong> tabs only.</p>
+
+    <h2>What Is Shown</h2>
+    <table>
+      <thead><tr><th>Element</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Light-blue background bar</td><td>Full project span (earliest start to latest finish)</td></tr>
+        <tr><td>Colour-cycled bars</td><td>Tasks that have been &ldquo;registered&rdquo; to the timeline (pinned)</td></tr>
+        <tr><td>Diamond shapes</td><td>Milestones pinned to the timeline</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Pinning Tasks to the Timeline</h2>
+    <p>In the <strong>Gantt Chart</strong> or <strong>Task Sheet</strong> tab, right-click
+    a task row and choose <strong>Show in Timeline</strong> to pin that task's bar or
+    milestone diamond to the strip.  Repeat to unpin (the context menu will show
+    <strong>Remove from Timeline</strong> instead).</p>
+
+    <h2>Scroll Sync</h2>
+    <p>The timeline strip and the Gantt chart share the same horizontal scroll position
+    and zoom level.  When you zoom or scroll the Gantt, the timeline updates
+    instantaneously.  The strip's calendar header (month + day bands) stays in sync.</p>
+
+    <h2>Layout</h2>
+    <p>The strip is <strong>178&nbsp;px</strong> tall in total:</p>
+    <ul>
+      <li><strong>42&nbsp;px</strong> — two-row calendar header (month band + day band)</li>
+      <li><strong>136&nbsp;px</strong> — canvas area for task bars and milestone diamonds</li>
+    </ul>
+    <p>Multiple task bars are stacked in lanes (28&nbsp;px each) to avoid overlap.
+    Labels are centred inside each bar; milestone labels appear below the diamond.</p>
+
+    <div class="callout note">
+      <strong>Maximise / restore</strong>
+      When the main window is maximised or restored the strip collapses to zero height
+      briefly, then re-expands once Qt has settled the new layout.  This prevents a
+      flicker where the strip would render at the wrong width.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

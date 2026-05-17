@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progress Dialogs &mdash; Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html" class="active">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Progress Dialogs</h1>
+    <p>Long-running operations in Project Offline run in the background and display a modal progress dialog so the application stays responsive.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Progress Dialogs</div>
+
+    <h2>Overview</h2>
+    <p>Whenever Project Offline starts an operation that may take more than a second — such as opening a large project file, running a Jira sync, or exporting an SVG — a <strong>modal progress dialog</strong> appears automatically. The dialog:</p>
+    <ul>
+      <li>Keeps the main window <strong>responsive</strong> (it can be repainted, resized, and receives keyboard shortcuts).</li>
+      <li>Shows either a <strong>percentage bar</strong> (for operations that report incremental steps) or a <strong>pulsing indeterminate bar</strong> (for operations whose total work cannot be known in advance).</li>
+      <li>Displays a <strong>status message</strong> below the bar describing what is happening.</li>
+      <li>Optionally includes a <strong>Cancel</strong> button for operations that support cancellation.</li>
+    </ul>
+
+    <!-- ── Progress dialog screenshot ── -->
+    <figure class="screenshot">
+      <style>
+        #pd-ss *,#pd-ss *::before,#pd-ss *::after{box-sizing:border-box;margin:0;padding:0}
+        #pd-ss{font-family:"Segoe UI",Arial,sans-serif;font-size:13px;color:#1a1a2e;background:transparent;user-select:none}
+        #pd-ss .dlg{width:420px;background:#f5f5f5;border:1px solid #a0a0a0;border-radius:4px;box-shadow:4px 6px 18px rgba(0,0,0,.30);overflow:hidden}
+        #pd-ss .title-bar{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:6px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+        #pd-ss .title-bar span.x{opacity:.7;cursor:default;font-size:14px}
+        #pd-ss .body{padding:18px 20px 14px}
+        #pd-ss .label{font-size:12px;color:#333;margin-bottom:8px}
+        #pd-ss .track{width:100%;height:18px;background:#ddd;border-radius:3px;overflow:hidden;border:1px solid #b0b0b0}
+        #pd-ss .fill{height:100%;background:linear-gradient(to right,#2B579A,#4a8fd4);border-radius:3px;transition:width .3s}
+        #pd-ss .status{font-size:11px;color:#555;margin-top:6px;min-height:16px}
+        #pd-ss .footer{display:flex;justify-content:flex-end;padding:0 20px 14px}
+        #pd-ss .btn-cancel{padding:4px 22px;font-size:12px;border:1px solid #a0a0a0;border-radius:3px;background:#fff;color:#333;cursor:default}
+        #pd-ss .btn-cancel:hover{background:#f0f0f0}
+
+        #pd-indet .dlg{width:420px;background:#f5f5f5;border:1px solid #a0a0a0;border-radius:4px;box-shadow:4px 6px 18px rgba(0,0,0,.30);overflow:hidden}
+        #pd-indet .title-bar{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:6px 12px;font-size:13px;font-weight:600}
+        #pd-indet .body{padding:18px 20px 20px}
+        #pd-indet .label{font-size:12px;color:#333;margin-bottom:8px}
+        #pd-indet .track{width:100%;height:18px;background:#ddd;border-radius:3px;overflow:hidden;border:1px solid #b0b0b0;position:relative}
+        #pd-indet .pulse{position:absolute;top:0;height:100%;width:35%;background:linear-gradient(to right,transparent,#2B579A,transparent);border-radius:3px;animation:pulse-anim 1.4s linear infinite}
+        @keyframes pulse-anim{0%{left:-35%}100%{left:100%}}
+        #pd-indet .status{font-size:11px;color:#555;margin-top:6px;min-height:16px}
+      </style>
+
+      <div style="display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;justify-content:center;margin:20px auto;">
+
+        <!-- Determinate (Jira Sync) -->
+        <div id="pd-ss">
+          <div class="dlg">
+            <div class="title-bar"><span>Jira Sync</span><span class="x">&#x2715;</span></div>
+            <div class="body">
+              <div class="label">Importing issues from Jira&hellip;</div>
+              <div class="track"><div class="fill" style="width:62%"></div></div>
+              <div class="status">Processing issue PROJ-247 (62 / 100)</div>
+            </div>
+            <div class="footer"><button class="btn-cancel">Cancel</button></div>
+          </div>
+        </div>
+
+        <!-- Indeterminate (File Open) -->
+        <div id="pd-indet">
+          <div class="dlg">
+            <div class="title-bar"><span>Opening project&hellip;</span></div>
+            <div class="body">
+              <div class="label">Please wait while the project file is being loaded.</div>
+              <div class="track"><div class="pulse"></div></div>
+              <div class="status">Reading my_project.xml&hellip;</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <figcaption>Left: determinate progress bar with Cancel button (Jira Sync). Right: indeterminate pulsing bar (File Open).</figcaption>
+    </figure>
+
+    <!-- ── Which operations show a dialog ── -->
+    <h2>Operations With a Progress Dialog</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>Bar type</th>
+          <th>Cancel button</th>
+          <th>How to trigger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Jira &rarr; Project Sync</strong></td>
+          <td>Determinate (% of issues processed)</td>
+          <td>Yes</td>
+          <td>Project &rarr; Jira &rarr; Run Jira Sync</td>
+        </tr>
+        <tr>
+          <td><strong>Project &rarr; Jira Push</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>TASK ribbon &rarr; Sync to Jira</td>
+        </tr>
+        <tr>
+          <td><strong>File Open</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>File &rarr; Open&hellip; / Recent Files</td>
+        </tr>
+        <tr>
+          <td><strong>Confluence Calendar Sync</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>Project &rarr; Sync Confluence Calendar</td>
+        </tr>
+        <tr>
+          <td><strong>VCS Commit / Pull / SVN Update</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>VERSION CONTROL ribbon buttons</td>
+        </tr>
+        <tr>
+          <td><strong>File Save</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>File &rarr; Save / Save As&hellip; / Ctrl+S</td>
+        </tr>
+        <tr>
+          <td><strong>SVG / PlantUML Export</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>File &rarr; Export &rarr; &hellip;</td>
+        </tr>
+        <tr>
+          <td><strong>Active Directory Search</strong></td>
+          <td>Indeterminate</td>
+          <td>No</td>
+          <td>Resource sheet &rarr; Add from AD&hellip;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Cancelling ── -->
+    <h2>Cancelling an Operation</h2>
+    <p>When a <strong>Cancel</strong> button is shown, clicking it sets a cancellation flag in the background thread. The operation will stop at the next safe checkpoint — it does not kill the thread forcefully. Any partial results (e.g. already-created tasks during a partial Jira sync) may still be applied to the project.</p>
+
+    <div class="callout note">
+      <strong>Non-cancellable operations</strong>
+      Operations such as File Open and File Save do not show a Cancel button because interrupting them mid-way could leave the project in an inconsistent state.
+    </div>
+
+    <!-- ── Timing log ── -->
+    <h2>Operation Timing Log (Debug Mode)</h2>
+    <p>When Project Offline is started with the <code>--debug</code> flag, a <strong>timing log</strong> is included in the debug dump under the <code>long_running_timings</code> key. The log records the last 50 completed operations with their name, elapsed time in seconds, outcome (success / failure), and timestamp.</p>
+
+    <p>Example entry in the debug JSON dump:</p>
+    <pre style="background:#f4f4f4;border:1px solid #d0d0d0;border-radius:4px;padding:12px 16px;font-size:12px;overflow-x:auto;"><code>[
+  {
+    "operation":       "Jira Sync",
+    "elapsed_seconds": 4.231,
+    "success":         true,
+    "timestamp":       "2026-05-14T10:33:07"
+  },
+  {
+    "operation":       "File Open",
+    "elapsed_seconds": 1.087,
+    "success":         true,
+    "timestamp":       "2026-05-14T10:32:54"
+  }
+]</code></pre>
+
+    <p>The timing log is useful for diagnosing performance issues — for example, identifying which sync operation is consistently slow on a given network.</p>
+
+    <div class="callout tip">
+      <strong>Generating a debug dump</strong>
+      With <code>--debug</code> enabled, use <strong>Help &rarr; Debug Dump</strong> to write a JSON snapshot that includes the timing log.
+    </div>
+
+  </div><!-- /.content -->
+</div><!-- /.page-wrapper -->
+
+</body>
+</html>

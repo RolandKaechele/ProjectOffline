@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Specification &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Project Offline</h1>
+  <p>Automated pytest suite &nbsp;|&nbsp; 40 modules &nbsp;|&nbsp; 1874 tests total</p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <span class="nav-section">Spec Files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+<div class="stat"><div class="stat-n">1874</div><div class="stat-l">Total Tests</div></div>
+<div class="stat"><div class="stat-n">1862</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">40</div><div class="stat-l">Modules</div></div>
+</div>
+
+
+<div class="module" id="test_spec_app_debug.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_app_debug.html'">
+    <h2>App Debug</h2>
+    <span class="badge">56 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Debug helpers: set/get debug flag, version string, and full project state dump (tasks, resources, calendars, Jira config, email config, KeePass, VCS, CPM blocks).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_app_debug.html#app_debug">app_debug</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_app_debug.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_history_manager.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_history_manager.html'">
+    <h2>History Manager</h2>
+    <span class="badge">32 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Undo/redo history: snapshot push, push-all, undo, redo, depth tracking, and can-undo/can-redo guards.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_history_manager.html#history_manager">history_manager</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_history_manager.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_logic.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_logic.html'">
+    <h2>Logic & Main</h2>
+    <span class="badge">22 tests &nbsp;|&nbsp; 2 modules</span>
+  </div>
+  <div class="module-desc">Core application logic (project calculations) and entry-point bootstrap (argument parsing, JDK/Git/SVN detection, main execution).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_logic.html#logic">logic</a>, <a href="test_spec_logic.html#main">main</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_logic.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_settings_manager.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_settings_manager.html'">
+    <h2>Settings Manager</h2>
+    <span class="badge">64 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Persistent settings: KeePass paths, Jira server configs, VCS config, email accounts, all round-trip via QSettings.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_settings_manager.html#settings_manager">settings_manager</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_settings_manager.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_core_misc.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_core_misc.html'">
+    <h2>Stylesheet, Toolbar & Progress Worker</h2>
+    <span class="badge">49 tests &nbsp;|&nbsp; 3 modules</span>
+  </div>
+  <div class="module-desc">Supporting core modules: stylesheet builder, toolbar widget, and modal progress worker (run_with_progress / ModalProgressDialog).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_core_misc.html#stylesheet">stylesheet</a>, <a href="test_spec_core_misc.html#toolbar">toolbar</a>, <a href="test_spec_core_misc.html#progress_worker">progress_worker</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_core_misc.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_holidays.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_holidays.html'">
+    <h2>Holidays</h2>
+    <span class="badge">43 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Holiday calendar builder: Easter calculation, Buß- und Bettag, nth-weekday helper, national and state-level holidays for Germany, France, India, Romania, China, Japan.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_holidays.html#holidays">holidays</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_holidays.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_file_handler.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_file_handler.html'">
+    <h2>File Handler, Export & Import</h2>
+    <span class="badge">74 tests &nbsp;|&nbsp; 4 modules</span>
+  </div>
+  <div class="module-desc">File I/O and format modules: project open/save (file_handler), Gantt SVG/PlantUML export (export_gantt), icon factory (icons), PlantUML schedule import (import_plantuml).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_file_handler.html#export_gantt">export_gantt</a>, <a href="test_spec_file_handler.html#file_handler">file_handler</a>, <a href="test_spec_file_handler.html#icons">icons</a>, <a href="test_spec_file_handler.html#import_plantuml">import_plantuml</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_file_handler.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_ad.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_ad.html'">
+    <h2>AD Integration</h2>
+    <span class="badge">63 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Active Directory / LDAP integration: availability check, single and multi-result lookups by name/email/username, group search, thumbnail fetch, resource sync, and lookup history.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_ad.html#ad_integration">ad_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_ad.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_confluence_calendar.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_confluence_calendar.html'">
+    <h2>Confluence Calendar Integration</h2>
+    <span class="badge">146 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Confluence Team Calendar sync: calendar discovery, date parsing, apply-to-project, stale-entry removal, auto-resource creation, base-URL validation, and file-permission hardening.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_confluence_calendar.html#confluence_calendar">confluence_calendar</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_confluence_calendar.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_secondary_calendar.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_secondary_calendar.html'">
+    <h2>Secondary Calendar Integration</h2>
+    <span class="badge">41 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Per-resource secondary holiday calendar assignment: AD location mapping, persistence in project custom properties, and calendar assignment helpers.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_secondary_calendar.html#secondary_calendar_integration">secondary_calendar_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_secondary_calendar.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_jira_integration.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_jira_integration.html'">
+    <h2>Jira Integration (API)</h2>
+    <span class="badge">36 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Jira API connectivity: test_connection, client initialisation, config summary, and filter-test recording.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_jira_integration.html#jira_integration">jira_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_jira_integration.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_jira_sync.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_jira_sync.html'">
+    <h2>Jira Sync (J→P & P→J)</h2>
+    <span class="badge">108 tests &nbsp;|&nbsp; 2 modules</span>
+  </div>
+  <div class="module-desc">Jira synchronisation engine: Jira→Project import (run_sync — pagination, field mapping, hierarchy, conflict detection) and Project→Jira push (run_push_to_jira — dry-run, create, update, retry).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_jira_sync.html#jira_sync">jira_sync</a>, <a href="test_spec_integrations_jira_sync.html#jira_sync_push">jira_sync_push</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_jira_sync.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_email.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_email.html'">
+    <h2>Email Integration</h2>
+    <span class="badge">53 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">SMTP email integration: configuration getters/setters, is_configured, test_connection, send_email (plain-text and HTML/inline-SVG), and KeePass credential retrieval.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_email.html#email_integration">email_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_email.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_keepass.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_keepass.html'">
+    <h2>KeePass Integration</h2>
+    <span class="badge">52 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">KeePass credential store: manager init, state queries, unlock/lock, database creation, entry operations (locked and unlocked), key-file generation, and module-level convenience functions.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_keepass.html#keepass_integration">keepass_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_keepass.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_integrations_vcs.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_integrations_vcs.html'">
+    <h2>Version Control Integration</h2>
+    <span class="badge">35 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Git/SVN version control: askpass script, repository detection, module state init/reset, config summary (sanitised), credential scrubbing, SVN no-auth-cache, svn_is_unversioned, svn_add, and VcsWorker routing.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_integrations_vcs.html#version_control_integration">version_control_integration</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_integrations_vcs.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_dialogs.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_dialogs.html'">
+    <h2>Dialogs</h2>
+    <span class="badge">105 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Application dialogs: NonWorkingDayDialog, TaskDialog (Schedule/Resource/Jira tabs, critical IDs), ResourceDialog (AD lookup, type visibility, thumbnail/dept sidecar stores), DependencyDialog, BaselineEntryDialog, AssignmentDetailDialog, ProjectInfoDialog, NewProjectCalendarsDialog, dialog helpers, and resource-type pixmap rendering.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_dialogs.html#dialogs">dialogs</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_dialogs.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_menu.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_menu.html'">
+    <h2>Menu & CPM Results View</h2>
+    <span class="badge">31 tests &nbsp;|&nbsp; 2 modules</span>
+  </div>
+  <div class="module-desc">Application menu bar (File/Edit/Options/View actions, File→Close) and the CPM Results panel widget (table, double-click to open Task Dialog).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_menu.html#menu">menu</a>, <a href="test_spec_menu.html#cpm_results_view">cpm_results_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_menu.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_ribbon.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_ribbon.html'">
+    <h2>Ribbon</h2>
+    <span class="badge">63 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Ribbon bar: all tab panels (Task, Resource, View, Report, Baseline, Version Control), button visibility arrays, CPM buttons, and email-action enabled/disabled state.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_ribbon.html#ribbon">ribbon</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_ribbon.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_settings_dialogs.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_settings_dialogs.html'">
+    <h2>Settings Dialogs</h2>
+    <span class="badge">161 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Configuration dialogs: KeePassConfigDialog, KeePassNewEntryDialog, JiraServerEditDialog, JiraSyncConfigDialog (Jira→Project and Project→Jira tabs, 36 field checkboxes, validation), EmailAccountEditDialog, EmailConfigDialog, VcsConfigDialog, ConfluenceCalendarConfigDialog.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_settings_dialogs.html#settings_dialogs">settings_dialogs</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_settings_dialogs.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_ui.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_ui.html'">
+    <h2>UI (Main Window)</h2>
+    <span class="badge">96 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Main application window (ui.py): project open/close/new, view switching, ribbon wiring, signal/slot connections, email-action state management, and integration entry points.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_ui.html#ui">ui</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_ui.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_baseline.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_baseline.html'">
+    <h2>Baseline View</h2>
+    <span class="badge">99 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Baseline comparison view: init, load project, set baseline number, column visibility, formatting helpers (fmt_days, fmt_pct), cell and row colouring, variance highlighting, double-click, tooltips, and colour diagnostics.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_baseline.html#baseline_view">baseline_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_baseline.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_critical_path.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_critical_path.html'">
+    <h2>Critical Path & Dependency View</h2>
+    <span class="badge">35 tests &nbsp;|&nbsp; 2 modules</span>
+  </div>
+  <div class="module-desc">Critical-path calculation (add_working_days, compute_critical_ids with zero-float and SNET overrides) and dependency-arrow overlay view (init, load project, delete dependencies).</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_critical_path.html#critical_path">critical_path</a>, <a href="test_spec_views_critical_path.html#dependency_view">dependency_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_critical_path.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_gantt.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_gantt.html'">
+    <h2>Gantt View</h2>
+    <span class="badge">82 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Gantt chart view: date/QDate conversion, working-day arithmetic, task bar rendering, drag-to-reschedule, split-task support, context menus, zoom, scroll-to-task, and CPM overlay.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_gantt.html#gantt_view">gantt_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_gantt.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_timeline.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_timeline.html'">
+    <h2>Timeline View</h2>
+    <span class="badge">31 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">MS-Project-style timeline strip: milestone diamonds, task bars, date labels, add/remove API, SVG and PlantUML export, show/hide toggle persistence.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_timeline.html#timeline_view">timeline_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_timeline.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_hour_mode.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_hour_mode.html'">
+    <h2>Hour Mode Engine</h2>
+    <span class="badge">31 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Shared hourly-zoom engine: read_work_hours, working_day_count, date_to_working_day_idx, datetime_to_hourly_x, HourModeHeader init and paint.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_hour_mode.html#hour_mode">hour_mode</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_hour_mode.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_resource_usage_graph.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_resource_usage_graph.html'">
+    <h2>Resource Usage Graph View</h2>
+    <span class="badge">26 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Resource usage graph: init, load project, resource rows, task assignments, canvas rendering, zoom levels, navigation (scroll-to-first), wheel forwarder, and timeline-view linkage.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_resource_usage_graph.html#resource_usage_graph_view">resource_usage_graph_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_resource_usage_graph.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_resource_view.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_resource_view.html'">
+    <h2>Resource View</h2>
+    <span class="badge">56 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Resource sheet: init, load project, delete resources (with calendar cleanup and sidecar store pruning), add from AD, add manually (ID + personal calendar, duplicate-name guard), bulk-add group members, ensure-resource-UID, and personal-calendar base-link.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_resource_view.html#resource_view">resource_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_resource_view.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_task_sheet.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_task_sheet.html'">
+    <h2>Task Sheet View</h2>
+    <span class="badge">21 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Task sheet (spreadsheet-style task entry): init, load project, inline editing, WBS hierarchy, and column management.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_task_sheet.html#task_sheet_view">task_sheet_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_task_sheet.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_task_view.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_task_view.html'">
+    <h2>Task View</h2>
+    <span class="badge">27 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Task panel view: init, load project, float data maintenance, critical-path IDs tracking, and context-menu integration.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_task_view.html#task_view">task_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_task_view.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_team_planner.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_team_planner.html'">
+    <h2>Team Planner View</h2>
+    <span class="badge">117 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Team planner swimlane calendar: resource rows, vacation bands, secondary-calendar holiday blocks, drag-and-drop reassignment, conflict highlighting, scroll-to-first-task, and histogram sync.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_team_planner.html#team_planner_view">team_planner_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_team_planner.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+<div class="module" id="test_spec_views_resource_usage_histogram.html">
+  <div class="module-header" style="cursor:pointer" onclick="location.href='test_spec_views_resource_usage_histogram.html'">
+    <h2>Resource Usage Histogram View</h2>
+    <span class="badge">15 tests &nbsp;|&nbsp; 1 modules</span>
+  </div>
+  <div class="module-desc">Histogram strip below Team Planner: compute_histogram_data, three-tier colour coding (green/amber/red), capacity line, date axis, hover tooltips, and horizontal scroll sync.</div>
+  <div style="padding:10px 18px;font-size:.85em;line-height:1.8">
+    <a href="test_spec_views_resource_usage_histogram.html#resource_usage_histogram_view">resource_usage_histogram_view</a>
+  </div>
+  <div style="padding:6px 18px 12px;text-align:right">
+    <a href="test_spec_views_resource_usage_histogram.html" style="background:var(--accent);color:#fff;padding:5px 14px;border-radius:4px;text-decoration:none;font-size:.85em">Open &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href]'));
+  navLinks.forEach(a => {
+    if (a.getAttribute('href') === location.pathname.split('/').pop() ||
+        a.getAttribute('href') === location.href.split('/').pop()) {
+      a.classList.add('active');
+    }
+  });
+})();
+</script>
+</body>
+</html>

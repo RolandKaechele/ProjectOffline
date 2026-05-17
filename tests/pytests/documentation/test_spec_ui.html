@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: UI (Main Window) &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; UI (Main Window)</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#ui">ui</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">96</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">96</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="ui">
+  <div class="module-header"><h2>ui.py</h2><span class="badge">96 tests</span></div>
+  <div class="module-desc">MainWindow: construction, tab/ribbon mapping, undo/redo, zoom, view-toggle, data-change handlers, export/import methods, recent files, timeline integration, menu customisation (File→New, File→Close, no-project guard); <strong>_update_vcs_ribbon_state</strong> (no-repo hides VCS tab and Register button, SVN+unversioned shows Register button, SVN+versioned hides Register button); <strong>_apply_system_currency_to_project</strong> (system locale detection, symbol/code/digits/position mapping, graceful fallback, called from new_project()).</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestHorizontalWheelBlocker — Horizontal Wheel Blocker</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-01</span>
+          <span class="test-name">Wheel blocker exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ui import _HorizontalWheelBlocker</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocker = _HorizontalWheelBlocker()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>blocker is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert blocker is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-02</span>
+          <span class="test-name">Wheel blocker is event filter</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ui import _HorizontalWheelBlocker</code><br><code>from PyQt5.QtCore import QObject</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocker = _HorizontalWheelBlocker()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(blocker, QObject)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(blocker, QObject)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-03</span>
+          <span class="test-name">Wheel blocker has event filter method</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from ui import _HorizontalWheelBlocker</code></div>
+          <div class="block"><div class="block-label">Run</div><code>blocker = _HorizontalWheelBlocker()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(blocker, &#x27;eventFilter&#x27;)</code> is truthy. <code>callable(blocker.eventFilter)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(blocker, &#x27;eventFilter&#x27;)</code><br><code>assert callable(blocker.eventFilter)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestMainWindowInit — Main Window Init</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-04</span>
+          <span class="test-name">Window is created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-05</span>
+          <span class="test-name">Window has title</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window.windowTitle()</code> equals <code>&quot;Project Offline&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window.windowTitle() == &quot;Project Offline&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-06</span>
+          <span class="test-name">Window stores logic reference</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;logic&#x27;)</code> is truthy. <code>main_window.logic is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;logic&#x27;)</code><br><code>assert main_window.logic is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-07</span>
+          <span class="test-name">Window stores file handler reference</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;file_handler&#x27;)</code> is truthy. <code>main_window.file_handler is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;file_handler&#x27;)</code><br><code>assert main_window.file_handler is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-08</span>
+          <span class="test-name">Window has views</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;task_view&#x27;)</code> is truthy. <code>hasattr(main_window, &#x27;gantt_view&#x27;)</code> is truthy. <code>hasattr(main_window, &#x27;resource_view&#x27;)</code> is truthy. … and 5 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;task_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;gantt_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;resource_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;dependency_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;baseline_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;team_planner_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;task_sheet_view&#x27;)</code><br><code>assert hasattr(main_window, &#x27;resource_usage_graph_view&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-09</span>
+          <span class="test-name">Window has tabs</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;tabs&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;tabs&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-10</span>
+          <span class="test-name">Window has history manager</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_history&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_history&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-11</span>
+          <span class="test-name">Window has current file path</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_current_file_path&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_current_file_path&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-12</span>
+          <span class="test-name">Initial file path is none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window._current_file_path is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window._current_file_path is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-13</span>
+          <span class="test-name">Window has dirty flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_dirty&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_dirty&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-14</span>
+          <span class="test-name">Initial dirty flag is false</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window._dirty</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window._dirty is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-15</span>
+          <span class="test-name">Window has settings manager</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_settings_manager&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_settings_manager&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-16</span>
+          <span class="test-name">Tab count matches views</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from app_tabs import (</code><br><code>TAB_GANTT, TAB_RESOURCES, TAB_DEPENDENCIES, TAB_BASELINE,</code><br><code>TAB_TEAM_PLANNER, TAB_TASK_SHEET, TAB_RESOURCE_USAGE,</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window.tabs.count()</code> equals <code>7</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window.tabs.count() == 7</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFileOperations — File Operations</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-17</span>
+          <span class="test-name">New project method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;new_project&#x27;)</code> is truthy. <code>callable(main_window.new_project)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;new_project&#x27;)</code><br><code>assert callable(main_window.new_project)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-18</span>
+          <span class="test-name">Open project method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;open_project&#x27;)</code> is truthy. <code>callable(main_window.open_project)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;open_project&#x27;)</code><br><code>assert callable(main_window.open_project)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-19</span>
+          <span class="test-name">Save project method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;save_project&#x27;)</code> is truthy. <code>callable(main_window.save_project)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;save_project&#x27;)</code><br><code>assert callable(main_window.save_project)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-20</span>
+          <span class="test-name">Save project as method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;save_project_as&#x27;)</code> is truthy. <code>callable(main_window.save_project_as)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;save_project_as&#x27;)</code><br><code>assert callable(main_window.save_project_as)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-21</span>
+          <span class="test-name">Open project file method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;open_project_file&#x27;)</code> is truthy. <code>callable(main_window.open_project_file)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;open_project_file&#x27;)</code><br><code>assert callable(main_window.open_project_file)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTabManagement — Tab Management</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-22</span>
+          <span class="test-name">On tab changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_tab_changed&#x27;)</code> is truthy. <code>callable(main_window._on_tab_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_tab_changed&#x27;)</code><br><code>assert callable(main_window._on_tab_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-23</span>
+          <span class="test-name">On ribbon tab changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_ribbon_tab_changed&#x27;)</code> is truthy. <code>callable(main_window._on_ribbon_tab_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_ribbon_tab_changed&#x27;)</code><br><code>assert callable(main_window._on_ribbon_tab_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-24</span>
+          <span class="test-name">Last app tab for ribbon dict exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_last_app_tab_for_ribbon&#x27;)</code> is truthy. <code>isinstance(main_window._last_app_tab_for_ribbon, dict)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_last_app_tab_for_ribbon&#x27;)</code><br><code>assert isinstance(main_window._last_app_tab_for_ribbon, dict)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-25</span>
+          <span class="test-name">App to ribbon tab mapping exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_APP_TO_RIBBON_TAB&#x27;)</code> is truthy. <code>isinstance(main_window._APP_TO_RIBBON_TAB, dict)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_APP_TO_RIBBON_TAB&#x27;)</code><br><code>assert isinstance(main_window._APP_TO_RIBBON_TAB, dict)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestUndoRedo — Undo Redo</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-26</span>
+          <span class="test-name">Undo method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_undo&#x27;)</code> is truthy. <code>callable(main_window._undo)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_undo&#x27;)</code><br><code>assert callable(main_window._undo)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-27</span>
+          <span class="test-name">Redo method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_redo&#x27;)</code> is truthy. <code>callable(main_window._redo)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_redo&#x27;)</code><br><code>assert callable(main_window._redo)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-28</span>
+          <span class="test-name">History manager exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_history&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_history&#x27;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestZoomControls — Zoom Controls</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-29</span>
+          <span class="test-name">Zoom in method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;zoom_in&#x27;)</code> is truthy. <code>callable(main_window.zoom_in)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;zoom_in&#x27;)</code><br><code>assert callable(main_window.zoom_in)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-30</span>
+          <span class="test-name">Zoom out method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;zoom_out&#x27;)</code> is truthy. <code>callable(main_window.zoom_out)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;zoom_out&#x27;)</code><br><code>assert callable(main_window.zoom_out)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-31</span>
+          <span class="test-name">On zoom slider method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_zoom_slider&#x27;)</code> is truthy. <code>callable(main_window._on_zoom_slider)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_zoom_slider&#x27;)</code><br><code>assert callable(main_window._on_zoom_slider)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-32</span>
+          <span class="test-name">Zoom slider exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_zoom_slider&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_zoom_slider&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-33</span>
+          <span class="test-name">Zoom pct label exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_zoom_pct_label&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_zoom_pct_label&#x27;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestViewToggles — View Toggles</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-34</span>
+          <span class="test-name">Toggle resource units method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;toggle_resource_units&#x27;)</code> is truthy. <code>callable(main_window.toggle_resource_units)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;toggle_resource_units&#x27;)</code><br><code>assert callable(main_window.toggle_resource_units)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-35</span>
+          <span class="test-name">Toggle show sundays method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;toggle_show_sundays&#x27;)</code> is truthy. <code>callable(main_window.toggle_show_sundays)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;toggle_show_sundays&#x27;)</code><br><code>assert callable(main_window.toggle_show_sundays)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-36</span>
+          <span class="test-name">Toggle show off hours method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;toggle_show_off_hours&#x27;)</code> is truthy. <code>callable(main_window.toggle_show_off_hours)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;toggle_show_off_hours&#x27;)</code><br><code>assert callable(main_window.toggle_show_off_hours)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-37</span>
+          <span class="test-name">Toggle zero float critical method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;toggle_zero_float_critical&#x27;)</code> is truthy. <code>callable(main_window.toggle_zero_float_critical)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;toggle_zero_float_critical&#x27;)</code><br><code>assert callable(main_window.toggle_zero_float_critical)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDataChangeHandlers — Data Change Handlers</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-38</span>
+          <span class="test-name">On task data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_task_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_task_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_task_data_changed&#x27;)</code><br><code>assert callable(main_window._on_task_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-39</span>
+          <span class="test-name">On resource data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_resource_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_resource_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_resource_data_changed&#x27;)</code><br><code>assert callable(main_window._on_resource_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-40</span>
+          <span class="test-name">On dependency data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_dependency_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_dependency_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_dependency_data_changed&#x27;)</code><br><code>assert callable(main_window._on_dependency_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-41</span>
+          <span class="test-name">On gantt task moved method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_gantt_task_moved&#x27;)</code> is truthy. <code>callable(main_window._on_gantt_task_moved)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_gantt_task_moved&#x27;)</code><br><code>assert callable(main_window._on_gantt_task_moved)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-42</span>
+          <span class="test-name">On gantt task edited method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_gantt_task_edited&#x27;)</code> is truthy. <code>callable(main_window._on_gantt_task_edited)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_gantt_task_edited&#x27;)</code><br><code>assert callable(main_window._on_gantt_task_edited)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-43</span>
+          <span class="test-name">On team planner data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_team_planner_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_team_planner_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_team_planner_data_changed&#x27;)</code><br><code>assert callable(main_window._on_team_planner_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-44</span>
+          <span class="test-name">On task sheet data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_task_sheet_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_task_sheet_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_task_sheet_data_changed&#x27;)</code><br><code>assert callable(main_window._on_task_sheet_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-45</span>
+          <span class="test-name">Mark dirty method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_mark_dirty&#x27;)</code> is truthy. <code>callable(main_window._mark_dirty)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_mark_dirty&#x27;)</code><br><code>assert callable(main_window._mark_dirty)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-46</span>
+          <span class="test-name">Mark dirty sets dirty flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = False</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._mark_dirty()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window._dirty</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window._dirty is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-47</span>
+          <span class="test-name">Mark clean clears dirty flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = True</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._mark_clean()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window._dirty</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window._dirty is False</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestExportMethods — Export Methods</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-48</span>
+          <span class="test-name">Export gantt svg method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;export_gantt_svg&#x27;)</code> is truthy. <code>callable(main_window.export_gantt_svg)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;export_gantt_svg&#x27;)</code><br><code>assert callable(main_window.export_gantt_svg)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-49</span>
+          <span class="test-name">Export resource gantt svg method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;export_resource_gantt_svg&#x27;)</code> is truthy. <code>callable(main_window.export_resource_gantt_svg)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;export_resource_gantt_svg&#x27;)</code><br><code>assert callable(main_window.export_resource_gantt_svg)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-50</span>
+          <span class="test-name">Export gantt plantuml method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;export_gantt_plantuml&#x27;)</code> is truthy. <code>callable(main_window.export_gantt_plantuml)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;export_gantt_plantuml&#x27;)</code><br><code>assert callable(main_window.export_gantt_plantuml)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestImportMethods — Import Methods</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-51</span>
+          <span class="test-name">Import plantuml method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;import_plantuml&#x27;)</code> is truthy. <code>callable(main_window.import_plantuml)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;import_plantuml&#x27;)</code><br><code>assert callable(main_window.import_plantuml)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSelectionHandlers — Selection Handlers</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-52</span>
+          <span class="test-name">On task selection changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_task_selection_changed&#x27;)</code> is truthy. <code>callable(main_window._on_task_selection_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_task_selection_changed&#x27;)</code><br><code>assert callable(main_window._on_task_selection_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-53</span>
+          <span class="test-name">On task reordered method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_task_reordered&#x27;)</code> is truthy. <code>callable(main_window._on_task_reordered)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_task_reordered&#x27;)</code><br><code>assert callable(main_window._on_task_reordered)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRecentFiles — Recent Files</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-54</span>
+          <span class="test-name">Load recent files method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_load_recent_files&#x27;)</code> is truthy. <code>callable(main_window._load_recent_files)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_load_recent_files&#x27;)</code><br><code>assert callable(main_window._load_recent_files)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-55</span>
+          <span class="test-name">Add to recent method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_add_to_recent&#x27;)</code> is truthy. <code>callable(main_window._add_to_recent)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_add_to_recent&#x27;)</code><br><code>assert callable(main_window._add_to_recent)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-56</span>
+          <span class="test-name">Clear recent files method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;clear_recent_files&#x27;)</code> is truthy. <code>callable(main_window.clear_recent_files)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;clear_recent_files&#x27;)</code><br><code>assert callable(main_window.clear_recent_files)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestAppTabsModule — App Tabs Module</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-57</span>
+          <span class="test-name">Tab constants exist</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from app_tabs import (</code><br><code>TAB_GANTT, TAB_RESOURCES, TAB_DEPENDENCIES, TAB_BASELINE,</code><br><code>TAB_TEAM_PLANNER, TAB_TASK_SHEET, TAB_RESOURCE_USAGE,</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>TAB_GANTT</code> equals <code>0</code>. <code>TAB_RESOURCES</code> equals <code>1</code>. <code>TAB_DEPENDENCIES</code> equals <code>2</code>. … and 4 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert TAB_GANTT == 0</code><br><code>assert TAB_RESOURCES == 1</code><br><code>assert TAB_DEPENDENCIES == 2</code><br><code>assert TAB_BASELINE == 3</code><br><code>assert TAB_TEAM_PLANNER == 4</code><br><code>assert TAB_TASK_SHEET == 5</code><br><code>assert TAB_RESOURCE_USAGE == 6</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-58</span>
+          <span class="test-name">Ribbon constants exist</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from app_tabs import RIBBON_TASK, RIBBON_RESOURCE, RIBBON_REPORT</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>RIBBON_TASK</code> equals <code>0</code>. <code>RIBBON_RESOURCE</code> equals <code>1</code>. <code>RIBBON_REPORT</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert RIBBON_TASK == 0</code><br><code>assert RIBBON_RESOURCE == 1</code><br><code>assert RIBBON_REPORT == 2</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTimelineViewIntegration — Timeline View Integration</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-59</span>
+          <span class="test-name">Timeline view attribute exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;timeline_view&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;timeline_view&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-60</span>
+          <span class="test-name">Timeline view starts collapsed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.timeline_view._set_collapsed.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>timeline view starts collapsed</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-61</span>
+          <span class="test-name">Toggle timeline saves to settings</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.toggle_timeline(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>val = main_window._settings.value(&quot;timeline/visible&quot;, False, type=bool)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>val</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert val is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-62</span>
+          <span class="test-name">Toggle timeline false saves to settings</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.toggle_timeline(False)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>val = main_window._settings.value(&quot;timeline/visible&quot;, False, type=bool)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>val</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert val is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-63</span>
+          <span class="test-name">Toggle timeline calls set timeline checked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.toggle_timeline(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.menuBar().set_timeline_checked.assert_called_with(True)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>toggle timeline calls set timeline checked</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-64</span>
+          <span class="test-name">Toggle timeline calls set collapsed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.toggle_timeline(True)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.timeline_view._set_collapsed.assert_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>toggle timeline calls set collapsed</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-65</span>
+          <span class="test-name">Update timeline visibility before settings is safe</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>saved = main_window._settings</code><br><code>del main_window._settings</code><br><code>try:</code><br><code>main_window._update_timeline_visibility()   # must not raise</code><br><code>finally:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._settings = saved</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>update timeline visibility before settings is safe</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-66</span>
+          <span class="test-name">Gantt view receives timeline reference</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.gantt_view.set_timeline_view.assert_called_once_with(</code><br><code>main_window.timeline_view</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>gantt view receives timeline reference</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-67</span>
+          <span class="test-name">On window state settled method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_window_state_settled&#x27;)</code> is truthy. <code>callable(main_window._on_window_state_settled)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_window_state_settled&#x27;)</code><br><code>assert callable(main_window._on_window_state_settled)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-68</span>
+          <span class="test-name">On window state settled calls update visibility</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>initial_call_count = main_window.timeline_view._set_collapsed.call_count</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._on_window_state_settled()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>main_window.timeline_view._set_collapsed.call_count</code> is greater than <code>initial_call_count</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window.timeline_view._set_collapsed.call_count &gt; initial_call_count</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-69</span>
+          <span class="test-name">On timeline data changed method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_timeline_data_changed&#x27;)</code> is truthy. <code>callable(main_window._on_timeline_data_changed)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_timeline_data_changed&#x27;)</code><br><code>assert callable(main_window._on_timeline_data_changed)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-70</span>
+          <span class="test-name">On timeline remove from canvas method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_on_timeline_remove_from_canvas&#x27;)</code> is truthy. <code>callable(main_window._on_timeline_remove_from_canvas)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_on_timeline_remove_from_canvas&#x27;)</code><br><code>assert callable(main_window._on_timeline_remove_from_canvas)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestMenuCustomisation — Menu Customisation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-71</span>
+          <span class="test-name">Close project method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, 'close_project')</code> is truthy. <code>callable(main_window.close_project)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, 'close_project')</code><br><code>assert callable(main_window.close_project)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-72</span>
+          <span class="test-name">New project opens project info dialog</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>patch _refresh_all_views, _history.push_all, open_project_info</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.new_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>open_project_info</code> called exactly once so the user sets mandatory start/end dates before any tasks are added.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_info.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-73</span>
+          <span class="test-name">Close project no dirty clears project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = False</code><br><code>main_window.logic.load_data(MagicMock())</code><br>patch <code>_refresh_all_views</code>, <code>_history.push_all</code>, <code>QMessageBox.question</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>No save dialog shown. <code>logic.get_data()</code> is <code>None</code>. <code>_current_file_path</code> is <code>None</code>. <code>_dirty</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_q.assert_not_called()</code><br><code>assert main_window.logic.get_data() is None</code><br><code>assert main_window._current_file_path is None</code><br><code>assert main_window._dirty is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-74</span>
+          <span class="test-name">Close project dirty discard closes</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = True</code><br>patch <code>QMessageBox.question</code> ? <code>QMessageBox.Discard</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Project closed without saving. <code>logic.get_data()</code> is <code>None</code>. <code>_dirty</code> is <code>False</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window.logic.get_data() is None</code><br><code>assert main_window._dirty is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-75</span>
+          <span class="test-name">Close project dirty cancel aborts</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = True</code><br>patch <code>QMessageBox.question</code> ? <code>QMessageBox.Cancel</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Project remains open. <code>_dirty</code> stays <code>True</code>. <code>logic.get_data()</code> returns the original sentinel.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert main_window._dirty is True</code><br><code>assert main_window.logic.get_data() is sentinel</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-76</span>
+          <span class="test-name">Close project dirty save then close</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = True</code><br>patch <code>QMessageBox.question</code> ? <code>QMessageBox.Save</code><br>patch <code>save_project</code> to clear <code>_dirty</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>save_project()</code> called once. Project subsequently cleared.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_save.assert_called_once()</code><br><code>assert main_window.logic.get_data() is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-77</span>
+          <span class="test-name">Add entry no project does not create new</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.logic.load_data(None)</code><br>patch <code>new_project</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.add_entry()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_project</code> never called — ribbon buttons are disabled when no project is open.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_new.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-78</span>
+          <span class="test-name">Add resource no project does not create new</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window.logic.load_data(None)</code><br><code>main_window.resource_view.add_resource = MagicMock()</code><br>patch <code>new_project</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.add_resource()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>new_project</code> never called — ribbon buttons are disabled when no project is open.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_new.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-79</span>
+          <span class="test-name">Close project clears gantt splits</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = False</code><br>patch <code>_refresh_all_views</code>, <code>_history.push_all</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>gantt_view.clear_splits()</code> called once to discard split-task data from the previous project.</div>
+          <div class="block"><div class="block-label">Check</div><code>main_window.gantt_view.clear_splits.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-80</span>
+          <span class="test-name">Close project disables close menu via refresh</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>main_window._dirty = False</code><br>patch <code>_refresh_all_views</code>, <code>_history.push_all</code></div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.close_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_refresh_all_views()</code> called — it is responsible for toggling <code>set_close_enabled</code> based on project-open state.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_refresh.assert_called_once()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestUpdateVcsRibbonState — VCS Ribbon State Updates</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-81</span>
+          <span class="test-name">No repo hides VCS tab</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock <code>version_control_integration</code>; <code>is_configured()</code> returns <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._update_vcs_ribbon_state()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon.set_vcs_tab_visible(False)</code> called — no repository detected.</div>
+          <div class="block"><div class="block-label">Check</div><code>ribbon.set_vcs_tab_visible.assert_called_with(False)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-82</span>
+          <span class="test-name">No repo hides register button</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock <code>version_control_integration</code>; <code>is_configured()</code> returns <code>False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._update_vcs_ribbon_state()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon.set_vcs_register_state(False)</code> called to ensure the Register button stays hidden.</div>
+          <div class="block"><div class="block-label">Check</div><code>ribbon.set_vcs_register_state.assert_called_with(False)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-83</span>
+          <span class="test-name">SVN repo unversioned file shows register button</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_current_file_path = "/repo/project.xml"</code>; mock VCS with <code>get_vcs_type()="svn"</code> and <code>svn_is_unversioned()=True</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._update_vcs_ribbon_state()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ribbon.set_vcs_register_state(True, enabled=True)</code> — unversioned file can be registered.</div>
+          <div class="block"><div class="block-label">Check</div><code>ribbon.set_vcs_register_state.assert_called_with(True, enabled=True)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-84</span>
+          <span class="test-name">SVN repo versioned file hides register button</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>_current_file_path = "/repo/project.xml"</code>; mock VCS with <code>get_vcs_type()="svn"</code> and <code>svn_is_unversioned()=False</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._update_vcs_ribbon_state()</code></div>
+          <div class="block"><div class="block-label">Expect</div>File already tracked: <code>ribbon.set_vcs_register_state(False, enabled=True)</code> — button hidden, state still enabled.</div>
+          <div class="block"><div class="block-label">Check</div><code>ribbon.set_vcs_register_state.assert_called_with(False, enabled=True)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestApplySystemCurrencyToProject — System Currency Auto-detection</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-85</span>
+          <span class="test-name">Apply system currency method exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; <code>main_window</code> fixture.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(main_window, &#x27;_apply_system_currency_to_project&#x27;)</code> is truthy and callable.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(main_window, &#x27;_apply_system_currency_to_project&#x27;)</code><br><code>assert callable(main_window._apply_system_currency_to_project)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-86</span>
+          <span class="test-name">Apply system currency sets symbol</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project with <code>getProjectProperties()</code>; patch <code>locale.localeconv</code> to return <code>currency_symbol=&#x27;€&#x27;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCurrencySymbol(&#x27;€&#x27;)</code> called once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCurrencySymbol.assert_called_once_with(&#x27;€&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-87</span>
+          <span class="test-name">Apply system currency sets code</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch <code>locale.localeconv</code> to return <code>int_curr_symbol=&#x27;EUR &#x27;</code> (trailing space).</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCurrencyCode(&#x27;EUR&#x27;)</code> called once (stripped).</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCurrencyCode.assert_called_once_with(&#x27;EUR&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-88</span>
+          <span class="test-name">Apply system currency sets digits</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch <code>locale.localeconv</code> to return <code>frac_digits=2</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCurrencyDigits(2)</code> called once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCurrencyDigits.assert_called_once_with(2)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-89</span>
+          <span class="test-name">Apply system currency negative digits defaults to 2</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch <code>locale.localeconv</code> with <code>frac_digits=-1</code> (locale sentinel for unknown).</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCurrencyDigits(2)</code> — negative value replaced by default.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCurrencyDigits.assert_called_once_with(2)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-90</span>
+          <span class="test-name">Apply system currency position after with space</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch localeconv with <code>p_cs_precedes=0</code>, <code>p_sep_by_space=1</code> (German style).</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CSP.valueOf(&#x27;AFTER_WITH_SPACE&#x27;)</code> called.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_csp.valueOf.assert_called_once_with(&#x27;AFTER_WITH_SPACE&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-91</span>
+          <span class="test-name">Apply system currency position after no space</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch localeconv with <code>p_cs_precedes=0</code>, <code>p_sep_by_space=0</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CSP.valueOf(&#x27;AFTER&#x27;)</code> called.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_csp.valueOf.assert_called_once_with(&#x27;AFTER&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-92</span>
+          <span class="test-name">Apply system currency position before</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch localeconv with <code>p_cs_precedes=1</code>, <code>p_sep_by_space=0</code> (e.g. £1.23).</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CSP.valueOf(&#x27;BEFORE&#x27;)</code> called.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_csp.valueOf.assert_called_once_with(&#x27;BEFORE&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-93</span>
+          <span class="test-name">Apply system currency position before with space</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch localeconv with <code>p_cs_precedes=1</code>, <code>p_sep_by_space=1</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CSP.valueOf(&#x27;BEFORE_WITH_SPACE&#x27;)</code> called.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_csp.valueOf.assert_called_once_with(&#x27;BEFORE_WITH_SPACE&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-94</span>
+          <span class="test-name">Apply system currency empty symbol not written</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch localeconv to return empty <code>currency_symbol=&#x27;&#x27;</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>props.setCurrencySymbol()</code> must NOT be called to avoid clearing an existing value.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_props.setCurrencySymbol.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-95</span>
+          <span class="test-name">Apply system currency handles locale error gracefully</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Mock project; patch <code>locale.getlocale</code> to raise <code>Exception(&#x27;locale unavailable&#x27;)</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window._apply_system_currency_to_project(mock_project)</code></div>
+          <div class="block"><div class="block-label">Expect</div>No exception propagated — method catches all errors silently.</div>
+          <div class="block"><div class="block-label">Check</div>Call completes without raising.</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">UI-96</span>
+          <span class="test-name">New project calls apply system currency</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Patch <code>_refresh_all_views</code>, <code>_history.push_all</code>, <code>_setup_new_project_calendars</code>, <code>open_project_info</code>, <code>_apply_system_currency_to_project</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>main_window.new_project()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_apply_system_currency_to_project()</code> called once so the new project starts with OS-locale currency defaults.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_curr.assert_called_once()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

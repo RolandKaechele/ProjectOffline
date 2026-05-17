@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Confluence Calendar Configuration – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:600px;height:720px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ────────────────────────────── */
+.dlg-header{background:#2B579A;color:#fff;padding:14px 18px 12px;flex-shrink:0}
+.dlg-header h2{font-size:15px;font-weight:700;margin:0 0 2px}
+.dlg-header p{font-size:11px;color:#b8d0f0;margin:0}
+
+/* ── Dialog body ─────────────────────────────── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:14px 16px;overflow:auto;background:#fff;gap:10px}
+
+/* ── Group boxes ─────────────────────────────── */
+.groupbox{border:1px solid #c8d8f0;border-radius:4px;padding:10px 12px 10px;position:relative;background:#fafbfc}
+.groupbox-title{position:absolute;top:-9px;left:10px;background:#fafbfc;padding:0 5px;font-size:11.5px;font-weight:700;color:#1a3f7a}
+.groupbox.accent{border-color:#2B579A}
+.groupbox.accent .groupbox-title{background:#fff;color:#2B579A}
+
+/* ── Form rows ───────────────────────────────── */
+.form-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.form-row:last-child{margin-bottom:0}
+.form-label{width:100px;font-size:11.5px;color:#444;flex-shrink:0;text-align:right}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff}
+.form-input.disabled{background:#f0f0f0;color:#888;border-color:#d0d0d0}
+.form-combo{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#1a3f7a;background:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232B579A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  appearance:none;-webkit-appearance:none}
+
+/* ── Auth mode selector ──────────────────────── */
+.mode-row{display:flex;gap:0;padding:0;margin-bottom:8px}
+.mode-row label{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#1a3f7a;font-weight:600;cursor:default}
+.mode-row label:first-child{margin-right:20px}
+.mode-row input{accent-color:#2B579A}
+
+/* ── Note text ───────────────────────────────── */
+.note{font-size:10.5px;color:#666;font-style:italic;line-height:1.45;margin-bottom:6px}
+
+/* ── KeePass entry row ───────────────────────── */
+.entry-row{display:flex;gap:6px;align-items:center}
+.entry-combo{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#1a3f7a;background:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232B579A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  appearance:none;-webkit-appearance:none}
+.btn-small{border:1px solid #b0c4dc;background:#e8f0fb;color:#1a3f7a;border-radius:3px;padding:3px 9px;font-size:11px;cursor:default;white-space:nowrap}
+
+/* ── Bottom buttons ──────────────────────────── */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:10px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:6px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Dialog header -->
+  <div class="dlg-header">
+    <h2>Confluence Calendar Configuration</h2>
+    <p>Authentication mode and per-project calendar properties</p>
+  </div>
+
+  <!-- Dialog body -->
+  <div class="dlg-body">
+
+    <!-- ── Authentication section ───────────────────────────── -->
+    <div class="groupbox accent">
+      <span class="groupbox-title">Authentication</span>
+
+      <!-- Auth mode combo -->
+      <div class="form-row" style="margin-bottom:10px">
+        <span class="form-label">Authentication:</span>
+        <select class="form-combo">
+          <option>Manual (no SSO auto-fill)</option>
+          <option selected>From KeePass entry (auto-fill SSO)</option>
+        </select>
+      </div>
+
+      <!-- KeePass group (page 2 — unlocked) -->
+      <div class="groupbox" style="margin-top:2px">
+        <span class="groupbox-title">KeePass Credentials</span>
+        <p class="note">Username and password from the selected KeePass entry are pre-filled on the
+          Microsoft SSO login page. The MFA / Authenticator step is always completed manually.</p>
+        <div class="form-row">
+          <span class="form-label">Entry:</span>
+          <div class="entry-row" style="flex:1">
+            <select class="entry-combo">
+              <option value=""></option>
+              <option value="Confluence/prod" selected>Confluence/prod</option>
+              <option value="Confluence/dev">Confluence/dev</option>
+              <option value="Jira/api-token">Jira/api-token</option>
+            </select>
+            <button class="btn-small">New Entry…</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /Authentication -->
+
+    <!-- ── Calendar Properties section ─────────────────────── -->
+    <div class="groupbox accent">
+      <span class="groupbox-title">Calendar Properties (per-project)</span>
+
+      <div class="form-row">
+        <span class="form-label">Base URL:</span>
+        <input class="form-input" type="text" value="https://confluence.example.com" readonly>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Space Key:</span>
+        <input class="form-input" type="text" value="PROJ" readonly>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Timezone:</span>
+        <select class="form-combo">
+          <option value=""></option>
+          <option value="Africa/Abidjan">Africa/Abidjan</option>
+          <option value="America/New_York">America/New_York</option>
+          <option value="Europe/Amsterdam">Europe/Amsterdam</option>
+          <option value="Europe/Berlin" selected>Europe/Berlin</option>
+          <option value="Europe/London">Europe/London</option>
+          <option value="Europe/Paris">Europe/Paris</option>
+          <option value="US/Eastern">US/Eastern</option>
+          <option value="US/Pacific">US/Pacific</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <span class="form-label">Days Ahead:</span>
+        <input class="form-input" type="text" value="365" style="max-width:80px" readonly>
+      </div>
+
+    </div><!-- /Calendar Properties -->
+
+  </div><!-- /.dlg-body -->
+
+  <!-- Footer buttons -->
+  <div class="dlg-footer">
+    <button class="btn-primary">OK</button>
+    <button class="btn-default">Cancel</button>
+  </div>
+
+</div><!-- /.window -->
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Splitting &amp; Merging — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html" class="active">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Task Splitting &amp; Merging</h1>
+    <p>Interrupt a task mid-execution and resume it later — or merge the segments back into a single bar.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Task Splitting &amp; Merging</div>
+
+    <h2>What Is Task Splitting?</h2>
+    <p>Task splitting lets you model an interruption: the task stops on a given date
+    and resumes at a later date.  On the Gantt chart, splits appear as two (or more)
+    bars connected by a dashed line.  The total duration is preserved — only the
+    continuous working time is redistributed.</p>
+
+    <h2>Splitting a Task</h2>
+    <ol>
+      <li>In the <strong>Gantt Chart</strong> or <strong>Task Sheet</strong> tab,
+          right-click the task you want to split.</li>
+      <li>Choose <strong>Split Task&hellip;</strong> from the context menu.
+          (The option is only shown for non-summary, non-milestone tasks.)</li>
+      <li>In the <strong>Split Task</strong> dialog, enter the <strong>split date</strong>
+          — the day the task will pause.</li>
+      <li>Optionally adjust the <strong>resume date</strong> — the day the task
+          restarts after the gap.</li>
+      <li>Click <strong>OK</strong>.  The Gantt chart redraws with a dashed
+          connector between the two segments.</li>
+    </ol>
+
+    <h2>How Splits Are Stored</h2>
+    <p>Split information is stored in a companion <code>.splits.json</code> file saved
+    alongside the project XML.  This ensures the split data survives round-trips through
+    MPXJ without loss.  When you open a project, the application automatically looks for
+    a matching <code>.splits.json</code> file.</p>
+
+    <h2>Gantt Chart Rendering</h2>
+    <table>
+      <thead><tr><th>Element</th><th>Appearance</th></tr></thead>
+      <tbody>
+        <tr><td>First segment</td><td>Normal task bar up to the split date</td></tr>
+        <tr><td>Gap</td><td>Dashed horizontal connector line</td></tr>
+        <tr><td>Subsequent segments</td><td>Normal task bar from the resume date</td></tr>
+        <tr><td>Vacation overlay</td><td>Semi-transparent orange block if a resource is on leave during the gap</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Merging Segments</h2>
+    <ol>
+      <li>Right-click the split task in the Gantt Chart or Task Sheet.</li>
+      <li>Choose <strong>Merge Task Segments</strong>.  (This option is only visible
+          when the task has existing splits.)</li>
+      <li>Confirm the merge.  All split points are removed and the task becomes a
+          single continuous bar again, spanning the original start to the last finish.</li>
+    </ol>
+
+    <div class="callout note">
+      <strong>Multiple splits</strong>
+      A task can have more than two segments.  Repeat the <strong>Split Task</strong>
+      action on an already-split task to add a second interruption.
+      <strong>Merge Task Segments</strong> always removes all splits at once.
+    </div>
+
+    <div class="callout warn">
+      <strong>Summary tasks</strong>
+      Summary tasks and milestones cannot be split.  The context menu item is hidden
+      for those task types.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

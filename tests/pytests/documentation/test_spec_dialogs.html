@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Dialogs &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Dialogs</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#dialogs">dialogs</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_confluence_calendar.html">Confluence Calendar Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">75</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">75</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="dialogs">
+  <div class="module-header"><h2>dialogs.py</h2><span class="badge">105 tests</span></div>
+  <div class="module-desc">PyQt5 dialog classes: modal flags, title text, required controls and constructor signatures for all application dialogs. Includes CPM-based critical-path display in TaskDialog and a read-only Jira tab showing the linked issue key, status, and browse URL. Also covers the resource-assignment tab: 3-column QTableWidget (Name&nbsp;|&nbsp;Units&nbsp;%&nbsp;|&nbsp;&#x2715;), per-row delete button via <code>_del_btns</code> list tracking, null-resource guard, and duplicate-resource prevention.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestNonWorkingDayDialog — Non Working Day Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-01</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import NonWorkingDayDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = NonWorkingDayDialog(&quot;Task1&quot;, &quot;Saturday 2025-01-11&quot;, &quot;Monday 2025-01-13&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-02</span>
+          <span class="test-name">Dialog has constants</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import NonWorkingDayDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(NonWorkingDayDialog, &#x27;SNAP&#x27;)</code> is truthy. <code>hasattr(NonWorkingDayDialog, &#x27;KEEP&#x27;)</code> is truthy. <code>hasattr(NonWorkingDayDialog, &#x27;CANCEL&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(NonWorkingDayDialog, &#x27;SNAP&#x27;)</code><br><code>assert hasattr(NonWorkingDayDialog, &#x27;KEEP&#x27;)</code><br><code>assert hasattr(NonWorkingDayDialog, &#x27;CANCEL&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-03</span>
+          <span class="test-name">Dialog title set</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import NonWorkingDayDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = NonWorkingDayDialog(&quot;Task1&quot;, &quot;Saturday 2025-01-11&quot;, &quot;Monday 2025-01-13&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.windowTitle()</code> is not <code>&quot;&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.windowTitle() != &quot;&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-04</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import NonWorkingDayDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = NonWorkingDayDialog(&quot;Task1&quot;, &quot;Saturday 2025-01-11&quot;, &quot;Monday 2025-01-13&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTaskDialog — Task Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-05</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = TaskDialog(task, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-06</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = TaskDialog(task, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-07</span>
+          <span class="test-name">Dialog created with task and project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = TaskDialog(task, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-08</span>
+          <span class="test-name">Timeline checkbox absent without timeline view</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=1)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = TaskDialog(task, project, timeline_view=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cb_timeline is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cb_timeline is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-09</span>
+          <span class="test-name">Timeline checkbox present with timeline view</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>from PyQt5.QtWidgets import QCheckBox</code><br><code>task = make_mock_task(task_id=1)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>tv = self._make_timeline_view_mock()</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = TaskDialog(task, project, timeline_view=tv)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>isinstance(dlg._cb_timeline, QCheckBox)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert isinstance(dlg._cb_timeline, QCheckBox)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-10</span>
+          <span class="test-name">Timeline checkbox checked when task pinned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=5)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>tv = self._make_timeline_view_mock(pinned_task_ids=(5,))</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = TaskDialog(task, project, timeline_view=tv)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cb_timeline.isChecked()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cb_timeline.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-11</span>
+          <span class="test-name">Timeline checkbox unchecked when task not pinned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=5)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>tv = self._make_timeline_view_mock(pinned_task_ids=())</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = TaskDialog(task, project, timeline_view=tv)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cb_timeline.isChecked()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not dlg._cb_timeline.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-12</span>
+          <span class="test-name">Timeline checkbox checked when milestone pinned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=7, is_milestone=True)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>tv = self._make_timeline_view_mock(pinned_milestone_ids=(7,))</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = TaskDialog(task, project, timeline_view=tv)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._cb_timeline.isChecked()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._cb_timeline.isChecked()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-13</span>
+          <span class="test-name">Timeline checkbox calls is task pinned with correct id</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=42)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>tv = self._make_timeline_view_mock()</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None), \</code><br><code>patch(&#x27;gantt_view._compute_critical_ids&#x27;, return_value=set()):</code><br><code>TaskDialog(task, project, timeline_view=tv)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>tv.is_task_pinned.assert_called_with(42)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>timeline checkbox calls is task pinned with correct id</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestResourceDialog — Resource Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-14</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import ResourceDialog</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Developer&quot;)</code><br><code>project = make_mock_project(resources=[res])</code><br><code>with patch(&#x27;dialogs.QDialog.__init__&#x27;):</code><br><code>try:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = ResourceDialog(res, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy. except Exception: pass</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code><br><code>except Exception:</code><br><code>pass</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-15</span>
+          <span class="test-name">Resource dialog has necessary methods</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import ResourceDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(ResourceDialog, &#x27;__init__&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(ResourceDialog, &#x27;__init__&#x27;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-65</span>
+          <span class="test-name">Email field pre-filled from resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = _make_resource_full(email=&quot;jane.doe@corp.com&quot;)</code><br><code>project = make_mock_project(resources=[res])</code><br><code>project.getCustomFields.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ResourceDialog(res, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._e_email.text() == &quot;jane.doe@corp.com&quot;</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._e_email.text() == &quot;jane.doe@corp.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-66</span>
+          <span class="test-name">Department field pre-filled from resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = _make_resource_full(dept=&quot;Research &amp; Development&quot;)</code><br><code>project = make_mock_project(resources=[res])</code><br><code>project.getCustomFields.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ResourceDialog(res, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._e_dept.text() == &quot;Research &amp; Development&quot;</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._e_dept.text() == &quot;Research &amp; Development&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-67</span>
+          <span class="test-name">AD lookup button present with correct label</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = _make_resource_full()</code><br><code>project = make_mock_project(resources=[res])</code><br><code>project.getCustomFields.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dlg = ResourceDialog(res, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(dlg, &#x27;_ad_lookup_btn&#x27;)</code> is truthy; <code>&quot;AD&quot; in dlg._ad_lookup_btn.text()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(dlg, &#x27;_ad_lookup_btn&#x27;)</code><br><code>assert &quot;AD&quot; in dlg._ad_lookup_btn.text()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-68</span>
+          <span class="test-name">do_ad_lookup empty name shows information</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = _make_resource_full(name=&quot;&quot;)</code><br><code>project = make_mock_project(resources=[res])</code><br><code>project.getCustomFields.return_value = []</code><br><code>dlg = ResourceDialog(res, project)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch(&#x27;dialogs.QMessageBox.information&#x27;) as mock_info:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;dlg._do_ad_lookup()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>QMessageBox.information</code> called exactly once.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_info.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-69</span>
+          <span class="test-name">do_ad_lookup single result fills email and dept</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = _make_resource_full(name=&quot;Smith, John&quot;)</code><br><code>project = make_mock_project(resources=[res])</code><br><code>project.getCustomFields.return_value = []</code><br><code>dlg = ResourceDialog(res, project)</code><br><code>ad_hit = [{&quot;email&quot;: &quot;john.smith@corp.com&quot;, &quot;department&quot;: &quot;IT&quot;, ...}]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch(&#x27;integrations.ad_integration.is_ad_available&#x27;, return_value=True),</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patch(&#x27;integrations.ad_integration.lookup_by_name_all&#x27;, return_value=ad_hit):</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;dlg._do_ad_lookup()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._e_email.text() == &quot;john.smith@corp.com&quot;</code>; <code>dlg._e_dept.text() == &quot;IT&quot;</code></div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._e_email.text() == &quot;john.smith@corp.com&quot;</code><br><code>assert dlg._e_dept.text() == &quot;IT&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDependencyDialog — Dependency Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-16</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import DependencyDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Task A&quot;)</code><br><code>predecessor = make_mock_task(task_id=2, name=&quot;Task B&quot;)</code><br><code>project = make_mock_project(tasks=[task, predecessor])</code><br><code>rel = MagicMock()</code><br><code>rel.getTargetTask.return_value = predecessor</code><br><code>rel.getLag.return_value = MagicMock()</code><br><code>rel.getLag.return_value.getDuration.return_value = 0.0</code><br><code>rel_type = MagicMock()</code><br><code>rel_type.__str__ = MagicMock(return_value=&quot;FS&quot;)</code><br><code>rel.getType.return_value = rel_type</code><br><code>with patch(&#x27;dialogs.QDialog.__init__&#x27;):</code><br><code>try:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = DependencyDialog(rel, task, project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>True  # Dialog class exists</code> is truthy. except Exception: pass</div>
+          <div class="block"><div class="block-label">Check</div><code>assert True  # Dialog class exists</code><br><code>except Exception:</code><br><code>pass</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-17</span>
+          <span class="test-name">Dependency dialog has necessary methods</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import DependencyDialog</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>hasattr(DependencyDialog, &#x27;__init__&#x27;)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert hasattr(DependencyDialog, &#x27;__init__&#x27;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestBaselineEntryDialog — Baseline Entry Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-18</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import BaselineEntryDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = BaselineEntryDialog(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-19</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import BaselineEntryDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = BaselineEntryDialog(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-20</span>
+          <span class="test-name">Dialog created with task</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import BaselineEntryDialog</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = BaselineEntryDialog(task)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestAssignmentDetailDialog — Assignment Detail Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-21</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import AssignmentDetailDialog</code><br><code>assignment = MagicMock()</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Dev&quot;)</code><br><code>assignment.getTask.return_value = task</code><br><code>assignment.getResource.return_value = res</code><br><code>assignment.getWork.return_value = MagicMock()</code><br><code>assignment.getWork.return_value.getDuration.return_value = 40.0</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = AssignmentDetailDialog(assignment, &quot;Test Task&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-22</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import AssignmentDetailDialog</code><br><code>assignment = MagicMock()</code><br><code>task = make_mock_task(task_id=1, name=&quot;Test Task&quot;)</code><br><code>res = make_mock_resource(res_id=1, name=&quot;Dev&quot;)</code><br><code>assignment.getTask.return_value = task</code><br><code>assignment.getResource.return_value = res</code><br><code>assignment.getWork.return_value = MagicMock()</code><br><code>assignment.getWork.return_value.getDuration.return_value = 40.0</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = AssignmentDetailDialog(assignment, &quot;Test Task&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestProjectInfoDialog — Project Info Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-23</span>
+          <span class="test-name">Dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import ProjectInfoDialog</code><br><code>project = make_mock_project()</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = ProjectInfoDialog(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-24</span>
+          <span class="test-name">Dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import ProjectInfoDialog</code><br><code>project = make_mock_project()</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = ProjectInfoDialog(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-25</span>
+          <span class="test-name">Dialog created with project</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import ProjectInfoDialog</code><br><code>project = make_mock_project()</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = ProjectInfoDialog(project)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestDialogHelpers — Dialog Helpers</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-26</span>
+          <span class="test-name">Make header function exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import _make_header</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>callable(_make_header)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert callable(_make_header)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-27</span>
+          <span class="test-name">Make header creates widget</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _make_header</code></div>
+          <div class="block"><div class="block-label">Run</div><code>header = _make_header(&quot;Test Title&quot;, &quot;Test Subtitle&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>header is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert header is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-28</span>
+          <span class="test-name">Make button row function exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import _make_button_row</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>callable(_make_button_row)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert callable(_make_button_row)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-29</span>
+          <span class="test-name">Make button row creates widget</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _make_button_row</code><br><code>from PyQt5.QtWidgets import QDialog</code><br><code>dialog = QDialog()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>button_row = _make_button_row(dialog)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>button_row is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert button_row is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-30</span>
+          <span class="test-name">Xml indent et function exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from dialogs import _xml_indent_et</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>callable(_xml_indent_et)</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert callable(_xml_indent_et)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestBaseDialog — Base Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-31</span>
+          <span class="test-name">Base dialog exists</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _BaseDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = _BaseDialog(&quot;Test Dialog&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-32</span>
+          <span class="test-name">Base dialog is modal</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _BaseDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = _BaseDialog(&quot;Test Dialog&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.isModal()</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.isModal()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-33</span>
+          <span class="test-name">Base dialog has minimum width</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _BaseDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = _BaseDialog(&quot;Test Dialog&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.minimumWidth()</code> is = <code>520</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.minimumWidth() &gt;= 520</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-34</span>
+          <span class="test-name">Base dialog has layout</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import _BaseDialog</code></div>
+          <div class="block"><div class="block-label">Run</div><code>dialog = _BaseDialog(&quot;Test Dialog&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>dialog.layout() is not None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dialog.layout() is not None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestTaskDialogCriticalIds — Task Dialog Critical Ids</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-35</span>
+          <span class="test-name">Task in critical ids is critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=5, name=&quot;Task&quot;)</code><br><code>project = make_mock_project(tasks=[task])</code><br><code>with patch(&#x27;gantt_view._to_qdate&#x27;, ...), patch(&#x27;gantt_view._compute_critical_ids&#x27;, ...):</code><br><code>dlg = TaskDialog(task, project, critical_ids={5, 6})</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>5</code> is contained in <code>dlg._critical_ids</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 5 in dlg._critical_ids</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-36</span>
+          <span class="test-name">Task not in critical ids is not critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from dialogs import TaskDialog</code><br><code>task = make_mock_task(task_id=5, name=&quot;Task&quot;)</code><br><code>dlg = TaskDialog(task, project, critical_ids={3, 4})</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>5 not</code> is contained in <code>dlg._critical_ids</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 5 not in dlg._critical_ids</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-37</span>
+          <span class="test-name">Empty critical ids overrides get critical flag</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>task.getCritical.return_value = True  # MPXJ says critical</code><br><code>dlg = TaskDialog(task, project, critical_ids=set())</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>1 not</code> is contained in <code>dlg._critical_ids</code> — CPM empty set wins over <code>getCritical()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert 1 not in dlg._critical_ids</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-38</span>
+          <span class="test-name">Critical ids none falls back to get critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, critical_ids=None)</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._critical_ids</code> is <code>None</code> — fallback branch (uses <code>getCritical()</code>) is active.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._critical_ids is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">DL-39</span>
+          <span class="test-name">Critical ids stored on dialog verbatim</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>crit = {7, 8, 9}</code><br><code>dlg = TaskDialog(task, project, critical_ids=crit)</code></div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>dlg._critical_ids</code> is the same object as <code>crit</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert dlg._critical_ids is crit</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestTaskDialogJiraTab &#8212; Jira tab in Task Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-40</span><span class="test-name">Jira data stored on dialog</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>data = {"jira_key": "PROJ-1", "jira_status": "Open"}</code><br><code>dlg = TaskDialog(task, project, task_jira_data=data)</code></div><div class="block"><div class="block-label">Run</div>&#8212;</div><div class="block"><div class="block-label">Expect</div><code>dlg._task_jira_data</code> equals <code>data</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._task_jira_data == data</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-41</span><span class="test-name">Jira data defaults to empty dict when None</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data=None)</code></div><div class="block"><div class="block-label">Run</div>&#8212;</div><div class="block"><div class="block-label">Expect</div><code>dlg._task_jira_data</code> equals <code>{}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._task_jira_data == {}</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-42</span><span class="test-name">Jira tab widget returned with data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data={"jira_key": "X-1", "jira_status": "Open"})</code></div><div class="block"><div class="block-label">Run</div><code>tab = dlg._tab_jira()</code></div><div class="block"><div class="block-label">Expect</div><code>_tab_jira()</code> returns a <code>QWidget</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(tab, QWidget)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-43</span><span class="test-name">Jira tab widget returned with no data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data=None)</code></div><div class="block"><div class="block-label">Run</div><code>tab = dlg._tab_jira()</code></div><div class="block"><div class="block-label">Expect</div>Returns a <code>QWidget</code> even when no Jira data is linked.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(tab, QWidget)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-44</span><span class="test-name">Jira tab shows jira key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data={"jira_key": "ZOISIT-42", "jira_status": "In Progress"})</code></div><div class="block"><div class="block-label">Run</div><code>tab = dlg._tab_jira()</code><br><code>texts = [le.text() for le in tab.findChildren(QLineEdit)]</code></div><div class="block"><div class="block-label">Expect</div>A <code>QLineEdit</code> containing <code>"ZOISIT-42"</code> is present.</div><div class="block"><div class="block-label">Check</div><code>assert any("ZOISIT-42" in t for t in texts)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-45</span><span class="test-name">Jira tab shows jira status</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data={"jira_key": "ZOISIT-42", "jira_status": "In Progress"})</code></div><div class="block"><div class="block-label">Run</div><code>tab = dlg._tab_jira()</code><br><code>texts = [le.text() for le in tab.findChildren(QLineEdit)]</code></div><div class="block"><div class="block-label">Expect</div>A <code>QLineEdit</code> containing <code>"In Progress"</code> is present.</div><div class="block"><div class="block-label">Check</div><code>assert any("In Progress" in t for t in texts)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-46</span><span class="test-name">Jira tab fields are read-only</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = TaskDialog(task, project, task_jira_data={"jira_key": "X-1", "jira_status": "Done"})</code></div><div class="block"><div class="block-label">Run</div><code>tab = dlg._tab_jira()</code></div><div class="block"><div class="block-label">Expect</div>All <code>QLineEdit</code> widgets have <code>isReadOnly() == True</code>.</div><div class="block"><div class="block-label">Check</div><code>for le in tab.findChildren(QLineEdit): assert le.isReadOnly()</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestNewProjectCalendarsDialog &mdash; New Project Calendars Dialog</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-47</span><span class="test-name">Dialog exists</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>from dialogs import NewProjectCalendarsDialog</code></div><div class="block"><div class="block-label">Run</div><code>dlg = NewProjectCalendarsDialog(None)</code></div><div class="block"><div class="block-label">Expect</div><code>dlg</code> is not <code>None</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg is not None</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-48</span><span class="test-name">Dialog is modal</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = NewProjectCalendarsDialog(None)</code></div><div class="block"><div class="block-label">Run</div><code>dlg.isModal()</code></div><div class="block"><div class="block-label">Expect</div>Dialog is modal.</div><div class="block"><div class="block-label">Check</div><code>assert dlg.isModal()</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-49</span><span class="test-name">Has German states list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>from dialogs import NewProjectCalendarsDialog</code></div><div class="block"><div class="block-label">Run</div><code>hasattr(NewProjectCalendarsDialog, '_GERMAN_STATES')</code></div><div class="block"><div class="block-label">Expect</div><code>_GERMAN_STATES</code> class attribute exists and has 15 entries.</div><div class="block"><div class="block-label">Check</div><code>assert len(NewProjectCalendarsDialog._GERMAN_STATES) == 15</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-50</span><span class="test-name">Has other countries list</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>from dialogs import NewProjectCalendarsDialog</code></div><div class="block"><div class="block-label">Run</div><code>hasattr(NewProjectCalendarsDialog, '_OTHER_COUNTRIES')</code></div><div class="block"><div class="block-label">Expect</div><code>_OTHER_COUNTRIES</code> class attribute exists and has 5 entries.</div><div class="block"><div class="block-label">Check</div><code>assert len(NewProjectCalendarsDialog._OTHER_COUNTRIES) == 5</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-51</span><span class="test-name">Get selected returns empty by default</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg = NewProjectCalendarsDialog(None)</code></div><div class="block"><div class="block-label">Run</div><code>dlg.get_selected()</code></div><div class="block"><div class="block-label">Expect</div>All checkboxes start unchecked &rarr; returns <code>[]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg.get_selected() == []</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-52</span><span class="test-name">Germany state names are correct</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>states = NewProjectCalendarsDialog._GERMAN_STATES</code></div><div class="block"><div class="block-label">Run</div>Check membership of known state names.</div><div class="block"><div class="block-label">Expect</div>Bayern, Baden-W&uuml;rttemberg, Sachsen are all in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "Bayern" in states</code><br><code>assert "Baden-W&uuml;rttemberg" in states</code><br><code>assert "Sachsen" in states</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-53</span><span class="test-name">Country names include France and India</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>countries = NewProjectCalendarsDialog._OTHER_COUNTRIES</code></div><div class="block"><div class="block-label">Run</div>Check membership of country names.</div><div class="block"><div class="block-label">Expect</div>France and India are in the list.</div><div class="block"><div class="block-label">Check</div><code>assert "France" in countries</code><br><code>assert "India" in countries</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9654;</span><h3>TestTaskDialogResourceTab &mdash; Task Dialog Resource Tab</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-54</span><span class="test-name">Resource table has three columns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>task with no assignments; project with resource "Alice"</code></div><div class="block"><div class="block-label">Run</div><code>dlg._res_tbl.columnCount()</code></div><div class="block"><div class="block-label">Expect</div><code>columnCount()</code> equals <code>3</code> (Name&nbsp;|&nbsp;Units&nbsp;%&nbsp;|&nbsp;&#x2715;).</div><div class="block"><div class="block-label">Check</div><code>assert dlg._res_tbl.columnCount() == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-55</span><span class="test-name">Del btns starts empty with no assignments</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>task with no existing resource assignments</code></div><div class="block"><div class="block-label">Run</div><code>dlg._del_btns</code></div><div class="block"><div class="block-label">Expect</div><code>_del_btns</code> is <code>[]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._del_btns == []</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-56</span><span class="test-name">Make delete btn returns QPushButton</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>from PyQt5.QtWidgets import QPushButton</code></div><div class="block"><div class="block-label">Run</div><code>btn = dlg._make_delete_btn()</code></div><div class="block"><div class="block-label">Expect</div><code>btn</code> is an instance of <code>QPushButton</code>.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(btn, QPushButton)</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-57</span><span class="test-name">Make delete btn has x text</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>&#8212;</div><div class="block"><div class="block-label">Run</div><code>btn = dlg._make_delete_btn()</code></div><div class="block"><div class="block-label">Expect</div><code>btn.text()</code> equals <code>"&#x2715;"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert btn.text() == "&#x2715;"</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-58</span><span class="test-name">Add assignment row increases row count</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg._res_combo.setCurrentText("Alice")</code></div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row()</code></div><div class="block"><div class="block-label">Expect</div><code>_res_tbl.rowCount()</code> equals <code>1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._res_tbl.rowCount() == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-59</span><span class="test-name">Add assignment row appends to del btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg._res_combo.setCurrentText("Alice")</code></div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row()</code></div><div class="block"><div class="block-label">Expect</div><code>len(dlg._del_btns)</code> equals <code>1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._del_btns) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-60</span><span class="test-name">Add assignment row appends to pending assignments</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg._res_combo.setCurrentText("Alice")</code></div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row()</code></div><div class="block"><div class="block-label">Expect</div><code>len(dlg._pending_assignments)</code> equals <code>1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._pending_assignments) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-61</span><span class="test-name">Add assignment row unknown resource ignored</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>dlg._res_combo.addItem("UnknownXYZ"); dlg._res_combo.setCurrentText("UnknownXYZ")</code></div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row()</code></div><div class="block"><div class="block-label">Expect</div>Row not added &mdash; <code>_res_tbl.rowCount()</code> equals <code>0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._res_tbl.rowCount() == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-62</span><span class="test-name">Delete assignment row removes row</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_add_assignment_row() called once</code></div><div class="block"><div class="block-label">Run</div><code>dlg._del_btns[0].click()</code></div><div class="block"><div class="block-label">Expect</div><code>_res_tbl.rowCount()</code> equals <code>0</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._res_tbl.rowCount() == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-63</span><span class="test-name">Delete assignment row removes from del btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_add_assignment_row() called once; row inserted</code></div><div class="block"><div class="block-label">Run</div><code>dlg._del_btns[0].click()</code></div><div class="block"><div class="block-label">Expect</div><code>_del_btns</code> is empty.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._del_btns) == 0</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-64</span><span class="test-name">Delete assignment row removes from pending assignments</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div><code>_add_assignment_row() called once</code></div><div class="block"><div class="block-label">Run</div><code>dlg._del_btns[0].click()</code></div><div class="block"><div class="block-label">Expect</div><code>_pending_assignments</code> is empty.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._pending_assignments) == 0</code></div></div></div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">▶</span><h3>TestTaskDialogScheduleTab — CPM Schedule tab (Phase 4)</h3>
+    </div>
+    <div class="chapter-body" style="display:none">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-65</span><span class="test-name">Dialog has schedule tab</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with empty float_data and critical_ids.</div><div class="block"><div class="block-label">Run</div><code>[tabs[0].tabText(i) for i in range(tabs[0].count())]</code></div><div class="block"><div class="block-label">Expect</div><code>"Schedule"</code> is in the tab text list.</div><div class="block"><div class="block-label">Check</div><code>assert "Schedule" in tab_texts</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-66</span><span class="test-name">Schedule tab shows fallback when no float data</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with <code>float_data={}</code>.</div><div class="block"><div class="block-label">Run</div>Inspect QLabel text in the Schedule tab widget.</div><div class="block"><div class="block-label">Expect</div><code>"No CPM data"</code> appears in label text.</div><div class="block"><div class="block-label">Check</div><code>assert "No CPM data" in texts</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-67</span><span class="test-name">Schedule tab shows data when float data present</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with full float_data for task 1.</div><div class="block"><div class="block-label">Run</div>Inspect QLabel text in the Schedule tab widget.</div><div class="block"><div class="block-label">Expect</div><code>"No CPM data"</code> NOT in label text.</div><div class="block"><div class="block-label">Check</div><code>assert "No CPM data" not in texts</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">DL-68</span><span class="test-name">Schedule tab shows critical status</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with <code>critical=True</code> in float_data for task 1.</div><div class="block"><div class="block-label">Run</div>Inspect QLabel text in the Schedule tab widget.</div><div class="block"><div class="block-label">Expect</div><code>"CRITICAL"</code> appears in label text.</div><div class="block"><div class="block-label">Check</div><code>assert "CRITICAL" in texts</code></div></div></div>
+    </div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestSetResourceThumbnailStore &mdash; set_resource_thumbnail_store()</h3>
+  </div>
+  <div class="chapter-body">
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-69</span><span class="test-name">Thumbnail store populated</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>thumbnails=<code>{"1": "b64data"}</code>, dept_store=None, sidecar=None.</div><div class="block"><div class="block-label">Run</div><code>set_resource_thumbnail_store(thumbnails, None, None)</code></div><div class="block"><div class="block-label">Expect</div><code>_resource_thumbnail_store["1"] == "b64data"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dialogs._resource_thumbnail_store["1"] == "b64data"</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-70</span><span class="test-name">Department store populated</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>dept_store=<code>{"2": "Engineering"}</code>.</div><div class="block"><div class="block-label">Run</div><code>set_resource_thumbnail_store({}, dept_store, None)</code></div><div class="block"><div class="block-label">Expect</div><code>_resource_dept_store["2"] == "Engineering"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dialogs._resource_dept_store["2"] == "Engineering"</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-71</span><span class="test-name">Dept store defaults to empty when None</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>dept_store=None.</div><div class="block"><div class="block-label">Run</div><code>set_resource_thumbnail_store({}, None, None)</code></div><div class="block"><div class="block-label">Expect</div><code>_resource_dept_store == {}</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dialogs._resource_dept_store == {}</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-72</span><span class="test-name">Sidecar path stored</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>sidecar=<code>"/some/path.thumbnails.json"</code>.</div><div class="block"><div class="block-label">Run</div><code>set_resource_thumbnail_store({}, None, "/some/path.thumbnails.json")</code></div><div class="block"><div class="block-label">Expect</div><code>_resource_thumbnail_sidecar == "/some/path.thumbnails.json"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dialogs._resource_thumbnail_sidecar == "/some/path.thumbnails.json"</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-73</span><span class="test-name">Reset clears both stores</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Pre-populated stores.</div><div class="block"><div class="block-label">Run</div><code>set_resource_thumbnail_store({}, {}, None)</code></div><div class="block"><div class="block-label">Expect</div>Both stores empty; sidecar None.</div><div class="block"><div class="block-label">Check</div><code>assert dialogs._resource_thumbnail_store == {}</code>; <code>assert dialogs._resource_dept_store == {}</code></div></div></div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestSaveResourceThumbnailSidecar &mdash; _save_resource_thumbnail_sidecar()</h3>
+  </div>
+  <div class="chapter-body">
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-74</span><span class="test-name">Writes merged JSON format</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>thumbnail store <code>{"1": "b64"}</code>, dept store <code>{"1": "Eng"}</code>, sidecar path set.</div><div class="block"><div class="block-label">Run</div><code>_save_resource_thumbnail_sidecar()</code></div><div class="block"><div class="block-label">Expect</div>Written JSON has <code>resources["1"]["thumbnail"] == "b64"</code> and <code>resources["1"]["department"] == "Eng"</code>.</div><div class="block"><div class="block-label">Check</div>Parse written JSON and assert keys.</div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-75</span><span class="test-name">Empty stores write empty resources</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Both stores empty; sidecar path set.</div><div class="block"><div class="block-label">Run</div><code>_save_resource_thumbnail_sidecar()</code></div><div class="block"><div class="block-label">Expect</div><code>{"resources": {}}</code> written.</div><div class="block"><div class="block-label">Check</div><code>assert data == {"resources": {}}</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-76</span><span class="test-name">No sidecar path does not raise</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>sidecar path = None.</div><div class="block"><div class="block-label">Run</div><code>_save_resource_thumbnail_sidecar()</code></div><div class="block"><div class="block-label">Expect</div>No exception; no file written.</div><div class="block"><div class="block-label">Check</div>No assert needed — absence of exception is sufficient.</div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-77</span><span class="test-name">Thumbnail-only entry</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>thumbnail store <code>{"1": "b64"}</code>; dept store empty.</div><div class="block"><div class="block-label">Run</div><code>_save_resource_thumbnail_sidecar()</code></div><div class="block"><div class="block-label">Expect</div><code>resources["1"]["thumbnail"] == "b64"</code>; no <code>"department"</code> key.</div><div class="block"><div class="block-label">Check</div><code>assert "department" not in data["resources"]["1"]</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-78</span><span class="test-name">Department-only entry</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>thumbnail store empty; dept store <code>{"2": "HR"}</code>.</div><div class="block"><div class="block-label">Run</div><code>_save_resource_thumbnail_sidecar()</code></div><div class="block"><div class="block-label">Expect</div><code>resources["2"]["department"] == "HR"</code>; no <code>"thumbnail"</code> key.</div><div class="block"><div class="block-label">Check</div><code>assert "thumbnail" not in data["resources"]["2"]</code></div></div></div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestResourceDialogTypeVisibility &mdash; ResourceDialog type-based field visibility</h3>
+  </div>
+  <div class="chapter-body">
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-79</span><span class="test-name">AD button not hidden for WORK</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock WORK resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._ad_lookup_btn.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Button not hidden.</div><div class="block"><div class="block-label">Check</div><code>assert not dlg._ad_lookup_btn.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-80</span><span class="test-name">AD button hidden for MATERIAL</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock MATERIAL resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._ad_lookup_btn.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Button hidden.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._ad_lookup_btn.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-81</span><span class="test-name">AD button hidden for COST</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock COST resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._ad_lookup_btn.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Button hidden.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._ad_lookup_btn.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-82</span><span class="test-name">Email row not hidden for WORK</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock WORK resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._email_row.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Row not hidden.</div><div class="block"><div class="block-label">Check</div><code>assert not dlg._email_row.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-83</span><span class="test-name">Email row hidden for MATERIAL</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock MATERIAL resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._email_row.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Row hidden.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._email_row.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-84</span><span class="test-name">Department field not hidden for WORK</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock WORK resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._e_dept.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Field not hidden.</div><div class="block"><div class="block-label">Check</div><code>assert not dlg._e_dept.isHidden()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-85</span><span class="test-name">Department field hidden for COST</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>ResourceDialog with mock COST resource.</div><div class="block"><div class="block-label">Run</div>Inspect <code>dlg._e_dept.isHidden()</code>.</div><div class="block"><div class="block-label">Expect</div>Field hidden.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._e_dept.isHidden()</code></div></div></div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestResourceTypePixmap &mdash; _resource_type_pixmap()</h3>
+  </div>
+  <div class="chapter-body">
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-86</span><span class="test-name">Work pixmap returned</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Call <code>_resource_type_pixmap("WORK", 32)</code>.</div><div class="block"><div class="block-label">Run</div>Inspect return value.</div><div class="block"><div class="block-label">Expect</div>Returns a non-null QPixmap.</div><div class="block"><div class="block-label">Check</div><code>assert not pix.isNull()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-87</span><span class="test-name">Material pixmap returned</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Call <code>_resource_type_pixmap("MATERIAL", 32)</code>.</div><div class="block"><div class="block-label">Run</div>Inspect return value.</div><div class="block"><div class="block-label">Expect</div>Returns a non-null QPixmap.</div><div class="block"><div class="block-label">Check</div><code>assert not pix.isNull()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-88</span><span class="test-name">Cost pixmap returned</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Call <code>_resource_type_pixmap("COST", 32)</code>.</div><div class="block"><div class="block-label">Run</div>Inspect return value.</div><div class="block"><div class="block-label">Expect</div>Returns a non-null QPixmap.</div><div class="block"><div class="block-label">Check</div><code>assert not pix.isNull()</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-89</span><span class="test-name">Unknown type does not raise</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Call <code>_resource_type_pixmap("UNKNOWN", 32)</code>.</div><div class="block"><div class="block-label">Run</div>Inspect return value.</div><div class="block"><div class="block-label">Expect</div>Returns a QPixmap without raising.</div><div class="block"><div class="block-label">Check</div><code>isinstance(pix, QPixmap)</code></div></div></div>
+  </div>
+</div>
+<div class="chapter collapsible">
+  <div class="chapter-header" onclick="toggle(this)">
+    <span class="arrow">&#9654;</span><h3>TestTaskDialogResourceTabMethods &mdash; Task Dialog resource-tab helper methods</h3>
+  </div>
+  <div class="chapter-body">
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-90</span><span class="test-name">_make_delete_btn returns QPushButton</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with one resource assignment.</div><div class="block"><div class="block-label">Run</div><code>btn = dlg._make_delete_btn(0)</code></div><div class="block"><div class="block-label">Expect</div>Returns a QPushButton instance.</div><div class="block"><div class="block-label">Check</div><code>assert isinstance(btn, QPushButton)</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-91</span><span class="test-name">_make_delete_btn has ✕ text</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with one resource assignment.</div><div class="block"><div class="block-label">Run</div><code>btn = dlg._make_delete_btn(0)</code></div><div class="block"><div class="block-label">Expect</div><code>btn.text() == "✕"</code>.</div><div class="block"><div class="block-label">Check</div><code>assert btn.text() == "\u2715"</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-92</span><span class="test-name">add_assignment_row increases row count</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with no assignments; one resource in project.</div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row(res_id=1)</code></div><div class="block"><div class="block-label">Expect</div>Table row count = 1.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._tbl.rowCount() == 1</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-93</span><span class="test-name">add_assignment_row appends to _del_btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with no assignments.</div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row(res_id=1)</code></div><div class="block"><div class="block-label">Expect</div><code>len(dlg._del_btns) == 1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._del_btns) == 1</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-94</span><span class="test-name">add_assignment_row appends to pending_assignments</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with no assignments.</div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row(res_id=1)</code></div><div class="block"><div class="block-label">Expect</div><code>len(dlg._pending_assignments) == 1</code>.</div><div class="block"><div class="block-label">Check</div><code>assert len(dlg._pending_assignments) == 1</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-95</span><span class="test-name">add_assignment_row ignores unknown resource</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with no assignments; project has no resource with ID=999.</div><div class="block"><div class="block-label">Run</div><code>dlg._add_assignment_row(res_id=999)</code></div><div class="block"><div class="block-label">Expect</div>Row count unchanged (0).</div><div class="block"><div class="block-label">Check</div><code>assert dlg._tbl.rowCount() == 0</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-96</span><span class="test-name">delete_assignment_row removes row</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with one assignment row.</div><div class="block"><div class="block-label">Run</div><code>dlg._delete_assignment_row(0)</code></div><div class="block"><div class="block-label">Expect</div>Table row count = 0.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._tbl.rowCount() == 0</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-97</span><span class="test-name">delete_assignment_row removes from _del_btns</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with one assignment row.</div><div class="block"><div class="block-label">Run</div><code>dlg._delete_assignment_row(0)</code></div><div class="block"><div class="block-label">Expect</div><code>dlg._del_btns == []</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._del_btns == []</code></div></div></div>
+    <div class="test-case"><div class="test-case-header"><span class="test-id">DL-98</span><span class="test-name">delete_assignment_row removes from pending_assignments</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>TaskDialog with one assignment row.</div><div class="block"><div class="block-label">Run</div><code>dlg._delete_assignment_row(0)</code></div><div class="block"><div class="block-label">Expect</div><code>dlg._pending_assignments == []</code>.</div><div class="block"><div class="block-label">Check</div><code>assert dlg._pending_assignments == []</code></div></div></div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

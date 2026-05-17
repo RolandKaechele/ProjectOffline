@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Holiday Calendar Picker – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#f3f5f8;display:flex;justify-content:center;align-items:flex-start;padding:20px}
+.flag{display:inline-flex;align-items:center;justify-content:center;width:26px;height:16px;border-radius:3px;font-size:9.5px;font-weight:800;letter-spacing:0;flex-shrink:0}
+.flag.de{background:#000;color:#FFD700}
+.flag.fr{background:#002395;color:#ED2939}
+.flag.in{background:#FF9933;color:#138808}
+.flag.ro{background:#002B7F;color:#FCD116}
+.flag.cn{background:#DE2910;color:#FFDE00}
+.flag.jp{background:#fff;color:#BC002D;border:1px solid #d0d0d0}
+.window{width:720px;border:1px solid #8ea2bf;border-radius:6px;background:#fff;box-shadow:0 10px 26px rgba(0,0,0,.22);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Title bar ── */
+.titlebar{background:#2B579A;color:#fff;padding:10px 16px 8px;display:flex;align-items:flex-start;gap:12px}
+.titlebar-icon{font-size:22px;margin-top:2px}
+.titlebar h2{font-size:15px;font-weight:700;margin-bottom:2px}
+.titlebar p{font-size:11px;color:#c8d8f4;line-height:1.4}
+
+/* ── Body ── */
+.body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+
+/* ── Info callout ── */
+.callout{background:#eef4ff;border-left:4px solid #2B579A;border-radius:4px;padding:10px 14px;font-size:12px;color:#1a2a5e;line-height:1.6}
+.callout strong{color:#1A3F7A}
+
+/* ── Section label ── */
+.section-lbl{font-size:11px;font-weight:700;color:#2B579A;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+
+/* ── National base row ── */
+.base-row{display:flex;align-items:center;gap:10px;background:#e8f0fb;border:1px solid #b8ccec;border-radius:5px;padding:10px 14px}
+.check{width:16px;height:16px;border:2px solid #2B579A;border-radius:3px;background:#2B579A;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.check::after{content:"✓";color:#fff;font-size:11px;font-weight:900}
+.base-name{font-weight:700;color:#1A3F7A;font-size:13px}
+.base-sub{font-size:11px;color:#5a6a8a;margin-left:auto}
+
+/* ── State / country grid ── */
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{border:1px solid #d0dcee;border-radius:5px;padding:10px 12px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.card h4{font-size:12px;font-weight:700;color:#1A3F7A;margin-bottom:2px;border-bottom:1px solid #e0e8f5;padding-bottom:5px}
+
+/* ── Checkbox list ── */
+.cb-list{display:flex;flex-direction:column;gap:4px}
+.cb-item{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#2a3040;padding:2px 0;cursor:default}
+.cb-item:hover{color:#1A3F7A}
+.cb-box{width:14px;height:14px;border:1.5px solid #8ab0d8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cb-box.checked{background:#2B579A;border-color:#2B579A;color:#fff;font-size:9px;font-weight:900}
+.cb-box.checked::after{content:"✓"}
+.cb-item .badge{font-size:9px;margin-left:auto;background:#e3ecfa;color:#2B579A;border-radius:10px;padding:1px 7px;white-space:nowrap}
+
+/* ── Footer buttons ── */
+.footer{padding:10px 18px 14px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #d8e4f0;background:#f7f9fd}
+.btn{border:1px solid #8b9ab0;border-radius:4px;padding:6px 20px;font-weight:600;font-size:12px;cursor:default;font-family:"Segoe UI",Arial,sans-serif}
+.btn-primary{background:#2B579A;color:#fff;border-color:#22477d}
+.btn-secondary{background:#fff;color:#2B579A}
+</style>
+</head>
+<body>
+<div class="window">
+
+  <div class="titlebar">
+    <div class="titlebar-icon">📅</div>
+    <div>
+      <h2>Holiday Calendar Picker</h2>
+      <p>Select regional calendars to add to your project. Each selection creates a separate named calendar<br>pre-loaded with public holidays for a 15-year window.</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="callout">
+      <strong>Standard (Deutschland)</strong> — 9 national public holidays already created automatically
+      for years 2024–2039, covering Easter Monday, Ascension, Pentecost Monday,
+      Day of German Unity, Christmas, and four fixed-date holidays.
+    </div>
+
+    <div>
+      <div class="section-lbl">Base Calendar (auto-created)</div>
+      <div class="base-row">
+        <div class="check"></div>
+        <span class="base-name"><span class="flag de">DE</span> Standard (Deutschland)</span>
+        <span class="base-sub">9 national holidays &nbsp;·&nbsp; 2024–2039</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-lbl">German Federal States — add state-specific extras</div>
+      <div class="grid-2col">
+
+        <div class="card">
+          <h4>Northern &amp; Eastern states</h4>
+          <div class="cb-list">
+            <div class="cb-item"><div class="cb-box"></div>Berlin<span class="badge">+1 holiday</span></div>
+            <div class="cb-item"><div class="cb-box checked"></div>Brandenburg<span class="badge">+2 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Hamburg<span class="badge">+1 holiday</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Mecklenburg-Vorpommern<span class="badge">+2 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Niedersachsen<span class="badge">+1 holiday</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Sachsen<span class="badge">+4 holidays</span></div>
+            <div class="cb-item"><div class="cb-box checked"></div>Sachsen-Anhalt<span class="badge">+2 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Schleswig-Holstein<span class="badge">+1 holiday</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Thüringen<span class="badge">+3 holidays</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Southern &amp; Western states</h4>
+          <div class="cb-list">
+            <div class="cb-item"><div class="cb-box checked"></div>Bayern<span class="badge">+5 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Baden-Württemberg<span class="badge">+3 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Bremen<span class="badge">+2 holidays</span></div>
+            <div class="cb-item"><div class="cb-box checked"></div>Hessen<span class="badge">+2 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Nordrhein-Westfalen<span class="badge">+4 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Rheinland-Pfalz<span class="badge">+4 holidays</span></div>
+            <div class="cb-item"><div class="cb-box"></div>Saarland<span class="badge">+4 holidays</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-lbl">International Countries</div>
+      <div class="card">
+        <div class="cb-list" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+          <div class="cb-item"><div class="cb-box checked"></div><span class="flag fr">FR</span> France<span class="badge">11 holidays</span></div>
+          <div class="cb-item"><div class="cb-box"></div><span class="flag in">IN</span> India<span class="badge">17 holidays</span></div>
+          <div class="cb-item"><div class="cb-box"></div><span class="flag ro">RO</span> Romania<span class="badge">12 holidays</span></div>
+          <div class="cb-item"><div class="cb-box"></div><span class="flag cn">CN</span> China<span class="badge">11 holidays</span></div>
+          <div class="cb-item"><div class="cb-box"></div><span class="flag jp">JP</span> Japan<span class="badge">16 holidays</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-primary">Add Selected Calendars (4)</button>
+  </div>
+
+</div>
+</body>
+</html>

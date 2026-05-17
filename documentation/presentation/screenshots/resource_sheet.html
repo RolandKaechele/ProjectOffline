@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Resource Sheet – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1000px;height:560px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28);position:relative}
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:28px;font-size:13px}
+.menubar span{padding:5px 12px;cursor:default}.menubar span:hover{background:#3A6EBC}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:1px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:46px;padding:3px 5px;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn-icon{font-size:16px;line-height:1.2}
+.rgroup-lbl{font-size:9.5px;color:#667;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:2px}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:6px 3px;align-self:stretch}
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 16px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead tr{background:linear-gradient(to bottom,#ECF3FB,#D8E8F5)}
+th{border-right:1px solid #B0C8E0;border-bottom:2px solid #2B579A;padding:5px 8px;font-size:12px;font-weight:700;color:#1A3F7A;text-align:left}
+td{border-right:1px solid #D0DDF0;border-bottom:1px solid #D0DDF0;padding:4px 8px;font-size:12px}
+tr.even td{background:#fff}
+tr.odd  td{background:#F0F5FF}
+tr.sel  td{background:#BDD7EE}
+
+/* availability bar */
+.avail{display:flex;align-items:center;gap:6px}
+.avail-bar{flex:1;height:8px;background:#e0e8f0;border-radius:4px;overflow:hidden}
+.avail-fill{height:100%;border-radius:4px;background:#2B579A}
+.avail-fill.over{background:#c0392b}
+.avail-fill.part{background:#e07b1a}
+
+.type-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:700}
+.type-work{background:#dce8fa;color:#2B579A}
+.type-mat {background:#e8f5e8;color:#2e6b2e}
+
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 8px;display:flex;gap:16px;height:22px;align-items:center}
+
+/* ── Hover tooltip ──────────────────────────── */
+.res-tooltip{position:absolute;top:225px;left:130px;background:#fff;border:1px solid #b0c4dc;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.22);padding:10px 14px;display:flex;gap:12px;align-items:center;min-width:210px;z-index:10;pointer-events:none}
+.tt-avatar{width:64px;height:64px;border-radius:50%;background:#1a4070;border:2px solid #2B579A;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
+.tt-info{display:flex;flex-direction:column;gap:3px}
+.tt-name{font-size:13px;font-weight:700;color:#1A3F7A}
+.tt-row{font-size:11px;color:#444;display:flex;gap:5px}
+.tt-label{color:#888}
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+  <!-- Ribbon (RESOURCE tab active) -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab">TASK</button>
+      <button class="rtab active">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">👥</div><div class="rbtn-lbl">Team<br>Planner</div></div>
+          <div class="rbtn" style="background:#dde8f5;border-color:#a0bcd8"><div class="rbtn-icon">📊</div><div class="rbtn-lbl">Resource<br>Sheet</div></div>
+          <div class="rbtn"><div class="rbtn-icon">📈</div><div class="rbtn-lbl">Resource<br>Usage</div></div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">＋</div><div class="rbtn-lbl">Add<br>Resource</div></div>
+          <div class="rbtn" style="background:#e8f0fb;border-color:#b0c4dc"><div class="rbtn-icon">🖥️</div><div class="rbtn-lbl">Add from<br>AD</div></div>
+        </div>
+        <div class="rgroup-lbl">Insert</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">🗑</div><div class="rbtn-lbl">Delete<br>Resource</div></div>
+        </div>
+        <div class="rgroup-lbl">Editing</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">⚙️</div><div class="rbtn-lbl">Calendar<br>Config</div></div>
+          <div class="rbtn"><div class="rbtn-icon">🔄</div><div class="rbtn-lbl">Sync<br>Calendar</div></div>
+        </div>
+        <div class="rgroup-lbl">Confluence</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar">
+    <div class="tab">Gantt Chart</div>
+    <div class="tab active">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th style="width:160px">Name</th>
+        <th style="width:56px">Initials</th>
+        <th style="width:80px">Type</th>
+        <th style="width:110px">Max Units</th>
+        <th style="width:130px">Std. Rate</th>
+        <th style="width:130px">Ovt. Rate</th>
+        <th>Group / Department</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="odd sel">
+        <td>1</td><td>Alice Müller</td><td>AM</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 90.00/h</td><td>€ 135.00/h</td><td>Architecture</td>
+      </tr>
+      <tr class="even">
+        <td>2</td><td>Bob Schneider</td><td>BS</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 75.00/h</td><td>€ 112.50/h</td><td>Engineering</td>
+      </tr>
+      <tr class="odd">
+        <td>3</td><td>Carol Jensen</td><td>CJ</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 75.00/h</td><td>€ 112.50/h</td><td>Engineering</td>
+      </tr>
+      <tr class="even">
+        <td>4</td><td>Dave Kowalski</td><td>DK</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 70.00/h</td><td>€ 105.00/h</td><td>Testing</td>
+      </tr>
+      <tr class="odd">
+        <td>5</td><td>Eve Larsson</td><td>EL</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill part" style="width:50%"></div></div>50%</div></td>
+        <td>€ 75.00/h</td><td>€ 112.50/h</td><td>Engineering</td>
+      </tr>
+      <tr class="even">
+        <td>6</td><td>Frank Braun</td><td>FB</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 80.00/h</td><td>€ 120.00/h</td><td>Integration</td>
+      </tr>
+      <tr class="odd">
+        <td>7</td><td>Grace Park</td><td>GP</td>
+        <td><span class="type-badge type-work">Work</span></td>
+        <td><div class="avail"><div class="avail-bar"><div class="avail-fill" style="width:100%"></div></div>100%</div></td>
+        <td>€ 85.00/h</td><td>€ 127.50/h</td><td>Architecture</td>
+      </tr>
+      <tr class="even">
+        <td>8</td><td>Server Hardware</td><td>SH</td>
+        <td><span class="type-badge type-mat">Material</span></td>
+        <td>—</td>
+        <td>€ 1,200.00</td><td>—</td><td>Infrastructure</td>
+      </tr>
+      <tr class="odd">
+        <td>9</td><td>CI/CD Pipeline</td><td>CI</td>
+        <td><span class="type-badge type-mat">Material</span></td>
+        <td>—</td>
+        <td>€ 300.00/mo</td><td>—</td><td>Infrastructure</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="statusbar">
+    <span>Resources: 9 (7 Work, 2 Material)</span>
+    <span>|</span>
+    <span>Project: Software Module Release v2.1</span>
+  </div>
+
+  <!-- Hover tooltip (triggered by hovering "Alice Müller") -->
+  <div class="res-tooltip">
+    <div class="tt-avatar">👤</div>
+    <div class="tt-info">
+      <div class="tt-name">Alice Müller</div>
+      <div class="tt-row"><span class="tt-label">Type:</span> Work</div>
+      <div class="tt-row"><span class="tt-label">Dept:</span> Architecture</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

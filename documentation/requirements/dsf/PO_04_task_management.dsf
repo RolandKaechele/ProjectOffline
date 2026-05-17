@@ -1,0 +1,65 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_04_TaskManagement	PO-TASK-	Project Offline – Task Management Requirements	1777892400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Task Management			1	1_Heading.0	Not relevant		
+	Requirements for the Task Sheet view, task editing, WBS hierarchy, task dialogs, and task-level features.	information	1.1	PO-TASK-INFO-001.0	Not relevant		
+1.1 Task Sheet View			1.1	1_1_Heading.0	Not relevant		
+	The system shall provide a Task Sheet view as a full-width hierarchical table that is the default view on application startup.	functional requirement	1.1.1	PO-TASK-001.0	Not relevant	approved	aligned
+	The Task Sheet shall display the following columns: ID, Status Icon, Name, Duration, Start, Finish, % Done (with progress bar), Predecessors, and Resource Names.	functional requirement	1.1.2	PO-TASK-002.0	Not relevant	approved	aligned
+	The Predecessors column shall display enriched text in the format '<Task ID> – <Task Name>' for each predecessor.	functional requirement	1.1.3	PO-TASK-003.0	Not relevant	approved	aligned
+	The Task Sheet shall support inline cell editing for Name, Duration, and % Done.	functional requirement	1.1.4	PO-TASK-004.0	Not relevant	approved	aligned
+	Double-clicking a task row in the Task Sheet shall open the Task Information dialog.	functional requirement	1.1.5	PO-TASK-005.0	Not relevant	approved	aligned
+	The Task Sheet shall support collapsing and expanding summary (parent) task rows.	functional requirement	1.1.6	PO-TASK-006.0	Not relevant	approved	aligned
+	The Task Sheet shall display rows with 36 px row height and alternating background colours.	functional requirement	1.1.7	PO-TASK-007.0	Not relevant	approved	aligned
+1.2 Row Status Icons			1.2	1_2_Heading.0	Not relevant		
+	Each task row shall display one status icon drawn as a pixmap with hover tooltip: purple diamond for milestones, blue page for tasks with notes, amber triangle for % complete > 100, orange circle for overdue tasks, red circle for critical path tasks (< 100% complete).	functional requirement	1.2.1	PO-TASK-008.0	Not relevant	approved	aligned
+	The blue 'has notes' icon shall take precedence over overdue / critical icons in the same row.	functional requirement	1.2.2	PO-TASK-009.0	Not relevant	approved	aligned
+1.3 WBS Hierarchy			1.3	1_3_Heading.0	Not relevant		
+	The system shall support a Work Breakdown Structure (WBS) hierarchy with summary tasks and child tasks at multiple levels of indentation.	functional requirement	1.3.1	PO-TASK-010.0	Not relevant	approved	aligned
+	Summary tasks shall display rolled-up duration, start, and finish dates from their subtasks.	functional requirement	1.3.2	PO-TASK-011.0	Not relevant	approved	aligned
+	The system shall support adding tasks as subtasks (children) of a selected summary task.	functional requirement	1.3.3	PO-TASK-012.0	Not relevant	approved	aligned
+1.4 Task Information Dialog			1.4	1_4_Heading.0	Not relevant		
+	The system shall provide a Task Information dialog with six tabs: General (name, duration, start, finish, % complete, milestone flag), Predecessors (predecessor task links), Resources (resource assignments with units), Custom Fields (project-defined task fields), Notes (free-text notes field), and Jira (read-only Jira linkage data from the sidecar file).	functional requirement	1.4.1	PO-TASK-013.0	Not relevant	approved	aligned
+	The Task Information dialog shall include a checkbox indicating whether the task is currently pinned to the Timeline View, allowing the user to add or remove it.	functional requirement	1.4.2	PO-TASK-014.0	Not relevant	approved	aligned
+	The Jira tab of the Task Information dialog shall display the linked Jira key and current Jira status as read-only fields, a clickable URL to browse the ticket in the Jira web UI, and an explanatory message when the task has no Jira linkage.	functional requirement	1.4.3	PO-TASK-014a.0	Not relevant	approved	aligned
+	The Resources tab of the Task Information dialog shall populate its resource selector only from resources present in the current project; each assignment row shall display the resource name resolved by unique ID, never showing placeholder text such as '(unknown)'.	functional requirement	1.4.4	PO-TASK-020.0	Not relevant	approved	aligned
+	Each assignment row in the Resources tab of the Task Information dialog shall include a per-row '✕' delete button; clicking it shall remove that specific assignment from the table and cancel any pending assignment for that row without affecting other rows.	functional requirement	1.4.5	PO-TASK-021.0	Not relevant	approved	aligned
+1.5 Critical Path			1.5	1_5_Heading.0	Not relevant		
+	The system shall compute and highlight the critical path. Tasks with zero total float shall be marked as critical when the zero-float-critical option is enabled.	functional requirement	1.5.1	PO-TASK-015.0	Not relevant	approved	aligned
+	Completed tasks (% complete = 100) shall be excluded from critical path computation.	functional requirement	1.5.2	PO-TASK-016.0	Not relevant	approved	aligned
+1.6 Add and Delete Tasks			1.6	1_6_Heading.0	Not relevant		
+	The system shall allow adding a new task via the Insert key or the Add Task ribbon button.	functional requirement	1.6.1	PO-TASK-017.0	Not relevant	approved	aligned
+	The system shall allow deleting a selected task via the Delete key or the Delete Task ribbon button.	functional requirement	1.6.2	PO-TASK-018.0	Not relevant	approved	aligned
+	Adding and deleting tasks shall be undoable via the undo/redo history.	functional requirement	1.6.3	PO-TASK-019.0	Not relevant	approved	aligned
+</OBJECTS>

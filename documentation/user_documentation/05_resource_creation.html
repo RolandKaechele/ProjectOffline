@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Creation &amp; Editing — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html" class="active">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Resource Creation &amp; Editing</h1>
+    <p>Add team members and material resources, set availability and pay rates, and manage the resource sheet.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Resource Creation &amp; Editing</div>
+
+    <h2>Resource Sheet Columns</h2>
+    <table>
+      <thead><tr><th>#</th><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>ID</td><td>Sequence number</td></tr>
+        <tr><td>1</td><td>Name</td><td>Resource display name (used in task assignments and Team Planner)</td></tr>
+        <tr><td>2</td><td>Type</td><td>MPXJ resource type: <code>WORK</code>, <code>MATERIAL</code>, or <code>COST</code></td></tr>
+        <tr><td>3</td><td>Max Units</td><td>Maximum availability as a percentage (visual progress bar; &gt;100% = red)</td></tr>
+        <tr><td>4</td><td>Standard Rate</td><td>Regular pay rate</td></tr>
+        <tr><td>5</td><td>Overtime Rate</td><td>Overtime pay rate</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Adding Resources</h2>
+    <ul>
+      <li>Right-click in the resource sheet &rarr; <strong>Insert Resource</strong></li>
+      <li>Press <code>Insert</code> while the resource sheet has focus</li>
+      <li>Toolbar <strong>Add Resource</strong> button on the Resources tab</li>
+    </ul>
+
+    <h2>Resource Information Dialog</h2>
+    <p>Double-click any resource row to open the <strong>Resource Information</strong> dialog.</p>
+
+    <p>The top of the dialog shows a <strong>64 px circular avatar</strong>: if an AD photo
+    is stored for the resource it is displayed; otherwise a type-specific icon is shown
+    (&nbsp;&#x1F477;&nbsp;Work,&nbsp;&#x1F4E6;&nbsp;Material,&nbsp;&#x1F4B0;&nbsp;Cost).
+    The avatar refreshes automatically when you change the Type field.</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Name</td><td>Shown in task assignments and the Team Planner. Must be unique — a warning is shown if another resource with the same name already exists.</td></tr>
+        <tr><td>Type</td><td><code>Work</code> (person or equipment), <code>Material</code> (consumable), <code>Cost</code> (fixed cost). Changing the type also updates the avatar icon.</td></tr>
+        <tr><td>Email</td><td>E-mail address. <em>Visible only for Work resources.</em> Pre-populated from MPXJ. Use <strong>Look up in AD&hellip;</strong> to fill it from the corporate directory.</td></tr>
+        <tr><td>Department</td><td>Department or organisational unit. <em>Visible only for Work resources.</em> Filled automatically when using <strong>Look up in AD&hellip;</strong> or AD sync.</td></tr>
+        <tr><td>Max Units</td><td>Enter as a percentage (e.g. <code>100</code> = full time, <code>50</code> = half time).</td></tr>
+        <tr><td>Standard Rate</td><td>Hourly or daily rate for cost calculations.</td></tr>
+        <tr><td>Overtime Rate</td><td>Rate applied to overtime hours.</td></tr>
+        <tr><td>Notes</td><td>Free-text notes about this resource.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>AD photo persistence</strong>
+      When a resource photo is retrieved via <strong>Look up in AD&hellip;</strong> it is
+      stored in a <code>&lt;project&gt;.thumbnails.json</code> sidecar file alongside the
+      project XML.  Photos and department values survive close and re-open; the sidecar is
+      pruned automatically when a resource is deleted.
+    </div>
+
+    <div class="callout note">
+      <strong>Max Units normalisation</strong>
+      MPXJ stores Max Units as a fraction (<code>1.0</code> = 100%) in XML files but as
+      a percentage (<code>100.0</code>) in binary MPP files.  Project Offline normalises
+      these automatically so the display always shows a percentage.  Values are saved
+      back as fractions so files round-trip correctly.
+    </div>
+
+    <h2>Deleting Resources</h2>
+    <p>Select the row and press <code>Delete</code>, or right-click &rarr;
+    <strong>Delete Resource</strong>.  Deleting a resource that is assigned to tasks
+    removes those assignments automatically.  If the resource has a personal calendar,
+    that calendar is also removed from the project calendar list automatically &mdash;
+    no orphaned calendars accumulate.  Use <strong>Undo</strong> to reverse.</p>
+
+    <h2>Resource Sheet Hover Tooltip</h2>
+    <p>Hovering over any row in the resource sheet shows a rich tooltip containing:</p>
+    <ul>
+      <li>A 64 px circular avatar (AD photo if stored, otherwise the type icon)</li>
+      <li>Resource name and type</li>
+      <li>Department (if set)</li>
+    </ul>
+    <p>The tooltip rebuilds only when you move to a different row, keeping it responsive.</p>
+
+    <h2>Active Directory Sync</h2>
+    <p>If <strong>Settings &rarr; Active Directory</strong> is enabled, a
+    <strong>Sync from AD</strong> button appears on the Resources ribbon tab.
+    It looks up each resource by display name and fills in the email and department
+    fields from the corporate directory.
+    See <a href="14_ad_integration.html">Active Directory Sync</a> for details.</p>
+
+    <p style="margin-top:10px">Individual resources can also be looked up without leaving the
+    Resource Information dialog: press <strong>Look up in AD&hellip;</strong> next to the
+    E-Mail field to search Active Directory by the resource&rsquo;s current display name.
+    A single match pre-fills the <em>E-Mail</em> and <em>Department</em> fields; multiple
+    matches open a selection list.  You can still edit the fields before clicking OK.
+    See <a href="14_ad_integration.html#manual-lookup">Manual Lookups</a> for details.</p>
+
+    <div class="callout note">
+      <strong>Automatic UID assignment</strong>
+      Every new resource receives a unique integer UID automatically — the smallest positive
+      integer not already assigned to any other project resource.  This ensures the resource
+      appears immediately in the <strong>Team Planner</strong> and that task assignment rows
+      always display the correct resource name rather than &ldquo;(unknown)&rdquo;.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

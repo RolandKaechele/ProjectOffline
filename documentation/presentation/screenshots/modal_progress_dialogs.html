@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Progress Dialog – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#e8edf5;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center;width:700px;height:420px;}
+
+/* ── Background (app window) ── */
+.app-bg{position:relative;width:680px;height:400px;background:#f0f0f0;border:1px solid #999;border-radius:4px;overflow:hidden;display:flex;flex-direction:column;}
+.app-titlebar{background:#2B579A;color:#fff;padding:5px 12px;font-size:12px;font-weight:600;flex-shrink:0;}
+.app-body{flex:1;background:#e0e4ec;display:flex;align-items:center;justify-content:center;position:relative;}
+
+/* ── Modal overlay ── */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.18);}
+
+/* ── Progress dialog ── */
+.dlg{position:absolute;width:380px;background:#f5f5f5;border:1px solid #a0a0a0;border-radius:4px;box-shadow:4px 8px 22px rgba(0,0,0,.35);overflow:hidden;}
+.dlg-title{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:7px 12px;font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between;}
+.dlg-title .x{opacity:.7;font-size:14px;}
+.dlg-body{padding:18px 20px 14px;}
+.dlg-label{font-size:12px;color:#1a1a2e;margin-bottom:10px;font-weight:500;}
+.track{width:100%;height:18px;background:#d8d8d8;border-radius:3px;overflow:hidden;border:1px solid #b0b0b0;}
+.fill{height:100%;background:linear-gradient(to right,#2B579A 0%,#4a8fd4 60%,#2B579A 100%);border-radius:3px;background-size:200% 100%;animation:bar-anim 2s linear infinite;}
+@keyframes bar-anim{0%{background-position:200% 0}100%{background-position:0% 0}}
+.fill-det{height:100%;background:linear-gradient(to right,#2B579A,#4a8fd4);border-radius:3px;width:62%;}
+.dlg-status{font-size:10.5px;color:#555;margin-top:5px;min-height:15px;}
+.dlg-footer{display:flex;justify-content:flex-end;padding:6px 20px 12px;}
+.btn{padding:4px 22px;font-size:11.5px;border:1px solid #a0a0a0;border-radius:3px;background:#fff;color:#333;cursor:default;}
+
+/* ── Labels ── */
+.callout{position:absolute;font-size:10px;font-weight:700;color:#e07b1a;background:#fff;border:1px solid #e07b1a;border-radius:3px;padding:2px 6px;white-space:nowrap;}
+.callout::before{content:'';position:absolute;width:8px;height:1px;background:#e07b1a;}
+.arr-r::before{right:-9px;top:50%;transform:translateY(-50%);}
+.arr-l::before{left:-9px;top:50%;transform:translateY(-50%);}
+</style>
+</head>
+<body>
+
+<div class="app-bg">
+  <div class="app-titlebar">Project Offline — my_project.xml</div>
+  <div class="app-body">
+
+    <!-- dimming overlay -->
+    <div class="overlay"></div>
+
+    <!-- determinate progress dialog (Jira Sync) -->
+    <div class="dlg" style="top:50px;left:50px;">
+      <div class="dlg-title">
+        <span>Jira Sync</span>
+        <span class="x">&#x2715;</span>
+      </div>
+      <div class="dlg-body">
+        <div class="dlg-label">Importing issues from Jira&hellip;</div>
+        <div class="track"><div class="fill-det"></div></div>
+        <div class="dlg-status">Processing PROJ-247 (62 / 100)</div>
+      </div>
+      <div class="dlg-footer"><button class="btn">Cancel</button></div>
+    </div>
+
+    <!-- indeterminate progress dialog (File Open) -->
+    <div class="dlg" style="top:155px;left:200px;">
+      <div class="dlg-title">
+        <span>Opening project&hellip;</span>
+      </div>
+      <div class="dlg-body">
+        <div class="dlg-label">Please wait while the project file is being loaded.</div>
+        <div class="track"><div class="fill"></div></div>
+        <div class="dlg-status">Reading my_project.xml&hellip;</div>
+      </div>
+    </div>
+
+    <!-- annotation labels -->
+    <div class="callout arr-r" style="top:86px;left:350px;">Determinate bar + Cancel<br>(Jira Sync)</div>
+    <div class="callout arr-l" style="top:232px;left:8px;">Indeterminate pulsing bar<br>(File Open — non-cancellable)</div>
+
+  </div>
+</div>
+
+</body>
+</html>

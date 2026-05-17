@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeePass Credential Management — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html" class="active">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>KeePass Credential Management</h1>
+    <p>Store and retrieve credentials from a local KeePass&nbsp;4.x database — completely
+       offline, no cloud storage, no plain-text config files.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> KeePass Credential Management</div>
+
+    <h2>What Is KeePass Integration?</h2>
+    <p>Project Offline can unlock a local <strong>KeePass&nbsp;4.x (<code>.kdbx</code>) database</strong>
+    and read credentials from it at runtime.  This is used in two places:</p>
+    <ul>
+      <li><strong>Confluence Calendar Sync</strong> — pre-fill the Microsoft Azure&nbsp;AD email and
+          password fields so you only have to complete MFA, not type your password every time.</li>
+      <li><strong>Jira server connections</strong> — associate a Jira server with a KeePass entry
+          so the API token / password is never stored in application settings in plain text.</li>
+    </ul>
+    <p>The database is unlocked <em>once per session</em> and locked automatically when the
+    application closes.  All decrypted data exists only in RAM.</p>
+
+    <div class="callout note">
+      <strong>Offline-first</strong>
+      No network round-trip is ever required to read from KeePass.  The <code>.kdbx</code>
+      file lives on your local disk; pykeepass decrypts it in-process.
+    </div>
+
+    <!-- -- Opening / creating a database -- -->
+    <h2>Step 1 — Open or Create a Database</h2>
+    <p>Open <strong>Settings &rarr; KeePass Configuration&hellip;</strong> from the menu bar.
+    The dialog presents two modes selected by radio button:</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 620 560" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <!-- Window chrome -->
+        <rect width="620" height="560" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="600" height="540" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="600" height="54" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="14" font-weight="bold">KeePass Configuration</text>
+        <text x="26" y="52" fill="#b8d0f0" font-size="11">Open an existing database</text>
+        <!-- Body -->
+        <rect x="10" y="64" width="600" height="436" fill="white"/>
+        <!-- Mode radio -->
+        <rect x="26" y="74" width="568" height="28" fill="#f0f4fb" stroke="#c8d8f0" rx="3"/>
+        <circle cx="42" cy="88" r="6" fill="none" stroke="#2B579A" stroke-width="1.5"/>
+        <circle cx="42" cy="88" r="3" fill="#2B579A"/>
+        <text x="52" y="92" fill="#1a3f7a" font-size="11" font-weight="600">Open existing database</text>
+        <circle cx="220" cy="88" r="6" fill="none" stroke="#888" stroke-width="1.5"/>
+        <text x="230" y="92" fill="#555" font-size="11">Create new database</text>
+        <!-- Form section -->
+        <rect x="26" y="112" width="568" height="158" fill="#fafbfc" stroke="#d8e4f0" rx="3"/>
+        <!-- Row 1: DB file -->
+        <text x="166" y="134" fill="#444" font-size="11" text-anchor="end">Database file</text>
+        <rect x="172" y="122" width="310" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="136" fill="#222" font-size="11">C:\Users\jsmith\passwords.kdbx</text>
+        <rect x="488" y="122" width="66" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="521" y="136" fill="#1a3f7a" font-size="11" text-anchor="middle">Browse…</text>
+        <!-- Row 2: Key file -->
+        <text x="166" y="162" fill="#444" font-size="11" text-anchor="end">Key file</text>
+        <rect x="172" y="150" width="232" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="164" fill="#888" font-size="11">(optional)</text>
+        <rect x="410" y="150" width="66" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="443" y="164" fill="#1a3f7a" font-size="11" text-anchor="middle">Browse…</text>
+        <rect x="482" y="150" width="72" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="518" y="164" fill="#1a3f7a" font-size="11" text-anchor="middle">Generate…</text>
+        <!-- Row 3: Password -->
+        <text x="166" y="190" fill="#444" font-size="11" text-anchor="end">Master password</text>
+        <rect x="172" y="178" width="242" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="192" fill="#555" font-size="11">••••••••</text>
+        <rect x="420" y="178" width="56" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="448" y="192" fill="#1a3f7a" font-size="11" text-anchor="middle">Show</text>
+        <!-- Row 4: Save pwd checkbox -->
+        <rect x="172" y="205" width="10" height="10" fill="none" stroke="#2B579A" rx="1"/>
+        <text x="186" y="215" fill="#333" font-size="11" text-anchor="start">Save password for automatic unlock</text>
+        <!-- Unlock button -->
+        <rect x="172" y="226" width="72" height="22" fill="#2B579A" rx="2"/>
+        <text x="208" y="241" fill="white" font-size="11" font-weight="600" text-anchor="middle">Unlock</text>
+        <!-- Status line -->
+        <text x="26" y="302" fill="#107C10" font-size="11" font-weight="600">?  Database unlocked — 14 entries available</text>
+        <!-- Confluence SSO group -->
+        <rect x="26" y="315" width="568" height="72" fill="white" stroke="#2B579A" rx="3"/>
+        <rect x="36" y="308" width="148" height="14" fill="white"/>
+        <text x="40" y="320" fill="#2B579A" font-size="11" font-weight="700">Confluence SSO Auto-fill</text>
+        <text x="38" y="338" fill="#555" font-size="10.5">Select the entry whose username and password are pre-filled in the Microsoft AAD login form.</text>
+        <text x="166" y="364" fill="#444" font-size="11" text-anchor="end">Entry</text>
+        <rect x="172" y="352" width="370" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="366" fill="#1a3f7a" font-size="11">Confluence / SSO Login</text>
+        <!-- Footer -->
+        <rect x="10" y="500" width="600" height="50" fill="#f0f4fb" stroke="#d0dce8" stroke-width="1"/>
+        <rect x="446" y="514" width="72" height="22" fill="#2B579A" rx="2"/>
+        <text x="482" y="529" fill="white" font-size="11" font-weight="600" text-anchor="middle">OK</text>
+        <rect x="526" y="514" width="66" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="559" y="529" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 1 — KeePass Configuration dialog: Open existing mode with DB unlocked and Confluence SSO entry selected.</figcaption>
+    </figure>
+
+    <h3>Open existing database</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Database file</td><td>Browse to your <code>.kdbx</code> file (required).</td></tr>
+        <tr><td>Key file</td><td>Optional second factor.  Use <strong>Browse…</strong> to pick an existing file or <strong>Generate…</strong> to create a new 64-byte binary key file.</td></tr>
+        <tr><td>Master password</td><td>Enter the database master password.  Click <strong>Show</strong> to reveal it.</td></tr>
+        <tr><td>Save password</td><td>If checked, the password is stored base64-encoded in application settings and used for automatic unlock on the next session start.</td></tr>
+        <tr><td>Unlock button</td><td>Tests the credentials without closing the dialog.  On success the status line turns green and the Confluence SSO Auto-fill section appears.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Create new database</h3>
+    <p>Choose <em>Create new database</em> to create a brand-new <code>.kdbx</code> file.
+    The file dialog starts in <strong>~/Documents</strong> for convenience.
+    Enter a save path (a <code>.kdbx</code> extension is appended automatically if omitted),
+    an optional key file, and a master password.  At least one of password or key file is
+    required.  The path is converted to an absolute path before the database is written,
+    so the saved path is always fully qualified.
+    Click <strong>OK</strong> to create the file and unlock it immediately.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 620 480" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <!-- Window chrome -->
+        <rect width="620" height="480" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="600" height="460" fill="white" stroke="#999" rx="2" stroke-width="1"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="600" height="54" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="14" font-weight="bold">KeePass Configuration</text>
+        <text x="26" y="52" fill="#b8d0f0" font-size="11">Create a new KeePass database</text>
+        <!-- Mode radio row -->
+        <rect x="26" y="72" width="568" height="28" fill="#f0f4fb" stroke="#c8d8f0" rx="3"/>
+        <circle cx="42" cy="86" r="6" fill="none" stroke="#888" stroke-width="1.5"/>
+        <text x="52" y="90" fill="#555" font-size="11">Open existing database</text>
+        <circle cx="220" cy="86" r="6" fill="none" stroke="#2B579A" stroke-width="1.5"/>
+        <circle cx="220" cy="86" r="3" fill="#2B579A"/>
+        <text x="230" y="90" fill="#1a3f7a" font-size="11" font-weight="600">Create new database</text>
+        <!-- Form section -->
+        <rect x="26" y="110" width="568" height="174" fill="#fafbfc" stroke="#d8e4f0" rx="3"/>
+        <!-- Row 1: New DB file -->
+        <text x="166" y="132" fill="#444" font-size="11" text-anchor="end">New database file</text>
+        <rect x="172" y="120" width="306" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="134" fill="#222" font-size="11">C:\Users\jsmith\Documents\project.kdbx</text>
+        <rect x="484" y="120" width="66" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="517" y="134" fill="#1a3f7a" font-size="11" text-anchor="middle">Browse…</text>
+        <!-- Row 2: Key file -->
+        <text x="166" y="160" fill="#444" font-size="11" text-anchor="end">Key file</text>
+        <rect x="172" y="148" width="228" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="162" fill="#888" font-size="11">(optional)</text>
+        <rect x="406" y="148" width="66" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="439" y="162" fill="#1a3f7a" font-size="11" text-anchor="middle">Browse…</text>
+        <rect x="478" y="148" width="72" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="514" y="162" fill="#1a3f7a" font-size="11" text-anchor="middle">Generate…</text>
+        <!-- Row 3: Password -->
+        <text x="166" y="190" fill="#444" font-size="11" text-anchor="end">Password</text>
+        <rect x="172" y="178" width="242" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="192" fill="#555" font-size="11">••••••••••</text>
+        <rect x="420" y="178" width="56" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="448" y="192" fill="#1a3f7a" font-size="11" text-anchor="middle">Show</text>
+        <!-- Row 4: Confirm -->
+        <text x="166" y="220" fill="#444" font-size="11" text-anchor="end">Confirm password</text>
+        <rect x="172" y="208" width="242" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="176" y="222" fill="#555" font-size="11">••••••••••</text>
+        <rect x="420" y="208" width="56" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="448" y="222" fill="#1a3f7a" font-size="11" text-anchor="middle">Show</text>
+        <!-- Row 5: Save pwd -->
+        <rect x="172" y="236" width="10" height="10" fill="none" stroke="#2B579A" rx="1"/>
+        <text x="186" y="246" fill="#333" font-size="11">Save password for automatic unlock</text>
+        <!-- Footer -->
+        <rect x="10" y="420" width="600" height="50" fill="#f0f4fb" stroke="#d0dce8" stroke-width="1"/>
+        <rect x="446" y="434" width="72" height="22" fill="#2B579A" rx="2"/>
+        <text x="482" y="449" fill="white" font-size="11" font-weight="600" text-anchor="middle">OK</text>
+        <rect x="526" y="434" width="66" height="22" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="559" y="449" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 2 — KeePass Configuration dialog: Create new database mode. The header subtitle updates dynamically to "Create a new KeePass database".</figcaption>
+    </figure>
+
+    <div class="callout warn">
+      <strong>Security note</strong>
+      <em>Save password</em> stores the master password as base64 in the Windows registry.
+      Base64 is <strong>not encryption</strong> — it only prevents casual shoulder-surfing.
+      For stronger protection, leave <em>Save password</em> unchecked.
+    </div>
+
+    <!-- -- Confluence SSO Auto-fill -- -->
+    <h2>Step 2 — Configure Confluence SSO Auto-fill (optional)</h2>
+    <p>After the database is unlocked, the <strong>Confluence SSO Auto-fill</strong> section
+    appears at the bottom of the dialog.  Select the KeePass entry that holds your
+    Microsoft Azure&nbsp;AD credentials (the same account you use to log in to Confluence).</p>
+    <p>On the next <strong>Project &rarr; Sync Confluence Calendar</strong> run:</p>
+    <ul>
+      <li>If the browser window opens (first run or expired session), the email and password
+          fields are <strong>pre-filled automatically</strong> from the selected KeePass entry.</li>
+      <li>You only need to <strong>complete MFA</strong> — no typing of email/password.</li>
+      <li>Subsequent syncs run headlessly; the browser does not open at all.</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Entry format:</strong>
+      Entries are shown as <code>Group/Title</code> (e.g. <code>Work/Confluence SSO</code>) or
+      just <code>Title</code> for root-group entries.  You can also type the entry name
+      directly into the combo box.
+    </div>
+
+    <!-- -- Jira credentials -- -->
+    <h2>Using KeePass for Jira Server Credentials</h2>
+    <p>Open <strong>Settings &rarr; Jira Servers&hellip;</strong> and add or edit a server.
+    In the <strong>Authentication</strong> combo, choose <em>From KeePass entry</em>.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="560" height="300" fill="#F0F0F0"/>
+        <rect x="10" y="10" width="540" height="280" fill="white" stroke="#999" rx="2"/>
+        <!-- Blue header -->
+        <rect x="10" y="10" width="540" height="50" fill="#2B579A" rx="2"/>
+        <text x="26" y="32" fill="white" font-size="14" font-weight="bold">Edit Jira Server</text>
+        <text x="26" y="50" fill="#b8d0f0" font-size="11">Add or edit a Jira server connection</text>
+        <!-- Form rows -->
+        <text x="130" y="86" fill="#444" font-size="11" text-anchor="end">Name</text>
+        <rect x="136" y="74" width="372" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="140" y="88" fill="#222" font-size="11">My Jira</text>
+        <text x="130" y="116" fill="#444" font-size="11" text-anchor="end">URL</text>
+        <rect x="136" y="104" width="372" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="140" y="118" fill="#222" font-size="11">https://jira.example.com</text>
+        <text x="130" y="146" fill="#444" font-size="11" text-anchor="end">Authentication</text>
+        <rect x="136" y="134" width="180" height="20" fill="white" stroke="#2B579A" rx="2"/>
+        <text x="140" y="148" fill="#1a3f7a" font-size="11" font-weight="600">From KeePass entry</text>
+        <!-- KeePass section -->
+        <rect x="136" y="165" width="372" height="80" fill="#fafbfc" stroke="#d8e4f0" rx="3"/>
+        <text x="150" y="188" fill="#444" font-size="11" text-anchor="end">Entry</text><!-- wrong anchor for demo -->
+        <rect x="156" y="176" width="250" height="20" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="160" y="190" fill="#1a3f7a" font-size="11">Work/Jira API Token</text>
+        <rect x="412" y="176" width="80" height="20" fill="#e8f0fb" stroke="#b0c4dc" rx="2"/>
+        <text x="452" y="190" fill="#1a3f7a" font-size="11" text-anchor="middle">New Entry…</text>
+        <text x="156" y="220" fill="#888" font-size="10.5">username: jsmith  —  password: ••••••••••••</text>
+        <!-- Footer -->
+        <rect x="10" y="260" width="540" height="30" fill="#f0f4fb" stroke="#d0dce8"/>
+        <rect x="396" y="266" width="66" height="18" fill="#2B579A" rx="2"/>
+        <text x="429" y="279" fill="white" font-size="11" text-anchor="middle">OK</text>
+        <rect x="468" y="266" width="60" height="18" fill="white" stroke="#b0c4dc" rx="2"/>
+        <text x="498" y="279" fill="#333" font-size="11" text-anchor="middle">Cancel</text>
+      </svg>
+      <figcaption>Fig. 3 — Jira Server Edit dialog with KeePass entry selected as authentication source.</figcaption>
+    </figure>
+
+    <ul>
+      <li>The entry combo is pre-populated with all entries from the open database.</li>
+      <li>Click <strong>New Entry…</strong> to create a new KeePass entry inline — the dialog fills the entry path automatically on return.</li>
+      <li>If the database is not yet configured, a <strong>Configure KeePass…</strong> button replaces the combo.</li>
+      <li>If the database is configured but locked, an <strong>Unlock KeePass…</strong> button appears and auto-unlock is attempted first.</li>
+    </ul>
+
+    <!-- -- Locking policy -- -->
+    <h2>Locking &amp; Session Behaviour</h2>
+    <table>
+      <thead><tr><th>Trigger</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Application close</td><td>Database locked automatically; in-memory decrypted data discarded.</td></tr>
+        <tr><td>Manual lock (Settings menu)</td><td>Same as application close — session cleared without exiting.</td></tr>
+        <tr><td>Failed unlock attempt</td><td>In-memory reference cleared; user must retry with correct credentials.</td></tr>
+        <tr><td>Auto-unlock on start</td><td>If <em>Save password</em> was checked, the saved password is tried automatically when the first credential lookup is needed.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>No idle timer</strong>
+      The database is not locked automatically after a period of inactivity in the current
+      release.  Lock it manually via <strong>Settings &rarr; Lock KeePass</strong> if you
+      leave your workstation unattended.
+    </div>
+
+    <!-- -- Key file generation -- -->
+    <h2>Key File Generation</h2>
+    <p>Both the <em>Open existing</em> and <em>Create new</em> pages offer a
+    <strong>Generate…</strong> button for the key file field.  This writes
+    <strong>64 cryptographically random bytes</strong> to the chosen path.
+    pykeepass treats a 64-byte binary file as a hex-encoded 32-byte (256-bit) key —
+    each byte of the file represents one nibble of the actual key material — providing
+    full 256-bit key strength with no XML wrapper required.</p>
+    <div class="callout warn">
+      <strong>Keep a backup</strong>
+      If you use a key file, losing it means losing access to the database.
+      Store it in a safe location separate from the <code>.kdbx</code> file.
+    </div>
+
+    <!-- -- Troubleshooting -- -->
+    <h2>Troubleshooting</h2>
+    <table>
+      <thead><tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Unlock fails with <em>credentials not correct</em></td>
+          <td>Wrong password, wrong key file, or both.  Check that the key file path matches the one used when the database was created.</td>
+        </tr>
+        <tr>
+          <td>Confluence SSO form is not auto-filled</td>
+          <td>The database may be locked.  Open <strong>Settings &rarr; KeePass Configuration</strong> and unlock it, then retry the sync.</td>
+        </tr>
+        <tr>
+          <td>Entry combo is empty in Jira dialog</td>
+          <td>No entries in the open database, or the database is locked.  Unlock first or add entries via the <strong>New Entry…</strong> button.</td>
+        </tr>
+        <tr>
+          <td><em>KeePass not configured</em> shown in debug dump</td>
+          <td>The <code>keepass/db_path</code> QSettings key is empty.  Open the configuration dialog and select a database file.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+</body>
+</html>

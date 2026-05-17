@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Creation &amp; Editing — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html" class="active">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Task Creation &amp; Editing</h1>
+    <p>Add, edit and organise tasks in the task sheet — from simple one-liners to structured summary hierarchies.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Task Creation &amp; Editing</div>
+
+    <h2>Task Sheet Columns</h2>
+    <table>
+      <thead><tr><th>#</th><th>Column</th><th>Editable</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>&#x1F6A6; (indicator)</td><td>No</td><td>Status icons: milestone &#9670;, notes &#128196;, overdue &#128680;, critical &#9679;, &gt;100% &#9888;</td></tr>
+        <tr><td>1</td><td>ID</td><td>No</td><td>Sequence number</td></tr>
+        <tr><td>2</td><td>Task Name</td><td><strong>Yes</strong></td><td>Indented by outline level; summary tasks in bold</td></tr>
+        <tr><td>3</td><td>Duration</td><td><strong>Yes</strong></td><td>e.g. <code>5d</code>, <code>2w</code>, <code>0d</code> for milestones</td></tr>
+        <tr><td>4</td><td>Start</td><td>No</td><td>Computed from dependencies and calendar</td></tr>
+        <tr><td>5</td><td>Finish</td><td>No</td><td>Computed</td></tr>
+        <tr><td>6</td><td>Predecessors</td><td>No</td><td>Shown as <code>ID — Name</code> pairs; edit via Dependency view</td></tr>
+        <tr><td>7</td><td>% Done</td><td><strong>Yes</strong></td><td>Visual progress bar; values &gt; 100% shown in red</td></tr>
+        <tr><td>8</td><td>Resources</td><td>No</td><td>Comma-separated assigned resource names</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Adding Tasks</h2>
+    <ul>
+      <li>Right-click any row &rarr; <strong>Insert Task</strong></li>
+      <li>Press <code>Insert</code> while the task list has focus</li>
+      <li>Toolbar <strong>Add Task</strong> button</li>
+    </ul>
+    <p>New tasks are inserted <em>above</em> the selected row at the same outline level.</p>
+
+    <h2>Editing Tasks</h2>
+    <p><strong>Double-click</strong> any row to open the <strong>Task Information</strong> dialog.
+    You can also double-click a task bar in the Gantt chart.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Name</td><td>Task display name.</td></tr>
+        <tr><td>Duration</td><td>Enter as <code>Nd</code> (days), <code>Nw</code> (weeks), or <code>Nh</code> (hours).</td></tr>
+        <tr><td>% Complete</td><td>Progress 0–100 (or more for tracking over-runs).</td></tr>
+        <tr><td>Start (constraint)</td><td>Optional – leave blank to let the schedule compute it.</td></tr>
+        <tr><td>Notes</td><td>Free-text; shown as a &#128196; icon in the indicator column.</td></tr>
+        <tr><td>Resources</td><td>Assign from the project resource list. Each assignment row shows the resource name and a <strong>&#10005;</strong> delete button to remove that specific assignment.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Summary Tasks &amp; Indentation</h2>
+    <p>Tasks become <strong>summary tasks</strong> when they have children.
+    Use the <strong>Indent</strong> and <strong>Outdent</strong> toolbar buttons (or
+    <code>Alt+Shift+Right</code> / <code>Alt+Shift+Left</code>) to move a task one
+    outline level deeper or shallower.  Summary task bars span all their children
+    and cannot be edited directly — they reflect the aggregate of child dates.</p>
+
+    <h2>Milestones</h2>
+    <p>Set Duration to <strong>0d</strong> to make a task a milestone.
+    Milestones appear as a diamond &#9670; in the indicator column and as a diamond
+    shape on the Gantt chart.  They can optionally be pinned to the Timeline strip.</p>
+
+    <h2>Deleting Tasks</h2>
+    <p>Select one or more rows and press <code>Delete</code>, or right-click &rarr;
+    <strong>Delete Task</strong>.  Deleting a summary task also deletes all its children.
+    Use <strong>Undo</strong> (<code>Ctrl+Z</code>) to reverse.</p>
+  </div>
+</div>
+
+</body>
+</html>

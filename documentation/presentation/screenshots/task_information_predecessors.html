@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Task Information – Predecessors</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#2b3a50;overflow:hidden;user-select:none;display:flex;align-items:center;justify-content:center;height:100vh}
+.app-bg{position:fixed;inset:0;background:rgba(30,40,60,.55);display:flex;align-items:center;justify-content:center;z-index:10}
+.dlg{background:#fff;border-radius:5px;box-shadow:0 12px 40px rgba(0,0,0,.5);width:600px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #7090b0}
+.dlg-title{background:linear-gradient(to bottom,#3C71C0,#2B579A);color:#fff;padding:6px 12px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.dlg-close{color:#fff;font-size:16px;cursor:default;opacity:.8;background:none;border:none;font-family:inherit;padding:0 2px}
+.dlg-tabs{display:flex;background:#E4EDF8;border-bottom:2px solid #2B579A;padding-top:3px}
+.dt{padding:5px 16px;font-size:12px;font-weight:700;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;background:#E4EDF8;cursor:default;margin-right:1px}
+.dt.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+.dlg-body{padding:14px 16px;background:#fff}
+
+/* task identity */
+.task-info{background:#f0f5ff;border:1px solid #c0d4f0;border-radius:4px;padding:8px 12px;margin-bottom:12px;display:flex;gap:20px}
+.ti-item label{font-size:10.5px;color:#556080;font-weight:600;display:block;margin-bottom:1px}
+.ti-item span{font-size:12px;color:#1a1a2e;font-weight:700}
+
+/* predecessor table */
+table{width:100%;border-collapse:collapse}
+thead tr{background:linear-gradient(to bottom,#ECF3FB,#D8E8F5)}
+th{border-right:1px solid #B0C8E0;border-bottom:2px solid #2B579A;padding:5px 8px;font-size:12px;font-weight:700;color:#1A3F7A;text-align:left}
+td{border-right:1px solid #D0DDF0;border-bottom:1px solid #D0DDF0;padding:5px 8px;font-size:12px}
+tr.even td{background:#fff}
+tr.odd  td{background:#F0F5FF}
+
+/* type badge */
+.type-dep{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:700;background:#dce8fa;color:#2B579A}
+.type-ss {background:#e8f5e8;color:#2e6b2e}
+.type-ff {background:#fdf0d5;color:#7a5200}
+
+/* toolbar above table */
+.tbl-bar{display:flex;gap:6px;margin-bottom:6px}
+.tbl-btn{padding:3px 12px;border:1px solid #a0b8d0;border-radius:3px;background:#f5f9ff;color:#2B579A;font-size:11.5px;font-weight:700;cursor:default}
+.tbl-btn:hover{background:#e4eeff}
+
+.dlg-footer{background:#f0f4f8;border-top:1px solid #D0DDF0;padding:8px 16px;display:flex;justify-content:flex-end;gap:8px}
+.btn{padding:5px 20px;border-radius:3px;font-size:12px;font-family:"Segoe UI",Arial,sans-serif;font-weight:700;cursor:default;border:1px solid}
+.btn-ok{background:#2B579A;color:#fff;border-color:#1A3F7A}
+.btn-cancel{background:#fff;color:#2B579A;border-color:#a0b8d0}
+</style>
+</head>
+<body>
+<div class="app-bg">
+  <div class="dlg">
+    <div class="dlg-title">
+      Task Information
+      <button class="dlg-close">✕</button>
+    </div>
+    <div class="dlg-tabs">
+      <div class="dt">General</div>
+      <div class="dt active">Predecessors</div>
+      <div class="dt">Resources</div>
+      <div class="dt">Notes</div>
+    </div>
+    <div class="dlg-body">
+
+      <!-- Task identity row -->
+      <div class="task-info">
+        <div class="ti-item"><label>Task</label><span>#6 – Component design</span></div>
+        <div class="ti-item"><label>Duration</label><span>5d</span></div>
+        <div class="ti-item"><label>Start</label><span>09 Apr 2026</span></div>
+      </div>
+
+      <div class="tbl-bar">
+        <button class="tbl-btn">➕ Add</button>
+        <button class="tbl-btn">✕ Remove</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px">ID</th>
+            <th style="flex:1">Predecessor Name</th>
+            <th style="width:120px">Type</th>
+            <th style="width:90px">Lag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="odd">
+            <td>5</td>
+            <td>Architecture review</td>
+            <td><span class="type-dep">FS – Finish to Start</span></td>
+            <td>0d</td>
+          </tr>
+          <tr class="even">
+            <td>3</td>
+            <td>Requirements document</td>
+            <td><span class="type-dep">FS – Finish to Start</span></td>
+            <td>+2d</td>
+          </tr>
+          <tr class="odd">
+            <td colspan="4" style="background:#f8fbff;color:#888;font-style:italic;padding:10px 8px">
+              Click "Add" to add a new predecessor…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:10px;font-size:11px;color:#556080;padding:0 2px">
+        Dependency types: <strong>FS</strong> Finish-to-Start &nbsp;·&nbsp; <strong>SS</strong> Start-to-Start &nbsp;·&nbsp; <strong>FF</strong> Finish-to-Finish &nbsp;·&nbsp; <strong>SF</strong> Start-to-Finish
+      </div>
+    </div>
+    <div class="dlg-footer">
+      <button class="btn btn-cancel">Cancel</button>
+      <button class="btn btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

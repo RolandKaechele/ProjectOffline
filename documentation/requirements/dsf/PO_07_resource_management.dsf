@@ -1,0 +1,97 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_07_ResourceManagement	PO-RES-	Project Offline – Resource Management Requirements	1777892400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	minValue	maxValue	Strings	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Resource Management			1	1_Heading.0	Not relevant		
+	Requirements for the Resource Sheet view, resource calendars, assignments, cost rates, and the Resource Usage Graph.	information	1.1	PO-RES-INFO-001.0	Not relevant		
+1.1 Resource Sheet			1.1	1_1_Heading.0	Not relevant		
+	The system shall provide a Resource Sheet view displaying all project resources with columns: ID, Name, Type, Max Units (with progress bar), Standard Rate, Overtime Rate, and Calendar.	functional requirement	1.1.1	PO-RES-001.0	Not relevant	approved	aligned
+	The Resource Sheet shall support adding and deleting resources.	functional requirement	1.1.2	PO-RES-002.0	Not relevant	approved	aligned
+	Double-clicking a resource row shall open the Resource Information dialog.	functional requirement	1.1.3	PO-RES-003.0	Not relevant	approved	aligned
+	The Resource Information dialog shall allow editing the resource name, type, max units, standard rate, overtime rate, and assigned calendar.	functional requirement	1.1.4	PO-RES-004.0	Not relevant	approved	aligned
+	When a new resource is added to the project, the system shall automatically assign a unique integer UID to the resource if it does not already have one, using the smallest positive integer not currently assigned to any existing project resource.	functional requirement	1.1.5	PO-RES-022.0	Not relevant	approved	aligned
+	Hovering over a resource row in the Resource Sheet shall display a rich HTML tooltip containing a 64 px circular avatar (AD thumbnail if stored, otherwise a type-specific icon), the resource name, type, and department (if set); the tooltip shall only be rebuilt when the hovered row changes and shall be hidden when the pointer leaves the widget.	functional requirement	1.1.6	PO-RES-042.0	Not relevant	approved	aligned
+1.2 Resource Calendars			1.2	1_2_Heading.0	Not relevant		
+	Each resource shall support a personal working calendar that defines working hours, days off, and exceptions.	functional requirement	1.2.1	PO-RES-005.0	Not relevant	approved	aligned
+	Resource calendars shall store holiday and vacation exceptions imported from Confluence Calendar Sync.	functional requirement	1.2.2	PO-RES-006.0	Not relevant	approved	aligned
+1.3 Multi-Resource Assignments			1.3	1_3_Heading.0	Not relevant		
+	The system shall support assigning multiple resources to a single task.	functional requirement	1.3.1	PO-RES-007.0	Not relevant	approved	aligned
+	The system shall support specifying resource units (percentage of capacity) per assignment.	functional requirement	1.3.2	PO-RES-008.0	Not relevant	approved	aligned
+1.4 Resource Usage Graph			1.4	1_4_Heading.0	Not relevant		
+	The system shall provide a Resource Usage Graph view showing a collapsible resource/task hierarchy on the left and a timeline grid on the right.	functional requirement	1.4.1	PO-RES-009.0	Not relevant	approved	aligned
+	The timeline grid shall show the number of hours each resource and assignment consumes per period in each cell.	functional requirement	1.4.2	PO-RES-010.0	Not relevant	approved	aligned
+	The Resource Usage Graph shall support four zoom modes: monthly (one column per month), weekly (one column per ISO week), daily (one column per day), and hourly (one column per work hour).	functional requirement	1.4.3	PO-RES-011.0	Not relevant	approved	aligned
+	In hourly mode, working hours shall be read from the project calendar (default 08:00–17:00). Break hours shall be shown in grey. An optional 'Show Off-Hours' toggle shall extend the view to a full 24-hour clock.	functional requirement	1.4.4	PO-RES-012.0	Not relevant	approved	aligned
+	Day/header columns in the Resource Usage Graph shall be pixel-aligned regardless of scroll position.	functional requirement	1.4.5	PO-RES-013.0	Not relevant	approved	aligned
+	A 'Today' scroll button shall scroll the Resource Usage Graph timeline to today.	functional requirement	1.4.6	PO-RES-014.0	Not relevant	approved	aligned
+	Resource rows shall be collapsible/expandable in the Resource Usage Graph.	functional requirement	1.4.7	PO-RES-015.0	Not relevant	approved	aligned
+	A context menu on resource/task rows in the Resource Usage Graph shall provide an action to jump the timeline to the first allocation for that resource/task.	functional requirement	1.4.8	PO-RES-016.0	Not relevant	approved	aligned
+	Double-clicking a task row in the Resource Usage Graph shall open the Task Information dialog.	functional requirement	1.4.9	PO-RES-017.0	Not relevant	approved	aligned
+	Timeline cells in the Resource Usage Graph shall show a hover tooltip with resource/task name, period label, and hours (all four zoom modes).	functional requirement	1.4.10	PO-RES-018.0	Not relevant	approved	aligned
+	Narrow cells (day_width < 32 px) shall display hours with 1 decimal place instead of 2 to prevent text clipping.	functional requirement	1.4.11	PO-RES-019.0	Not relevant	approved	aligned
+	The Resource Usage Graph shall display vacation overlays as semi-transparent orange blocks on non-working days.	functional requirement	1.4.12	PO-RES-020.0	Not relevant	approved	aligned
+1.5 Vacation Overlays			1.5	1_5_Heading.0	Not relevant		
+	Vacation overlays (semi-transparent orange blocks) shall be rendered in the Gantt Chart, Team Planner, and Resource Usage Graph views on non-working days.	functional requirement	1.5.1	PO-RES-021.0	Not relevant	approved	aligned
+1.6 Secondary Calendar Assignments			1.6	1_6_Heading.0	Not relevant		
+	Each resource shall support an optional secondary holiday calendar that captures regional public holidays specific to the resource's location (e.g. state-level holidays in Germany), separate from the resource's personal working calendar.	functional requirement	1.6.1	PO-RES-023.0	Not relevant	approved	aligned
+	Secondary calendar assignments shall be persisted in the project file via MPXJ project custom properties under the key "AD Secondary Calendars" as a JSON map of resource-UID to calendar name and calendar UID, so that assignments survive save/load and are portable across team members.	functional requirement	1.6.2	PO-RES-024.0	Not relevant	approved	aligned
+1.7 Resource Usage Histogram			1.7	1_7_Heading.0	Not relevant		
+	The system shall provide a Resource Usage Histogram strip that can be displayed below the Team Planner view, showing per-day total allocated hours vs. available capacity across all resources as a vertical bar chart.	functional requirement	1.7.1	PO-RES-027.0	Not relevant	approved	aligned
+	The histogram bars shall use a three-tier colour scheme: green for utilisation ≤ 80 %, amber for 80–100 %, and red for > 100 %.	functional requirement	1.7.2	PO-RES-028.0	Not relevant	approved	aligned
+	A dashed horizontal line shall mark the 100 % capacity level in the histogram canvas.	functional requirement	1.7.3	PO-RES-029.0	Not relevant	approved	aligned
+	The histogram shall exclude weekends, project-level public holidays, and per-resource vacation exceptions from both capacity and allocation calculations.	functional requirement	1.7.4	PO-RES-030.0	Not relevant	approved	aligned
+	Summary tasks shall be excluded from allocation calculations in the histogram.	functional requirement	1.7.5	PO-RES-031.0	Not relevant	approved	aligned
+	Assignment hours shall be distributed evenly across all working days within the assignment span when computing daily allocation in the histogram.	functional requirement	1.7.6	PO-RES-032.0	Not relevant	approved	aligned
+	A "Show Resource Usage Histogram" toggle action in the Format menu shall show or hide the histogram strip; the visibility state shall be persisted across application sessions.	functional requirement	1.7.7	PO-RES-033.0	Not relevant	approved	aligned
+	The histogram horizontal scroll position and day-width shall be synchronised with the Team Planner timeline.	functional requirement	1.7.8	PO-RES-034.0	Not relevant	approved	aligned
+1.8 Resource Calendar Lifecycle			1.8	1_8_Heading.0	Not relevant		
+	When a resource is deleted from the Resource Sheet, the system shall also remove the resource's linked personal calendar from the project calendar list if one exists; resources that have no personal calendar (getCalendar() returns None) shall be deleted without error and without attempting calendar removal.	functional requirement	1.8.1	PO-RES-025.0	Not relevant	approved	aligned
+	When adding holiday or vacation exceptions to a project calendar via the calendar management UI (e.g. the Project Information dialog), if the MPXJ library returns a null unique ID for the newly created calendar object, the system shall derive the next available calendar UID from the set of UIDs already present in the project's calendar list and assign it explicitly via setUniqueID(), ensuring that every calendar entry always has a valid positive integer UID.	functional requirement	1.8.2	PO-RES-026.0	Not relevant	approved	aligned
+1.9 Manual Resource Add — ID and Calendar Assignment			1.9	1_9_Heading.0	Not relevant		
+	When a resource is added manually via the "Add Resource" action (resource sheet toolbar or ribbon), the system shall assign a unique integer resource ID to the new resource and create a personal calendar for it before opening the Resource Information dialog, so that the resource is fully initialised regardless of whether the dialog is accepted or cancelled.	functional requirement	1.9.1	PO-RES-035.0	Not relevant	approved	aligned
+	If the user cancels the Resource Information dialog during a manual add, the system shall roll back both the newly created personal calendar (removing it from the project calendar list) and the new resource (calling remove() on the resource object), leaving the project unchanged.	functional requirement	1.9.2	PO-RES-036.0	Not relevant	approved	aligned
+	When the Resource Information dialog is accepted during any resource-addition path, the system shall verify that no other existing resource has the same name (compared by display name, excluding the resource being edited by UID); if a duplicate name is detected the new resource and its personal calendar shall be rolled back and a warning dialog shall be shown to the user.	functional requirement	1.9.3	PO-RES-043.0	Not relevant	approved	aligned
+1.10 Universal Personal Calendar Creation			1.10	1_10_Heading.0	Not relevant		
+	The personal resource calendar creation behaviour (create calendar, name it "Resource Name Calendar", assign unique UID, link via setCalendar(), call setParent() with the project default calendar or configure Mon–Fri working week when no default exists) shall apply to all resource-addition paths: manual add, AD single-user search, and AD group bulk add.	functional requirement	1.10.1	PO-RES-037.0	Not relevant	approved	aligned
+1.11 Base Calendar Selector in Calendar Management UI			1.11	1_11_Heading.0	Not relevant		
+	The Project Information dialog Calendars tab shall display the Base Calendar field as an editable QComboBox, not a read-only label; the combo shall list "(none)" as the first option, then the project default calendar prefixed with "★", then all other project calendars, excluding the calendar currently being edited; the selected entry shall be saved on OK as the MPXJ parent calendar (cal.setParent()).	functional requirement	1.11.1	PO-RES-038.0	Not relevant	approved	aligned
+1.12 Contact Information Fields			1.12	1_12_Heading.0	Not relevant		
+	The Resource Information dialog shall display an E-Mail address field pre-populated from the resource's stored email address (MPXJ getEmailAddress()).	functional requirement	1.12.1	PO-RES-039.0	Not relevant	approved	aligned
+	The Resource Information dialog shall display a Department field pre-populated from the resource's stored department (MPXJ getDepartment()).	functional requirement	1.12.2	PO-RES-040.0	Not relevant	approved	aligned
+	Accepting the Resource Information dialog shall persist the entered E-Mail address to the MPXJ resource via setEmailAddress() and the Department via setDepartment(); an empty field shall clear the attribute by passing None.	functional requirement	1.12.3	PO-RES-041.0	Not relevant	approved	aligned
+	Accepting the Resource Information dialog shall persist the selected resource type to the MPXJ resource via setType() using the corresponding ResourceType enum value (WORK, MATERIAL, or COST).	functional requirement	1.12.4	PO-RES-044.0	Not relevant	approved	aligned
+	The E-Mail field, Department field, and "Look up in AD…" button in the Resource Information dialog shall be visible only when the resource type is WORK; they shall be hidden automatically when the type is MATERIAL or COST, and shall update immediately whenever the Type combobox value changes.	functional requirement	1.12.5	PO-RES-045.0	Not relevant	approved	aligned
+1.13 Resource Avatar and Thumbnail			1.13	1_13_Heading.0	Not relevant		
+	The Resource Information dialog shall display a 64 px circular avatar in the General tab: if an AD photo is stored for the resource it shall be shown; otherwise a type-specific fallback icon shall be rendered (👷 WORK, 📦 MATERIAL, 💰 COST); the avatar shall refresh automatically when the Type combobox value changes (provided no AD photo is stored).	functional requirement	1.13.1	PO-RES-046.0	Not relevant	approved	aligned
+	The AD thumbnail (raw bytes) and department value for each resource shall be persisted in a sidecar file named <project-basename>.thumbnails.json stored alongside the project XML, using a JSON structure {"resources": {"<uid>": {"thumbnail": "<base64>", "department": "..."}}}; the sidecar shall be loaded on project open, cleared on project close or new project, updated after a successful "Look up in AD…" confirmation, and pruned when a resource is deleted.	functional requirement	1.13.2	PO-RES-047.0	Not relevant	approved	aligned
+</OBJECTS>

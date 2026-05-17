@@ -1,0 +1,482 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jira Sync – Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html" class="active">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Jira Sync</h1>
+    <p>Two-way synchronisation between Jira and your project: <strong>import</strong> Jira issues as tasks (Jira→Project) with epic hierarchy and full undo support, and <strong>push</strong> project tasks back to Jira (Project→Jira) with dry-run preview, conflict detection, and an audit trail.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>›</span> Jira&rarr;Project Sync</div>
+
+    <h2>What Is Jira&rarr;Project Sync?</h2>
+    <p>The <strong>Jira&rarr;Project Sync</strong> feature runs a live synchronization between your Jira instance and the currently open project file. It reads all issues matching your configured JQL filter (or saved Jira filter) and:</p>
+    <ul>
+      <li><strong>Creates</strong> new MPXJ tasks for issues not yet in the project</li>
+      <li><strong>Updates</strong> existing tasks (name, percent-complete) for issues already tracked</li>
+      <li><strong>Builds an epic hierarchy</strong> &mdash; Epic issues become collapsible WBS summary rows; sub-tickets are nested beneath their parent Epic</li>
+      <li><strong>Persists a mapping</strong> between Jira keys and task IDs in the project sidecar so subsequent syncs update in place rather than duplicate</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Prerequisite: Jira Integration must be configured first.</strong>
+      You need at least one Jira server configured in <a href="16_jira_integration.html">Jira Integration</a> and a sync server + filter set for the current project before running a sync.
+    </div>
+
+    <!-- ── Prerequisites ── -->
+    <h2>Prerequisites</h2>
+    <table>
+      <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Jira server configured</td>
+          <td>At least one server must be added in <strong>Settings &rarr; Jira Servers</strong>. See <a href="16_jira_integration.html">Jira Integration</a>.</td>
+        </tr>
+        <tr>
+          <td>Sync server selected</td>
+          <td>A server must be selected as the sync server in the Jira Sync Configuration dialog.</td>
+        </tr>
+        <tr>
+          <td>Filter configured</td>
+          <td>A JQL query or saved filter ID must be configured for the current project (per-project setting).</td>
+        </tr>
+        <tr>
+          <td>Open project file</td>
+          <td>A project file must be open. The sync modifies the current in-memory project; you can save afterwards.</td>
+        </tr>
+        <tr>
+          <td>KeePass unlocked (if applicable)</td>
+          <td>If your Jira server uses KeePass for credential storage, you will be prompted to unlock KeePass before the sync starts. You can also unlock it in advance via <strong>Settings &rarr; KeePass</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Step 1 ── -->
+    <h2>Step 1 – Configure the Sync Filter</h2>
+    <p>If you have not already done so, open the <strong>Jira Sync Configuration</strong> dialog:</p>
+    <ul>
+      <li><strong>TASK ribbon tab</strong> &rarr; click <strong>Jira Sync Config</strong></li>
+      <li><strong>Project menu</strong> &rarr; <strong>Jira</strong> &rarr; <strong>Jira Sync Configuration&hellip;</strong></li>
+    </ul>
+    <p>In the <strong>Jira &rarr; Project</strong> tab:</p>
+    <ol>
+      <li>Select your Jira server from the dropdown (or click <strong>Add&hellip;</strong> to add one).</li>
+      <li>Choose <strong>JQL</strong> and enter a JQL expression, for example:<br>
+          <code>project = MYPROJ AND issuetype in (Epic, Story, Bug) ORDER BY created ASC</code></li>
+      <li>Or choose <strong>Saved Filter (ID or URL)</strong> and paste the numeric filter ID or filter URL.</li>
+      <li>Click <strong>Test Filter</strong> to preview matching issues and confirm the filter is correct.</li>
+      <li>Click <strong>OK</strong> to save.</li>
+    </ol>
+
+    <div class="callout tip">
+      <strong>The filter is stored per project.</strong>
+      Each project file can have its own independent JQL filter, stored in the <code>.custom-props.json</code> sidecar file alongside your project under the <code>jira2project</code> key.
+    </div>
+
+    <!-- ── Step 2 ── -->
+    <h2>Step 2 – Run the Sync</h2>
+    <p>Once a filter is configured, run the sync:</p>
+    <ul>
+      <li><strong>TASK ribbon tab</strong> &rarr; click the main area of the <strong>Sync from Jira</strong> button (runs the normal sync), or click the <strong>&#9660;</strong> drop-down arrow for advanced modes</li>
+      <li><strong>Project menu</strong> &rarr; <strong>Jira</strong> &rarr; <strong>Run Jira Sync</strong></li>
+    </ul>
+
+    <h3>Sync Modes (&#9660; Drop-Down)</h3>
+    <p>The <strong>Sync from Jira</strong> ribbon button is a <strong>split-button</strong>.
+    Click the &#9660; arrow to choose a sync mode:</p>
+    <table>
+      <thead><tr><th>Mode</th><th>When to use</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Sync now (normal)</strong></td>
+          <td>Standard incremental sync — the default main-click action. Fetches all issues matching your filter and creates or updates tasks.</td>
+        </tr>
+        <tr>
+          <td><strong>Changed since last sync</strong></td>
+          <td>Fetches only Jira issues that were updated after the last successful sync timestamp (<code>force_incremental=True</code>). Faster for large projects where most issues are unchanged.</td>
+        </tr>
+        <tr>
+          <td><strong>Full resync</strong></td>
+          <td>Discards the stored Jira key &rarr; task UID mapping and re-imports all matching issues from scratch (<code>force_full_resync=True</code>). Use when the project structure has changed significantly and you want a clean import.</td>
+        </tr>
+        <tr>
+          <td><strong>Open Jira Config</strong></td>
+          <td>Shortcut to open the Jira Sync Configuration dialog directly from the drop-down.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Sync to Jira Dry-Run</h3>
+    <p>The <strong>Sync to Jira</strong> ribbon button also has a split-button drop-down.
+    Select <strong>Dry-run preview</strong> to collect all planned Jira write operations
+    (creates, updates, transitions) without executing any of them. A preview dialog then
+    shows exactly what would happen, letting you review before committing.</p>
+
+    <p>The sync will:</p>
+    <ol>
+      <li>Connect to your Jira server using the stored credentials (prompting to unlock KeePass first if needed).</li>
+      <li>Resolve the configured filter to a JQL query (if using a saved filter).</li>
+      <li>Fetch all matching issues in pages of 100 (requesting only the specific fields needed to avoid timeouts on large result sets).</li>
+      <li>Process <strong>Epics first</strong>, then all other issue types.</li>
+      <li>Create new tasks or update existing ones &mdash; task names are set to the bare Jira summary with no type prefix.</li>
+      <li>Show a summary dialog with the number of tasks created, updated, and skipped.</li>
+    </ol>
+
+    <h3>KeePass Unlock Prompt</h3>
+    <p>If your Jira server uses KeePass for credential storage and KeePass is currently locked, a prompt appears before the sync starts:</p>
+    <figure class="screenshot">
+      <iframe title="KeePass Unlock Prompt" src="../presentation/screenshots/jira_sync_keepass_unlock.html" width="480" height="220" style="border:none;display:block;margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.15)"></iframe>
+      <figcaption>KeePass locked &mdash; prompt to unlock before Jira sync proceeds</figcaption>
+    </figure>
+    <p>Clicking <strong>Yes</strong> attempts auto-unlock (using a stored key file if configured). If auto-unlock fails, a master password dialog appears. Clicking <strong>No</strong> cancels the sync.</p>
+
+    <!-- ── Jira tab ── -->
+    <h2>Viewing Jira Data in the Task Dialog</h2>
+    <p>Once a task has been linked to a Jira issue, opening its <strong>Task Information</strong> dialog (double-click the task row) shows a <strong>Jira</strong> tab with read-only details:</p>
+    <figure class="screenshot">
+      <iframe title="Task Information — Jira Tab" src="../presentation/screenshots/task_information_jira.html" width="560" height="360" style="border:none;display:block;margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.15)"></iframe>
+      <figcaption>Task Information &mdash; Jira tab showing linked key, status, and browse URL</figcaption>
+    </figure>
+    <table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Jira Key</td><td>The Jira issue key, e.g. <code>PROJ-42</code></td></tr>
+        <tr><td>Status</td><td>The Jira status at the time of the last sync</td></tr>
+        <tr><td>Browse</td><td>A clickable link that opens the issue in your browser</td></tr>
+      </tbody>
+    </table>
+    <p>If no Jira data has been linked to the task yet, the tab shows an explanatory message instead.</p>
+
+    <!-- ── Epic hierarchy ── -->
+    <h2>Epic Hierarchy</h2>
+    <p>When your filter returns Epic issues alongside their sub-tickets, the sync automatically builds a WBS hierarchy:</p>
+    <ul>
+      <li><strong>Epic tasks</strong> are marked as summary/rollup rows &mdash; they collapse in the Gantt Chart and Task Sheet and their duration rolls up from children.</li>
+      <li><strong>Sub-tickets</strong> (Stories, Bugs, Tasks, Sub-tasks) are nested under their parent Epic using MPXJ&rsquo;s <code>setParentTask</code> call.</li>
+      <li>Sub-tickets whose parent Epic is <em>not</em> included in the filter result are created at the root level without a parent.</li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>Include Epics in your filter</strong> if you want the hierarchy to be built correctly. A filter that returns only Stories/Bugs without their parent Epics will create flat root-level tasks.
+    </div>
+
+    <!-- ── Percent complete ── -->
+    <h2>Percent-Complete Mapping</h2>
+    <p>The sync maps Jira issue statuses to MPXJ percent-complete values:</p>
+    <table>
+      <thead><tr><th>Jira Status</th><th>% Complete in Project</th></tr></thead>
+      <tbody>
+        <tr><td>Done / Closed / Resolved</td><td>100%</td></tr>
+        <tr><td>In Progress</td><td>50%</td></tr>
+        <tr><td>To Do / Open / (any other)</td><td>0%</td></tr>
+      </tbody>
+    </table>
+    <p>These values are applied on every sync, so a ticket that moves from <em>In Progress</em> to <em>Done</em> in Jira will have its task updated to 100% on the next run.</p>
+
+    <!-- ── Undo ── -->
+    <h2>Undoing a Sync</h2>
+    <p>The entire sync operation is undoable with a single <strong>Ctrl+Z</strong> on the <strong>Task Sheet</strong> or <strong>Resource</strong> view. The undo stack captures a snapshot of tasks and resources immediately after the sync succeeds, so you can revert:</p>
+    <ul>
+      <li>All newly created tasks</li>
+      <li>All updated task names, parent assignments, and percent-complete values</li>
+      <li>Any resource assignments that were created or modified</li>
+    </ul>
+
+    <div class="callout note">
+      <strong>Save before syncing</strong> if you have unsaved changes you want to preserve independently of the sync. Undo is available only for the current session.
+    </div>
+
+    <!-- ── Sidecar ── -->
+    <h2>Sidecar File &amp; Re-sync Behaviour</h2>
+    <p>After each sync, the Jira key &rarr; task UID mapping is saved in the project&rsquo;s <code>.custom-props.json</code> sidecar file under the <code>task_jira</code> key. This means:</p>
+    <ul>
+      <li>Running the sync a second time will <strong>update existing tasks</strong> rather than creating duplicates.</li>
+      <li>If you delete a task in the project and re-run the sync, the issue will be <strong>re-created</strong> as a new task (the mapping entry was removed).</li>
+      <li>Issues that no longer match the filter are <strong>not deleted</strong> from the project &mdash; they remain untouched.</li>
+    </ul>
+
+    <!-- ── Debug ── -->
+    <h2>Debug Information</h2>
+    <p>When running with the <code>--debug</code> flag, the debug dump (<strong>Help &rarr; Debug Dump</strong>) includes a <code>jira_sync_result</code> block showing the result of the most recent sync:</p>
+    <pre><code>{
+  "jira_sync_result": {
+    "created": 3,
+    "updated": 12,
+    "skipped": 5,
+    "errors": [],
+    "log": [
+      "[CREATE] PROJ-12 → task uid=47",
+      "[UPDATE] PROJ-7  → task uid=42"
+    ]
+  }
+}</code></pre>
+<p>The block is omitted when no sync has run in the current session.</p>
+
+    <!-- ── Project → Jira Export Configuration ── -->
+    <h2>Project &rarr; Jira Export Configuration</h2>
+    <p>The <strong>Project &rarr; Jira</strong> tab in the Jira Sync Configuration dialog lets you configure how MS&nbsp;Project tasks are pushed back to a Jira server.  It is complementary to the <strong>Jira &rarr; Project</strong> tab, which configures the import direction.</p>
+
+    <div class="callout tip">
+      <strong>Full execution engine now available.</strong>
+      Both the configuration tab and the push execution engine are fully implemented.
+      Use the <strong>Sync to Jira</strong> button in the TASK ribbon (Jira group) to run the push with an optional dry-run preview.
+    </div>
+
+    <h3>Opening the Dialog</h3>
+    <p>The same Jira Sync Configuration dialog is used for both directions:</p>
+    <ul>
+      <li><strong>Ribbon</strong> &rarr; <strong>TASK</strong> tab &rarr; <strong>Jira Sync&nbsp;Config</strong> button</li>
+      <li><strong>Project</strong> menu &rarr; <strong>Jira</strong> &rarr; <strong>Jira Sync Configuration&hellip;</strong></li>
+    </ul>
+    <p>Once the dialog opens, click the <strong>Project &rarr; Jira</strong> tab to access export settings.</p>
+    <div class="callout tip">
+      <strong>Tip:</strong> Both tabs scroll independently inside the dialog.  The OK and Cancel buttons are always visible at the bottom regardless of screen size &mdash; scroll within the active tab to reach all settings.
+    </div>
+    <figure class="screenshot">
+      <style>
+        #jss-ss *,#jss-ss *::before,#jss-ss *::after{box-sizing:border-box;margin:0;padding:0}
+        #jss-ss{font-family:"Segoe UI",Arial,sans-serif;background:#f4f6fa;padding:20px;display:flex;justify-content:center}
+        #jss-ss .card{width:560px;border:1px solid #a9b8cc;border-radius:6px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden}
+        #jss-ss .head{background:#2B579A;color:#fff;padding:10px 14px}
+        #jss-ss .head h2{font-size:14px;margin-bottom:2px}
+        #jss-ss .head p{font-size:11px;color:#d9e4f6}
+        #jss-ss .content{padding:12px 14px}
+        #jss-ss .tabs{display:flex;border-bottom:2px solid #2B579A;margin-bottom:10px}
+        #jss-ss .tab{padding:6px 10px;font-size:12px;color:#2B579A;font-weight:700}
+        #jss-ss .viewport{height:260px;border:1px solid #c6d2e3;border-radius:4px;padding:8px;overflow:auto;background:#fff}
+        #jss-ss .line{padding:4px 2px;color:#273043;font-size:12px}
+        #jss-ss .footer{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid #d6e0ee;background:#fbfcfe}
+        #jss-ss .btn{border:1px solid #9aa9bd;border-radius:4px;padding:5px 14px;font-weight:600;font-size:12px}
+        #jss-ss .primary{background:#2B579A;color:#fff;border-color:#22477d}
+      </style>
+      <div id="jss-ss" style="margin:20px auto;box-shadow:0 4px 16px rgba(0,0,0,.15);border-radius:6px;width:600px">
+        <div class="card">
+          <div class="head">
+            <h2>Jira Sync Configuration</h2>
+            <p>Scrollable tab content with always-visible action row.</p>
+          </div>
+          <div class="content">
+            <div class="tabs">
+              <div class="tab">Jira &rarr; Project</div>
+              <div class="tab">Project &rarr; Jira</div>
+            </div>
+            <div class="viewport">
+              <div class="line">Core Information</div>
+              <div class="line">Status and Resolution</div>
+              <div class="line">Assignment and Reporter</div>
+              <div class="line">Priority and Dates</div>
+              <div class="line">Versions and Components</div>
+              <div class="line">Labels and Metadata</div>
+              <div class="line">Time Tracking</div>
+              <div class="line">Hierarchy and Relationships</div>
+              <div class="line">Export Scope and Create/Update Mode</div>
+              <div class="line">Conflict Policy and Dry Run</div>
+              <div class="line">Field/Issue/Transition mappings</div>
+              <div class="line">Validation rules</div>
+            </div>
+          </div>
+          <div class="footer">
+            <button class="btn primary">OK</button>
+            <button class="btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <figcaption>Jira Sync configuration dialog with independently scrollable tabs and always-visible action buttons.</figcaption>
+    </figure>
+
+    <h3>Export Scope</h3>
+    <p>Controls which tasks are included in the export run.  The default is <strong>Changed since last sync</strong>.</p>
+    <ul>
+      <li><strong>Selected Tasks</strong> &mdash; only the tasks currently selected in the Gantt or Task Sheet view</li>
+      <li><strong>Changed since last sync</strong> &mdash; only tasks whose data has changed since the last successful push (determined by the <code>last_pushed_at</code> timestamp stored in the sidecar).  Default.</li>
+      <li><strong>Full project</strong> &mdash; all tasks in the open project</li>
+    </ul>
+
+    <h3>Create / Update Mode</h3>
+    <p>Controls whether the export creates new Jira issues, updates existing ones, or both.  The default is <strong>Create + update</strong>.</p>
+    <ul>
+      <li><strong>Create only</strong> &mdash; create new Jira issues for project tasks that have no linked issue.  Requires a <code>project</code> field mapping (see Field Map below).</li>
+      <li><strong>Update only</strong> &mdash; update existing linked issues without creating new ones.</li>
+      <li><strong>Create + update</strong> &mdash; default.  Both create and update.  Also requires a <code>project</code> field mapping.</li>
+    </ul>
+
+    <h3>Conflict Policy</h3>
+    <p>Determines what happens when a project field value and the current Jira field value differ.  The default is <strong>Prefer Jira</strong>.</p>
+    <ul>
+      <li><strong>Prefer Jira</strong> &mdash; silently keep the Jira value and skip updating that field.  Default.</li>
+      <li><strong>Prefer Project</strong> &mdash; overwrite the Jira value with the project value without prompting.</li>
+      <li><strong>Manual review</strong> &mdash; pause on each conflict and prompt you to choose.</li>
+    </ul>
+
+    <h3>Dry Run</h3>
+    <p>When <strong>Dry Run</strong> is checked (the default), the export is simulated without making any changes to the Jira server.  The dialog shows what would be created, updated, or transitioned so you can validate your mapping before committing.  Uncheck it to perform a live export.</p>
+
+    <h3>Field Map Table</h3>
+    <p>Each row in the Field Map maps a project field name (left) to a Jira field name or custom field ID (right).  A checkbox on each row enables or disables that mapping for the export.</p>
+    <ul>
+      <li>Use the <strong>Add</strong> button to add rows, edit cells in-place, and use <strong>Delete</strong> to remove unwanted rows.</li>
+      <li>Disabled rows are greyed out and their Jira field input is read-only.</li>
+      <li>For <em>create-capable</em> modes the <strong><code>project</code></strong> Jira field (lowercase) is mandatory &mdash; the dialog will warn you if it is missing or disabled.</li>
+    </ul>
+
+    <h3>Issue Type Map Table</h3>
+    <p>Maps project task-type names (left column) to Jira issue-type names (right column, e.g. <em>Task</em>, <em>Bug</em>, <em>Story</em>).  At least one row is required.  If a Jira server is selected and reachable, the dialog performs a best-effort check to confirm that each mapped Jira issue type actually exists on that server.</p>
+
+    <h3>Transition Map Table</h3>
+    <p>Maps project task-status values (left column) to Jira transition IDs or transition names (right column).  The transition map is optional; leave it empty if you do not want the export to trigger workflow transitions.  When non-empty and a server is reachable, the dialog verifies that each mapped transition exists for the corresponding issue type.</p>
+
+    <h3>Cross-Field Dependency Rules (Jira &rarr; Project Tab)</h3>
+    <p>Several field checkboxes in the <strong>Jira &rarr; Project</strong> tab have a controller&ndash;dependent relationship.  A <em>dependent</em> checkbox is automatically disabled and unchecked whenever its <em>controller</em> checkbox is unchecked, and re-enabled when the controller is re-checked.  This prevents importing derived fields whose source data would not be available.</p>
+    <p>Examples: <code>jira_status_percent</code> is disabled when <code>jira_status</code> is unchecked; <code>jira_assignee_display_name</code> is disabled when <code>jira_assignee</code> is unchecked; all four <code>jira_fix_version_*</code> detail fields are disabled when <code>jira_fix_versions</code> is unchecked.</p>
+
+    <h3>Saving and Validation</h3>
+    <p>When you click <strong>OK</strong>, the dialog validates the Project &rarr; Jira settings before saving:</p>
+    <ol>
+      <li>At least one field-map row must be enabled.</li>
+      <li>Every enabled row must have a non-empty Jira field name.</li>
+      <li>Create-capable modes require an enabled <code>project</code> field row.</li>
+      <li>At least one row must exist in the Issue Type Map.</li>
+      <li>Every Transition Map row must have a non-empty transition ID or name.</li>
+      <li>Best-effort server checks for issue types and transitions (skipped when the server is offline or not yet configured).</li>
+    </ol>
+    <p>Validation errors are shown as a warning dialog; the configuration dialog stays open for you to correct them.</p>
+
+    <h3>Per-Project Persistence</h3>
+    <p>All Project &rarr; Jira settings are stored per-project inside the <code>project2jira</code> container of the project&rsquo;s <code>.custom-props.json</code> sidecar file.  They are completely independent of the Jira &rarr; Project settings stored in the <code>jira2project</code> container.  The project is marked dirty and the sidecar is saved when you close the dialog with <strong>OK</strong>.</p>
+
+    <!-- ── Step 3 ── -->
+    <h2>Step 3 – Push to Jira (Sync to Jira)</h2>
+    <p>Once you have configured the <strong>Project &rarr; Jira</strong> tab, run the push using the dedicated ribbon button or menu item:</p>
+    <ul>
+      <li><strong>TASK ribbon tab</strong> &rarr; <strong>Jira</strong> group &rarr; click <strong>Sync to Jira</strong></li>
+      <li><strong>Project menu</strong> &rarr; <strong>Jira</strong> &rarr; <strong>Sync to Jira&hellip;</strong></li>
+    </ul>
+
+    <div class="callout tip">
+      <strong>Dry-run first.</strong>
+      The push always runs a silent dry-run pass first and shows you the
+      <strong>Jira Push Preview</strong> dialog before writing anything to Jira.
+      You can deselect individual rows or cancel entirely before anything is sent.
+    </div>
+
+    <!-- ── Preview dialog ── -->
+    <h3>The Jira Push Preview Dialog</h3>
+    <p>The preview dialog shows every action the push engine would perform:</p>
+    <table>
+      <thead><tr><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Include</td><td>Checkbox &mdash; uncheck to exclude a task from this push run</td></tr>
+        <tr><td>Task</td><td>Task name from the project</td></tr>
+        <tr><td>Action</td><td><code>CREATE</code>, <code>UPDATE</code>, <code>TRANSITION</code>, or <code>SKIP</code></td></tr>
+        <tr><td>Jira Key</td><td>Existing Jira issue key, or <code>NEW</code> for tasks that would be created</td></tr>
+        <tr><td>Reason</td><td>Human-readable explanation of why the action was chosen</td></tr>
+      </tbody>
+    </table>
+    <p>Actions are colour-coded: <strong>green</strong> for CREATE, <strong>blue</strong> for UPDATE, <strong>orange</strong> for TRANSITION, and <strong>grey</strong> for SKIP.  Click <strong>Run Push</strong> to proceed with all checked rows, or <strong>Cancel</strong> to abort without changes.</p>
+
+    <h3>What the Push Does</h3>
+    <ol>
+      <li>Reads the <strong>Project &rarr; Jira</strong> configuration for the current project.</li>
+      <li>For each included task, builds a Jira field payload from the enabled field-map rows.</li>
+      <li><strong>Unlinked tasks</strong> (no Jira key): created as new Jira issues when <em>unlinked behavior</em> is set to <em>Create</em>, or skipped.</li>
+      <li><strong>Linked tasks</strong> (have a Jira key): updated.  Conflict detection compares the Jira <code>updated</code> timestamp with <code>last_pushed_at</code> &mdash; if Jira is newer and the conflict policy is <em>Prefer Jira</em>, the task is skipped.</li>
+      <li><strong>Status transitions</strong>: if a transition map entry matches the task&rsquo;s current percent-complete bracket, the Jira workflow transition is triggered.</li>
+      <li><strong>Hierarchy</strong>: if hierarchy export is enabled, the parent task&rsquo;s Jira key is set as the issue&rsquo;s parent in Jira.</li>
+      <li>Push metadata (<code>task_p2j</code>, <code>jira_push_meta</code>) is saved to the sidecar after a successful run.</li>
+    </ol>
+
+    <div class="callout note">
+      <strong>Transient error retry.</strong>
+      The push engine automatically retries on HTTP 429 (rate-limit), 5xx server errors, connection drops, and request timeouts using exponential back-off.  Non-transient errors (e.g. 400 Bad Request, 404 Not Found) are reported immediately without retry.
+    </div>
+
+    <!-- ── Sidecar ── -->
+    <h3>Sidecar Sections for Sync to Jira</h3>
+    <p>After each successful push, two sections are written to the <code>.custom-props.json</code> sidecar alongside the existing <code>task_jira</code> section:</p>
+    <ul>
+      <li><strong><code>task_p2j</code></strong> &mdash; per-task push state: Jira key (or <code>"NEW"</code> for unlinked tasks) and the <code>last_pushed_at</code> ISO timestamp.</li>
+      <li><strong><code>jira_push_meta</code></strong> &mdash; run-level metadata: <code>last_run_at</code>, <code>last_successful_push</code>, and up to 20 <code>audit_sessions</code> records.</li>
+    </ul>
+
+    <!-- ── Auditability ── -->
+    <h3>Audit Trail</h3>
+    <p>Every completed push run appends a compact audit record to <code>jira_push_meta.audit_sessions</code>.  Each record shows the timestamp, and the counts of created, updated, transitioned, skipped, and error items.  Dry-run passes are <strong>not</strong> recorded.  When the 20-entry cap is reached, the oldest entry is dropped automatically.</p>
+
+    <!-- ── Debug ── -->
+    <h3>Debug Information (Push Direction)</h3>
+    <p>When running with the <code>--debug</code> flag, the debug dump includes two additional blocks for the push direction:</p>
+    <pre><code>{
+  "jira_push_result": {
+    "created": 1,
+    "updated": 3,
+    "transitioned": 2,
+    "skipped": 0,
+    "errors": [],
+    "log": [
+      "[CREATE] task uid=99 &rarr; PROJ-52",
+      "[UPDATE] PROJ-7 &larr; task uid=42"
+    ],
+    "dry_run": false
+  },
+  "jira_push_meta": {
+    "last_run_at": "2025-10-01T09:00:00",
+    "last_successful_push": "2025-10-01T09:00:00",
+    "audit_sessions": [
+      {"run_at": "2025-10-01T09:00:00", "created": 1, "updated": 3,
+       "transitioned": 2, "skipped": 0, "errors": 0}
+    ]
+  }
+}</code></pre>
+    <p>Both blocks are omitted when no push has run in the current session.</p>
+
+  </div><!-- /.content -->
+</div><!-- /.page-wrapper -->
+
+</body>
+</html>

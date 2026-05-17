@@ -1,0 +1,97 @@
+<FILEINFO>
+Scriptversion	Encoding	Module	Prefix	Description	Creation Date	Creator	Steps	Internal links module	Version number	Export type	Suffix	Annotation
+	UTF-8	PO_13_ActiveDirectoryIntegration	PO-AD-	Project Offline – Active Directory Integration Requirements	1747526400	Project Offline	0		1.0	6.1		
+</FILEINFO>
+<TYPES>
+Name	Basetype	PO_13_ActiveDirectoryIntegration	PO-AD-	Project Offline – Active Directory Integration Requirements	Values	Colors
+t_Status_Sup	Enumeration			open,clarify,approved,to be deleted		
+t_Status_ZF	Enumeration			new,modified,to be clarified,aligned,to be deleted		
+</TYPES>
+<ATTRIBUTES>
+Name	Type	Definitions	Default
+a_EB_PO_Status	t_Status_Sup		
+a_ZF_PO_Status	t_Status_ZF		
+</ATTRIBUTES>
+<ATTRIBUTEVALUES>
+Attribute	Value
+</ATTRIBUTEVALUES>
+<PICTURES>
+Object	FileName
+</PICTURES>
+<PASSEDATTRIBUTES>
+Name
+</PASSEDATTRIBUTES>
+<LINKMODULES>
+Name
+</LINKMODULES>
+<FORMALMODULES>
+Name
+</FORMALMODULES>
+<OBJECT_IDS>
+From	To
+</OBJECT_IDS>
+<OBJECTS>
+Object_Heading	Object_Text	aRequirementObjectType	Section_number	ID.Status	aResponsibility	a_EB_PO_Status	a_ZF_PO_Status
+1 Active Directory Integration			1	1_Heading.0	Not relevant		
+	Requirements for querying corporate Active Directory to populate and synchronise the project resource sheet via PowerShell Get-ADUser (RSAT).	information	1.1	PO-AD-INFO-001.0	Not relevant		
+5.1 AD Integration Requirements			1.1	1_1_Heading.0	Not relevant		
+	The system shall query Active Directory via PowerShell Get-ADUser to look up user details (display name, email, department, SAM account name) without requiring a third-party LDAP library.	functional requirement	1.1.1	PO-AD-001.0	Not relevant	approved	aligned
+	The AD integration shall support looking up a user by display name using two strategies in order: (1) DisplayName exact match, (2) Surname and GivenName split on ", ".	functional requirement	1.1.2	PO-AD-002.0	Not relevant	approved	aligned
+	The AD integration shall support looking up a user by email address (mail attribute).	functional requirement	1.1.3	PO-AD-003.0	Not relevant	approved	aligned
+	The AD integration shall support looking up a user by SAM account name using the Get-ADUser -Identity parameter.	functional requirement	1.1.4	PO-AD-004.0	Not relevant	approved	aligned
+	The AD integration module shall expose an is_ad_available() function that checks whether PowerShell and the ActiveDirectory RSAT module are accessible, and returns a boolean result.	functional requirement	1.1.5	PO-AD-005.0	Not relevant	approved	aligned
+	All AD lookup functions shall sanitise input strings to reject characters that could be used for PowerShell filter injection (parentheses, wildcard, backslash, null byte, and shell metacharacters).	functional requirement	1.1.6	PO-AD-006.0	Not relevant	approved	aligned
+	Each PowerShell subprocess invocation shall be subject to a configurable timeout (default 60 s) stored via QSettings under the ad/timeout_seconds key; the default was increased from 10 s to 60 s because wildcard AD scans (mail -like, SamAccountName -like) must load the AD module on first call and can take 20–30 s on large corporate directories.	functional requirement	1.1.7	PO-AD-007.0	Not relevant	approved	aligned
+	Each lookup function (lookup_by_name, lookup_by_email, lookup_by_username) shall return a normalised dict with keys display_name, email, department, and username when a matching AD entry with a valid mail attribute is found, or None when no match is found.	functional requirement	1.1.8	PO-AD-008.0	Not relevant	approved	aligned
+	lookup_by_name shall try strategy 1 (DisplayName exact match) and, when unsuccessful, strategy 2 (Surname and GivenName split on ", "); it shall record every call — whether a result was found or not — in the lookup history ring-buffer before returning.	functional requirement	1.1.9	PO-AD-009.0	Not relevant	approved	aligned
+	lookup_by_email shall query AD by mail attribute and record every call in the lookup history ring-buffer before returning.	functional requirement	1.1.10	PO-AD-010.0	Not relevant	approved	aligned
+	lookup_by_username shall query AD using Get-ADUser -Identity (SAM account name) and record every call in the lookup history ring-buffer before returning.	functional requirement	1.1.11	PO-AD-011.0	Not relevant	approved	aligned
+	The lookup history list shall be unbounded and accumulate all lookup calls for the lifetime of the current process session.	functional requirement	1.1.12	PO-AD-012.0	Not relevant	approved	aligned
+	The module shall expose a get_last_lookup_results() function that returns a shallow copy of the full lookup history list as a list of {fn, input, result} dicts.	functional requirement	1.1.13	PO-AD-013.0	Not relevant	approved	aligned
+	The AD integration module shall expose multi-result lookup functions (lookup_by_name_all, lookup_by_email_all, lookup_by_username_all) that return all matching AD users as a list of normalised dicts, using case-insensitive wildcard filters without a -First 1 limit.	functional requirement	1.1.14	PO-AD-015.0	Not relevant	approved	aligned
+	Each multi-result lookup function shall sanitise input strings using the same injection-rejection rules as the single-result functions, and record the call in the lookup history list before returning.	functional requirement	1.1.15	PO-AD-016.0	Not relevant	approved	aligned
+	The AD integration module shall expose a get_thumbnail(username) function that retrieves the thumbnailPhoto binary attribute from AD for the given SAM account name and returns the raw JPEG/PNG bytes, or None when the attribute is absent or the request fails.	functional requirement	1.1.16	PO-AD-017.0	Not relevant	approved	aligned
+	The resource sheet context menu shall include an "Add from Active Directory…" action that opens the ADSearchDialog to search for and add a user as a resource.	functional requirement	1.1.17	PO-AD-018.0	Not relevant	approved	aligned
+	The ADSearchDialog shall accept search input for username (SAM account name), display name, and e-mail address; pressing Enter or clicking Search shall trigger the query against Active Directory.	functional requirement	1.1.18	PO-AD-019.0	Not relevant	approved	aligned
+	When a single AD user matches the search criteria, the ADSearchDialog shall show that user's formatted name, e-mail, and department in a confirmation card and enable the "Add Resource" button.	functional requirement	1.1.19	PO-AD-020.0	Not relevant	approved	aligned
+	When multiple AD users match the search criteria, the system shall open the ADUserSelectDialog displaying one clickable card per user with initials, formatted name, e-mail, department, and username; the user clicks a card to select one.	functional requirement	1.1.20	PO-AD-021.0	Not relevant	approved	aligned
+	After a user is selected in the ADSearchDialog, the dialog shall attempt to load the AD thumbnailPhoto for the selected user and display it as a circular avatar; if no photo is available the avatar shall show the user's initials on a blue background.	functional requirement	1.1.21	PO-AD-022.0	Not relevant	approved	aligned
+	The new resource name shall be set to the format "Nachname, Vorname" derived from the AD DisplayName; if DisplayName already contains ", " it is used unchanged, otherwise the last space-separated token is treated as the surname.	functional requirement	1.1.22	PO-AD-023.0	Not relevant	approved	aligned
+	After accepting the ADSearchDialog, the Resource Information dialog shall open pre-filled with the formatted name and e-mail; the user can review and adjust before confirming.	functional requirement	1.1.23	PO-AD-024.0	Not relevant	approved	aligned
+	Adding a resource via the AD search dialog shall be fully undoable and redoable via the existing history manager snapshot mechanism (data_changed signal triggers push('resources')).	functional requirement	1.1.24	PO-AD-025.0	Not relevant	approved	aligned
+	When a resource is added via the AD search dialog, the system shall automatically create a personal calendar for the new resource derived from the project default calendar (setParent()); if no default calendar exists, the standard Mon–Fri working-week shall be configured directly on the new calendar.	functional requirement	1.1.25	PO-AD-026.0	Not relevant	approved	aligned
+	The personal resource calendar shall be named "<Resource Name> Calendar" and assigned a unique calendar UID before being linked to the resource via setCalendar().	functional requirement	1.1.26	PO-AD-027.0	Not relevant	approved	aligned
+	The RESOURCE ribbon panel Insert group shall contain an "Add from AD" button that opens the AD search dialog and adds the chosen user as a new resource; the button shall be disabled whenever no project is open (same _project_btns gating as the existing "Add Resource" button).	functional requirement	1.1.27	PO-AD-031.0	Not relevant	approved	aligned
+	The AD integration shall fully support Unicode display names, email addresses, and department strings including umlauts (ä, ü, ö, Ä, Ü, Ö, ß) and other non-ASCII characters; PowerShell stdout shall be decoded as UTF-8 ([Console]::OutputEncoding and $OutputEncoding set to UTF8 before each subprocess invocation, stdout read as raw bytes and decoded with utf-8/replace).	functional requirement	1.1.28	PO-AD-032.0	Not relevant	approved	aligned
+	The personal resource calendar created for an AD resource shall copy only the per-day-of-week working/non-working type settings from the project default calendar (via setCalendarDayType per DayOfWeek) and shall NOT inherit or copy calendar exceptions (public holidays, project closures) from the default calendar; the resource calendar starts clean so that individual exceptions can be managed independently.	functional requirement	1.1.29	PO-AD-033.0	Not relevant	approved	aligned
+	lookup_by_email_all and lookup_by_username_all shall attempt an exact indexed match first (mail -eq for email, Get-ADUser -Identity for username) before falling back to a wildcard scan (mail -like, SamAccountName -like); when the exact match succeeds the wildcard scan shall not be executed, reducing typical lookup time from 20–30 s to under 1 s.	functional requirement	1.1.30	PO-AD-034.0	Not relevant	approved	aligned
+	The AD integration module shall include the city (l), state/province (st), and country (co) LDAP attributes in every user lookup result dict under the keys "city", "state", and "country"; these fields shall be included in the PowerShell Get-ADUser -Properties list and normalised to empty string when absent.	functional requirement	1.1.31	PO-AD-035.0	Not relevant	approved	aligned
+5.2 Secondary Calendar Inference from AD			1.2	1_2_Heading.0	Not relevant		
+	When a resource is added via the AD search dialog, the system shall automatically infer a secondary holiday calendar for the resource by scoring installed project calendars against the AD user's location fields (city, state, country) and assigning the highest-scoring calendar when a match is found.	functional requirement	1.2.1	PO-AD-036.0	Not relevant	approved	aligned
+	The secondary calendar inference shall prefer calendars with a higher number of non-working exceptions (up to a bonus of 5 score points) so that calendars actively populated with holidays rank above empty placeholder calendars of the same name.	functional requirement	1.2.2	PO-AD-037.0	Not relevant	approved	aligned
+	The secondary calendar inference shall skip personal resource calendars (those whose name ends in " Calendar" with two or fewer name tokens) to avoid confusing a resource's own working calendar with a regional holiday calendar.	functional requirement	1.2.3	PO-AD-038.0	Not relevant	approved	aligned
+5.3 AD Group Integration			1.3	1_3_Heading.0	Not relevant		
+	Requirements for searching Active Directory groups and bulk-adding their enabled members to the project resource sheet.	information	1.3.1	PO-AD-INFO-002.0	Not relevant		
+5.3.1 AD Group Search Function			1.3.1	1_3_1_Heading.0	Not relevant		
+	The AD integration module shall expose a search_groups(query) function that searches Active Directory for groups whose Name attribute contains the query string (case-insensitive wildcard, e.g. Get-ADGroup -Filter "Name -like '*query*'") and returns a list of group dicts, each containing: name, description, dn (DistinguishedName), category, scope, and sam_name.	functional requirement	1.3.1.1	PO-AD-039.0	Not relevant	approved	aligned
+	search_groups shall sanitise the query string to reject the same injection characters as the single-result lookup functions (parentheses, backslash, null byte, shell metacharacters); an empty or whitespace-only query shall return an empty list without invoking PowerShell.	functional requirement	1.3.1.2	PO-AD-040.0	Not relevant	approved	aligned
+	When PowerShell returns a single JSON object for a one-group result, search_groups shall automatically wrap it in a list so the caller always receives a list.	functional requirement	1.3.1.3	PO-AD-041.0	Not relevant	approved	aligned
+	search_groups shall silently skip any group entry that has neither a Name nor a SamAccountName, and shall return an empty list when PowerShell returns None or non-JSON output.	functional requirement	1.3.1.4	PO-AD-042.0	Not relevant	approved	aligned
+5.3.2 AD Group Members Function			1.3.2	1_3_2_Heading.0	Not relevant		
+	The AD integration module shall expose a get_group_members(group_name_or_dn) function that retrieves all enabled user members of an AD group using Get-ADGroupMember -Recursive, filters to objectClass == 'user' and Enabled == True, and returns a list of normalised user dicts (same schema as single-result lookups: display_name, email, department, username, city, state, country).	functional requirement	1.3.2.1	PO-AD-043.0	Not relevant	approved	aligned
+	get_group_members shall sanitise the input string to reject injection characters; an empty or whitespace-only input shall return an empty list without invoking PowerShell.	functional requirement	1.3.2.2	PO-AD-044.0	Not relevant	approved	aligned
+	get_group_members shall exclude any member entry whose mail attribute is absent (None) or does not contain an @ character, matching the email validity rule applied by other lookup functions.	functional requirement	1.3.2.3	PO-AD-045.0	Not relevant	approved	aligned
+	get_group_members shall return an empty list when PowerShell returns None or non-JSON output, and shall wrap a single-user JSON object in a list so the caller always receives a list.	functional requirement	1.3.2.4	PO-AD-046.0	Not relevant	approved	aligned
+5.3.3 AD Group Search Dialog			1.3.3	1_3_3_Heading.0	Not relevant		
+	The system shall provide an ADGroupSearchDialog that allows the user to search AD groups by name, browse the resulting group cards, expand a group card to preview its member list, and select members to add to the project resource sheet.	functional requirement	1.3.3.1	PO-AD-047.0	Not relevant	approved	aligned
+	The ADGroupSearchDialog shall expose a get_selected_users() method that returns the list of user dicts for all members the user has chosen to add.	functional requirement	1.3.3.2	PO-AD-048.0	Not relevant	approved	aligned
+5.3.4 Bulk Add Resources from AD Group			1.3.4	1_3_4_Heading.0	Not relevant		
+	The resource sheet shall provide an add_resources_from_ad_group() action that opens the ADGroupSearchDialog, iterates the selected users, skips any user whose formatted name (case-insensitive) already exists as a project resource, creates a new resource with a unique ID and personal calendar for each remaining user, and shows a summary QMessageBox stating how many resources were added and how many were skipped.	functional requirement	1.3.4.1	PO-AD-049.0	Not relevant	approved	aligned
+	The resource sheet context menu shall include an "Add from AD Group…" action that triggers add_resources_from_ad_group().	functional requirement	1.3.4.2	PO-AD-050.0	Not relevant	approved	aligned
+	The RESOURCE ribbon panel Insert group shall contain an "Add from AD Group" button that triggers add_resources_from_ad_group(); the button shall be disabled whenever no project is open.	functional requirement	1.3.4.3	PO-AD-051.0	Not relevant	approved	aligned
+5.4 Manual AD Lookup from Resource Information Dialog			1.4	1_4_Heading.0	Not relevant		
+	When Active Directory is available on the current machine, the Resource Information dialog shall display a "Look up in AD…" button placed inline next to the E-Mail field; if the resource name field is blank when the button is activated, the system shall display an information dialog prompting the user to enter a resource name before searching.	functional requirement	1.4.1	PO-AD-052.0	Not relevant	approved	aligned
+	Activating the "Look up in AD…" button shall search Active Directory by the resource's current display name using lookup_by_name_all(); when exactly one match is found, the E-Mail and Department fields shall be pre-filled with the matched user's email and department attributes; the user may still edit the fields before accepting the dialog.	functional requirement	1.4.2	PO-AD-053.0	Not relevant	approved	aligned
+	When multiple AD entries match the resource display name, the system shall present the ADUserSelectDialog so the user can choose one candidate; the chosen entry's attributes shall then be used to pre-fill the E-Mail and Department fields.	functional requirement	1.4.3	PO-AD-054.0	Not relevant	approved	aligned
+	When no AD entry matches the resource display name, the system shall display an information dialog indicating that no match was found; the E-Mail and Department fields shall remain unchanged.	functional requirement	1.4.4	PO-AD-055.0	Not relevant	approved	aligned
+</OBJECTS>

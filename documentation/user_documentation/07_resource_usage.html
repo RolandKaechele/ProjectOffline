@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Usage Graph — Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html" class="active">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Resource Usage Graph</h1>
+    <p>Analyse daily, weekly, monthly and hourly workload for every resource in a colour-coded hour grid.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>&#x203A;</span> Resource Usage Graph</div>
+
+    <h2>What the View Shows</h2>
+    <p>The <strong>Resource Usage Graph</strong> tab displays how many hours each
+    resource is scheduled to work during every time period.  Resources can be
+    expanded to show the individual task contributions.  The layout mirrors
+    Microsoft Project's built-in Resource Usage view.</p>
+
+    <h2>Zoom Modes</h2>
+    <table>
+      <thead><tr><th>Day-width range</th><th>Mode</th><th>Column unit</th></tr></thead>
+      <tbody>
+        <tr><td>4–6 px</td><td><strong>Monthly</strong></td><td>1 calendar month — shows monthly total hours</td></tr>
+        <tr><td>7–13 px</td><td><strong>Weekly</strong></td><td>1 ISO week (Mon–Sun) — shows weekly total hours</td></tr>
+        <tr><td>14–59 px</td><td><strong>Daily</strong></td><td>1 calendar day — shows per-day hours</td></tr>
+        <tr><td>60–80 px</td><td><strong>Hourly</strong></td><td>1 work hour — skips weekends, uses project calendar hours</td></tr>
+      </tbody>
+    </table>
+    <p>Use the global zoom slider (shared with the Gantt chart) to switch modes.</p>
+
+    <h2>Reading the Grid</h2>
+    <p>Each cell shows the number of hours a resource (or one of its task assignments)
+    is scheduled in that period.  Cells are coloured by utilisation level:</p>
+    <table>
+      <thead><tr><th>Colour</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>White / default</td><td>Within Max Units — normal workload</td></tr>
+        <tr><td>Light orange</td><td>Approaching the maximum (configurable threshold)</td></tr>
+        <tr><td>Red</td><td>Over-allocated — hours exceed the resource's Max Units</td></tr>
+        <tr><td>Light grey</td><td>Non-working day (weekend or public holiday)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Collapsing Resource Rows</h2>
+    <p>Click the <strong>&#9660;</strong> / <strong>&#9654;</strong> triangle next to a
+    resource name in the left pane to collapse or expand its task sub-rows.
+    Collapsed rows show only the resource total; expanding reveals each task assignment
+    on its own line.</p>
+
+    <h2>Hourly Mode Details</h2>
+    <p>In hourly mode, the calendar header switches from day numbers to
+    per-hour slots (e.g. <code>08:00</code>, <code>09:00</code> &hellip;).
+    Working hours are read from the project's default calendar — so a 7-hour workday
+    will show 7 hour columns per working day.  Saturdays and Sundays are skipped entirely.</p>
+
+    <div class="callout note">
+      <strong>Navigation</strong>
+      The <strong>&#9664; Today</strong> button scrolls the view to the current date.
+      The frozen left pane (resource names + total work column) stays fixed while
+      the hourly grid scrolls.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

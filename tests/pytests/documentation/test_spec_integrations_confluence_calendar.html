@@ -1,0 +1,2285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Spec: Confluence Calendar Integration &mdash; Project Offline</title>
+<style>
+
+  :root {
+    --accent:  #0069d9;
+    --pass:    #198754;
+    --bg-sec:  #f8f9fa;
+    --border:  #dee2e6;
+    --code-bg: #e9ecef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    color: #212529;
+    background: #fff;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 24px 40px 18px;
+  }
+  header h1 { font-size: 1.8em; font-weight: 600; }
+  header p  { margin-top: 6px; opacity: .85; }
+  .page-body {
+    display: flex;
+    align-items: flex-start;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    width: 190px;
+    min-width: 190px;
+    background: var(--bg-sec);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+  nav .nav-section {
+    font-size: .68em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #999;
+    padding: 8px 6px 3px;
+    margin-top: 6px;
+  }
+  nav .nav-section:first-child { margin-top: 0; }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  nav a:hover { background: #dce8fb; text-decoration: none; }
+  nav a.active { background: var(--accent); color: #fff; font-weight: 600; }
+  main { flex: 1; padding: 28px 32px 0; min-width: 0; }
+  .module {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .module-header h2 { font-size: 1em; font-weight: 600; }
+  .module-header .badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 12px; padding: 1px 9px; font-size: .78em;
+  }
+  .module-desc {
+    background: #e8f0fe;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 18px;
+    font-style: italic; color: #444; font-size: .88em;
+  }
+  .chapter { border-bottom: 1px solid var(--border); }
+  .chapter:last-child { border-bottom: none; }
+  .chapter-header {
+    background: var(--bg-sec);
+    padding: 8px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .chapter-header:hover { background: #e9ecef; }
+  .chapter-header h3 { font-size: .92em; font-weight: 600; color: #333; }
+  .chapter-header .arrow { font-size: .8em; color: #888; transition: transform .2s; }
+  .chapter-header.collapsed .arrow { transform: rotate(-90deg); }
+  .chapter-body { padding: 0 18px 14px; }
+  .test-case {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .test-case-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-sec);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .test-id { font-family: "Consolas",monospace; font-size: .78em; color: #888; white-space: nowrap; }
+  .test-name { font-weight: 600; font-size: .88em; }
+  .status-badge {
+    margin-left: auto;
+    background: var(--pass); color: #fff;
+    border-radius: 10px; padding: 1px 8px; font-size: .75em; white-space: nowrap;
+  }
+  .four-blocks {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; border-top: 1px solid #e0e0e0;
+  }
+  .block {
+    padding: 7px 12px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: .84em;
+  }
+  .block:nth-child(2n) { border-right: none; }
+  .block:nth-last-child(-n+2) { border-bottom: none; }
+  .block-label {
+    font-size: .72em; text-transform: uppercase;
+    letter-spacing: .06em; color: #888; margin-bottom: 3px;
+  }
+  code {
+    background: var(--code-bg); border-radius: 3px;
+    padding: 1px 4px;
+    font-family: "Consolas",monospace; font-size: .9em;
+  }
+  .stats {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 28px;
+    background: var(--bg-sec);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 20px;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 1.6em; font-weight: 700; color: var(--accent); }
+  .stat-l { font-size: .75em; color: #666; margin-top: 2px; }
+  h1, h2, h3 { line-height: 1.3; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Specification &mdash; Confluence Calendar Integration</h1>
+  <p>Project Offline &nbsp;|&nbsp; <a href="index.html" style="color:#cce;text-decoration:none">&larr; Back to Index</a></p>
+</header>
+
+<div class="page-body">
+
+<nav>
+  <a href="index.html" style="font-weight:600;margin-bottom:4px;">&larr; Index</a>
+  <hr style="border:none;border-top:1px solid var(--border);margin:6px 0">
+  <span class="nav-section">This file</span>
+  <a href="#confluence_calendar">confluence calendar</a>
+  <span class="nav-section">Other files</span>
+  <a href="test_spec_app_debug.html">App Debug</a>
+  <a href="test_spec_history_manager.html">History Manager</a>
+  <a href="test_spec_logic.html">Logic & Main</a>
+  <a href="test_spec_settings_manager.html">Settings Manager</a>
+  <a href="test_spec_core_misc.html">Stylesheet, Toolbar & Progress Worker</a>
+  <a href="test_spec_holidays.html">Holidays</a>
+  <a href="test_spec_file_handler.html">File Handler, Export & Import</a>
+  <a href="test_spec_integrations_ad.html">AD Integration</a>
+  <a href="test_spec_integrations_secondary_calendar.html">Secondary Calendar Integration</a>
+  <a href="test_spec_integrations_jira_integration.html">Jira Integration (API)</a>
+  <a href="test_spec_integrations_jira_sync.html">Jira Sync (J→P & P→J)</a>
+  <a href="test_spec_integrations_email.html">Email Integration</a>
+  <a href="test_spec_integrations_keepass.html">KeePass Integration</a>
+  <a href="test_spec_integrations_vcs.html">Version Control Integration</a>
+  <a href="test_spec_dialogs.html">Dialogs</a>
+  <a href="test_spec_menu.html">Menu & CPM Results View</a>
+  <a href="test_spec_ribbon.html">Ribbon</a>
+  <a href="test_spec_settings_dialogs.html">Settings Dialogs</a>
+  <a href="test_spec_ui.html">UI (Main Window)</a>
+  <a href="test_spec_views_baseline.html">Baseline View</a>
+  <a href="test_spec_views_critical_path.html">Critical Path & Dependency View</a>
+  <a href="test_spec_views_gantt.html">Gantt View</a>
+  <a href="test_spec_views_timeline.html">Timeline View</a>
+  <a href="test_spec_views_hour_mode.html">Hour Mode Engine</a>
+  <a href="test_spec_views_resource_usage_graph.html">Resource Usage Graph View</a>
+  <a href="test_spec_views_resource_view.html">Resource View</a>
+  <a href="test_spec_views_task_sheet.html">Task Sheet View</a>
+  <a href="test_spec_views_task_view.html">Task View</a>
+  <a href="test_spec_views_team_planner.html">Team Planner View</a>
+  <a href="test_spec_views_resource_usage_histogram.html">Resource Usage Histogram View</a>
+</nav>
+
+<main>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">146</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">146</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
+  <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
+</div>
+
+<div class="module" id="confluence_calendar">
+  <div class="module-header"><h2>integrations/confluence_calendar_integration.py</h2><span class="badge">146 tests</span></div>
+  <div class="module-desc">Confluence calendar sync: date parsing, calendar filtering, resource/holiday application, session management, URL validation, pruning stale entries. Module lives in <code>src/integrations/</code> and is imported as <code>from integrations import confluence_calendar_integration</code>.</div>
+  
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestConstants — Constants</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-01</span>
+          <span class="test-name">Base url prop</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.CONFLUENCE_BASE_URL_PROP</code> equals <code>&quot;CALENDAR Base URL&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.CONFLUENCE_BASE_URL_PROP == &quot;CALENDAR Base URL&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-02</span>
+          <span class="test-name">Space key prop</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.CONFLUENCE_SPACE_KEY_PROP</code> equals <code>&quot;CALENDAR Space Key&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.CONFLUENCE_SPACE_KEY_PROP == &quot;CALENDAR Space Key&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-03</span>
+          <span class="test-name">Timezone prop</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.CONFLUENCE_TIMEZONE_PROP</code> equals <code>&quot;CALENDAR Timezone&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.CONFLUENCE_TIMEZONE_PROP == &quot;CALENDAR Timezone&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-04</span>
+          <span class="test-name">Days ahead prop</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.CONFLUENCE_DAYS_AHEAD_PROP</code> equals <code>&quot;CALENDAR Days Ahead&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.CONFLUENCE_DAYS_AHEAD_PROP == &quot;CALENDAR Days Ahead&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-05</span>
+          <span class="test-name">Default timezone is europe berlin</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._DEFAULT_TIMEZONE</code> equals <code>&quot;Europe/Berlin&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._DEFAULT_TIMEZONE == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-06</span>
+          <span class="test-name">Default days ahead is 365</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._DEFAULT_DAYS_AHEAD</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._DEFAULT_DAYS_AHEAD == 365</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFlattenCalendars — Flatten Calendars</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-07</span>
+          <span class="test-name">Empty list</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._flatten_calendars([])</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._flatten_calendars([]) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-08</span>
+          <span class="test-name">Single non parent subcalendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;a&quot;, &quot;type&quot;: &quot;custom&quot;, &quot;name&quot;: &quot;Holidays&quot;}, &quot;childSubCalendars&quot;: []}]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>. <code>result[0][&quot;id&quot;]</code> equals <code>&quot;a&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code><br><code>assert result[0][&quot;id&quot;] == &quot;a&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-09</span>
+          <span class="test-name">Parent type subcalendar is excluded</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>raw = [{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;p&quot;, &quot;type&quot;: &quot;parent&quot;, &quot;name&quot;: &quot;Root&quot;}, &quot;childSubCalendars&quot;: []}]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._flatten_calendars(raw)</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._flatten_calendars(raw) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-10</span>
+          <span class="test-name">Child subcalendars are included</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [</code><br><code>{</code><br><code>&quot;subCalendar&quot;: {&quot;id&quot;: &quot;p&quot;, &quot;type&quot;: &quot;parent&quot;},</code><br><code>&quot;childSubCalendars&quot;: [</code><br><code>{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;c1&quot;, &quot;type&quot;: &quot;leaves&quot;, &quot;name&quot;: &quot;Leave&quot;}},</code><br><code>{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;c2&quot;, &quot;type&quot;: &quot;custom&quot;, &quot;name&quot;: &quot;Holidays&quot;}},</code><br><code>],</code><br><code>}</code><br><code>]</code><br><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ids = {r[&quot;id&quot;] for r in result}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ids</code> equals <code>{&quot;c1&quot;, &quot;c2&quot;}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ids == {&quot;c1&quot;, &quot;c2&quot;}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-11</span>
+          <span class="test-name">Child parent type excluded</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [</code><br><code>{</code><br><code>&quot;subCalendar&quot;: {&quot;id&quot;: &quot;a&quot;, &quot;type&quot;: &quot;custom&quot;},</code><br><code>&quot;childSubCalendars&quot;: [</code><br><code>{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;cp&quot;, &quot;type&quot;: &quot;parent&quot;}},</code><br><code>],</code><br><code>}</code><br><code>]</code><br><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>ids = {r[&quot;id&quot;] for r in result}</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ids</code> equals <code>{&quot;a&quot;}</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ids == {&quot;a&quot;}</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-12</span>
+          <span class="test-name">No child subcalendars key</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;x&quot;, &quot;type&quot;: &quot;custom&quot;}}]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-13</span>
+          <span class="test-name">Multiple items all collected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [</code><br><code>{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;a&quot;, &quot;type&quot;: &quot;custom&quot;}, &quot;childSubCalendars&quot;: []},</code><br><code>{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;b&quot;, &quot;type&quot;: &quot;leaves&quot;}, &quot;childSubCalendars&quot;: []},</code><br><code>]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-14</span>
+          <span class="test-name">Missing subcalendar key skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [{&quot;childSubCalendars&quot;: []}]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[]  # empty sub dict is falsy ? skipped</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []  # empty sub dict is falsy ? skipped</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-15</span>
+          <span class="test-name">Preserves all fields</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>raw = [{&quot;subCalendar&quot;: {&quot;id&quot;: &quot;x&quot;, &quot;type&quot;: &quot;custom&quot;, &quot;name&quot;: &quot;Test&quot;, &quot;extra&quot;: 42}, &quot;childSubCalendars&quot;: []}]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._flatten_calendars(raw)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result[0][&quot;extra&quot;]</code> equals <code>42</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result[0][&quot;extra&quot;] == 42</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestFilterRelevant — Filter Relevant</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-16</span>
+          <span class="test-name">Leaves type included</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;leaves&quot;, &quot;Some Leave&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-17</span>
+          <span class="test-name">Custom type included</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;custom&quot;, &quot;Generic&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-18</span>
+          <span class="test-name">Unknown type excluded without keyword</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;meeting&quot;, &quot;Sprint Planning&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-19</span>
+          <span class="test-name">Holiday keyword in name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;meeting&quot;, &quot;Public Holiday&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-20</span>
+          <span class="test-name">Vacation keyword in name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;other&quot;, &quot;Vacation Calendar&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-21</span>
+          <span class="test-name">Leave keyword in name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;other&quot;, &quot;Annual Leave&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-22</span>
+          <span class="test-name">Feiertag keyword in name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;other&quot;, &quot;Gesetzliche Feiertage&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-23</span>
+          <span class="test-name">Urlaub keyword in name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;other&quot;, &quot;Urlaub DE&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-24</span>
+          <span class="test-name">Case insensitive name match</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([self._cal(&quot;other&quot;, &quot;HOLIDAY CALENDAR&quot;)])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-25</span>
+          <span class="test-name">Empty input</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._filter_relevant([])</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._filter_relevant([]) == []</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-26</span>
+          <span class="test-name">Multiple mixed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>cals = [</code><br><code>self._cal(&quot;leaves&quot;, &quot;&quot;),</code><br><code>self._cal(&quot;meeting&quot;, &quot;Sprint&quot;),</code><br><code>self._cal(&quot;custom&quot;, &quot;&quot;),</code><br><code>self._cal(&quot;other&quot;, &quot;Vacation&quot;),</code><br><code>]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant(cals)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>len(result)</code> equals <code>3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert len(result) == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-27</span>
+          <span class="test-name">Missing type and name keys</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._filter_relevant([{}])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>[]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == []</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestParseDate — Parse Date</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-28</span>
+          <span class="test-name">Valid iso date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2025-06-15&quot;)</code> equals <code>date(2025, 6, 15)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2025-06-15&quot;) == date(2025, 6, 15)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-29</span>
+          <span class="test-name">Datetime string uses first 10 chars</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2025-06-15T09:00:00&quot;)</code> equals <code>date(2025, 6, 15)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2025-06-15T09:00:00&quot;) == date(2025, 6, 15)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-30</span>
+          <span class="test-name">None input returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(None) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(None) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-31</span>
+          <span class="test-name">Empty string returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-32</span>
+          <span class="test-name">Invalid date returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;not-a-date&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;not-a-date&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-33</span>
+          <span class="test-name">Partial invalid returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2025-13-01&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2025-13-01&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-34</span>
+          <span class="test-name">Leap year date</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2024-02-29&quot;)</code> equals <code>date(2024, 2, 29)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2024-02-29&quot;) == date(2024, 2, 29)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-35</span>
+          <span class="test-name">Non leap year invalid</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2023-02-29&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2023-02-29&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-36</span>
+          <span class="test-name">Year boundary</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div>—</div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._parse_date(&quot;2000-01-01&quot;)</code> equals <code>date(2000, 1, 1)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._parse_date(&quot;2000-01-01&quot;) == date(2000, 1, 1)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetEnterpriseProp — Get Enterprise Prop</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-37</span>
+          <span class="test-name">Returns none when key absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>summary_task = MagicMock()</code><br><code>summary_task.getUniqueID.return_value = 0</code><br><code>UserDefinedField = MagicMock()</code><br><code>field_type = MagicMock()</code><br><code>field_type.__class__ = UserDefinedField</code><br><code>field_type.getFieldTypeClass.return_value = &#x27;TASK&#x27;</code><br><code>custom_field = MagicMock()</code><br><code>custom_field.getAlias.return_value = &quot;DIFFERENT_KEY&quot;</code><br><code>custom_field.getFieldType.return_value = field_type</code><br><code>project = MagicMock()</code><br><code>project.getTasks.return_value = [summary_task]</code><br><code>project.getCustomFields.return_value = [custom_field]</code><br><code>original_isinstance = __builtins__[&#x27;isinstance&#x27;] if hasattr(__builtins__, &#x27;isinstance&#x27;) else isinstance</code><br><code>def mock_isinstance(obj, cls):</code><br><code>if obj is field_type and cls is UserDefinedField:</code><br><code>return True</code><br><code>return original_isinstance(obj, cls)</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;org.mpxj&#x27;: MagicMock(UserDefinedField=UserDefinedField)}), \</code></div>
+          <div class="block"><div class="block-label">Run</div><code>patch(&#x27;builtins.isinstance&#x27;, side_effect=mock_isinstance):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._get_enterprise_prop(project, &quot;CALENDAR Base URL&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._get_enterprise_prop(project, &quot;CALENDAR Base URL&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-38</span>
+          <span class="test-name">Blank string returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>summary_task = MagicMock()</code><br><code>summary_task.getUniqueID.return_value = 0</code><br><code>UserDefinedField = MagicMock()</code><br><code>field_type = MagicMock()</code><br><code>field_type.__class__ = UserDefinedField</code><br><code>field_type.getFieldTypeClass.return_value = &#x27;TASK&#x27;</code><br><code>custom_field = MagicMock()</code><br><code>custom_field.getAlias.return_value = &quot;CALENDAR Timezone&quot;</code><br><code>custom_field.getFieldType.return_value = field_type</code><br><code>summary_task.getCachedValue.return_value = &quot;   &quot;</code><br><code>project = MagicMock()</code><br><code>project.getTasks.return_value = [summary_task]</code><br><code>project.getCustomFields.return_value = [custom_field]</code><br><code>original_isinstance = __builtins__[&#x27;isinstance&#x27;] if hasattr(__builtins__, &#x27;isinstance&#x27;) else isinstance</code><br><code>def mock_isinstance(obj, cls):</code><br><code>if obj is field_type and cls is UserDefinedField:</code><br><code>return True</code><br><code>return original_isinstance(obj, cls)</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;org.mpxj&#x27;: MagicMock(UserDefinedField=UserDefinedField)}), \</code></div>
+          <div class="block"><div class="block-label">Run</div><code>patch(&#x27;builtins.isinstance&#x27;, side_effect=mock_isinstance):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._get_enterprise_prop(project, &quot;CALENDAR Timezone&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._get_enterprise_prop(project, &quot;CALENDAR Timezone&quot;) is None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-39</span>
+          <span class="test-name">Exception returns none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getProjectProperties.return_value.getCustomProperties.return_value.get.return_value = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>project.getTasks.side_effect = RuntimeError(&quot;boom&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc._get_enterprise_prop(project, &quot;CALENDAR Base URL&quot;) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc._get_enterprise_prop(project, &quot;CALENDAR Base URL&quot;) is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetProjectBaseUrl — Get Project Base Url</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-40</span>
+          <span class="test-name">Returns url without trailing slash</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;https://conf.example.com/&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_base_url(project)</code> equals <code>&quot;https://conf.example.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_base_url(project) == &quot;https://conf.example.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-41</span>
+          <span class="test-name">Url without slash unchanged</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;https://conf.example.com&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_base_url(project)</code> equals <code>&quot;https://conf.example.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_base_url(project) == &quot;https://conf.example.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-42</span>
+          <span class="test-name">Returns none when absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_base_url(project) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_base_url(project) is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetProjectSpaceKey — Get Project Space Key</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-43</span>
+          <span class="test-name">Returns space key</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;MYSPACE&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_space_key(project)</code> equals <code>&quot;MYSPACE&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_space_key(project) == &quot;MYSPACE&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-44</span>
+          <span class="test-name">Returns none when absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_space_key(project) is None</code> is truthy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_space_key(project) is None</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetProjectTimezone — Get Project Timezone</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-45</span>
+          <span class="test-name">Returns stored timezone</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;America/New_York&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_timezone(project)</code> equals <code>&quot;America/New_York&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_timezone(project) == &quot;America/New_York&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-46</span>
+          <span class="test-name">Falls back to default when absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_timezone(project)</code> equals <code>&quot;Europe/Berlin&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_timezone(project) == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-47</span>
+          <span class="test-name">Falls back when blank</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_timezone(project)</code> equals <code>&quot;Europe/Berlin&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_timezone(project) == &quot;Europe/Berlin&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestGetProjectDaysAhead — Get Project Days Ahead</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-48</span>
+          <span class="test-name">Returns stored value</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;180&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>180</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 180</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-49</span>
+          <span class="test-name">Falls back when absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=None):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 365</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-50</span>
+          <span class="test-name">Falls back on non numeric</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;lots&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 365</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-51</span>
+          <span class="test-name">Falls back when zero</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;0&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 365</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-52</span>
+          <span class="test-name">Falls back when too large</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;9999&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 365</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-53</span>
+          <span class="test-name">Boundary value 1</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;1&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-54</span>
+          <span class="test-name">Boundary value 3650</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;3650&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>3650</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 3650</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-55</span>
+          <span class="test-name">Negative value falls back</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>with patch.object(cc, &#x27;_get_enterprise_prop&#x27;, return_value=&quot;-10&quot;):</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>cc.get_project_days_ahead(project)</code> equals <code>365</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert cc.get_project_days_ahead(project) == 365</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestApplyToProject — Apply To Project</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-56</span>
+          <span class="test-name">Holidays added to default calendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = cal</code><br><code>project.getResources.return_value = []</code><br><code>holiday = {&quot;start&quot;: &quot;2025-12-25&quot;, &quot;end&quot;: &quot;2025-12-25&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>1</code>. <code>n_v</code> equals <code>0</code>. cal.addCalendarException.assert_called_once()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 1</code><br><code>assert n_v == 0</code><br><code>cal.addCalendarException.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-57</span>
+          <span class="test-name">Holiday with null default calendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = None</code><br><code>project.getResources.return_value = []</code><br><code>holiday = {&quot;start&quot;: &quot;2025-12-25&quot;, &quot;end&quot;: &quot;2025-12-25&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-58</span>
+          <span class="test-name">Holiday with invalid start date skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = cal</code><br><code>project.getResources.return_value = []</code><br><code>holiday = {&quot;start&quot;: None}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>0</code>. cal.addCalendarException.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 0</code><br><code>cal.addCalendarException.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-59</span>
+          <span class="test-name">Holiday missing end defaults to start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = cal</code><br><code>project.getResources.return_value = []</code><br><code>holiday = {&quot;start&quot;: &quot;2025-12-25&quot;}  # no end key</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-60</span>
+          <span class="test-name">Multiple holidays counted</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = cal</code><br><code>project.getResources.return_value = []</code><br><code>holidays = [</code><br><code>{&quot;start&quot;: &quot;2025-01-01&quot;, &quot;end&quot;: &quot;2025-01-01&quot;},</code><br><code>{&quot;start&quot;: &quot;2025-05-01&quot;, &quot;end&quot;: &quot;2025-05-01&quot;},</code><br><code>{&quot;start&quot;: &quot;2025-12-25&quot;, &quot;end&quot;: &quot;2025-12-27&quot;},</code><br><code>]</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, holidays, [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>3</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 3</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-61</span>
+          <span class="test-name">Vacation added to resource calendar by exact name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = self._make_resource(&quot;Alice&quot;)</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2025-07-01&quot;, &quot;end&quot;: &quot;2025-07-14&quot;, &quot;userName&quot;: &quot;Alice&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. res.getCalendar.return_value.addCalendarException.assert_called_once()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>res.getCalendar.return_value.addCalendarException.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-62</span>
+          <span class="test-name">Vacation case insensitive match</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = self._make_resource(&quot;Bob Smith&quot;)</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2025-08-01&quot;, &quot;end&quot;: &quot;2025-08-07&quot;, &quot;userName&quot;: &quot;BOB SMITH&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-63</span>
+          <span class="test-name">Vacation partial match</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = self._make_resource(&quot;Carol Johnson&quot;)</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2025-08-01&quot;, &quot;end&quot;: &quot;2025-08-07&quot;, &quot;userName&quot;: &quot;Carol&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-64</span>
+          <span class="test-name">Vacation unmatched user creates resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacation = {&quot;start&quot;: &quot;2025-08-01&quot;, &quot;end&quot;: &quot;2025-08-07&quot;, &quot;userName&quot;: &quot;Unknown&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1  # Vacation was added</code>. <code>n_res_new</code> equals <code>1  # New resource was created</code>. project.addResource.assert_called_once() … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1  # Vacation was added</code><br><code>assert n_res_new == 1  # New resource was created</code><br><code>project.addResource.assert_called_once()</code><br><code>new_res.setName.assert_called_once_with(&quot;Unknown&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-65</span>
+          <span class="test-name">Vacation creates resource calendar when none</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>default_cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = default_cal</code><br><code>new_cal = MagicMock()</code><br><code>project.addCalendar.return_value = new_cal</code><br><code>res = self._make_resource(&quot;Dave&quot;, has_calendar=False)</code><br><code>res.getCalendar.return_value = None  # explicitly no calendar</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2025-09-01&quot;, &quot;end&quot;: &quot;2025-09-05&quot;, &quot;userName&quot;: &quot;Dave&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. project.addCalendar.assert_called_once() new_cal.setParent.assert_called_once_with(default_cal) … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>project.addCalendar.assert_called_once()</code><br><code>new_cal.setParent.assert_called_once_with(default_cal)</code><br><code>res.setCalendar.assert_called_once_with(new_cal)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-66</span>
+          <span class="test-name">Vacation end before start defaults to start</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = self._make_resource(&quot;Eve&quot;)</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2025-07-10&quot;, &quot;end&quot;: &quot;2025-07-05&quot;, &quot;userName&quot;: &quot;Eve&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-67</span>
+          <span class="test-name">Vacation invalid start skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = self._make_resource(&quot;Frank&quot;)</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: None, &quot;end&quot;: None, &quot;userName&quot;: &quot;Frank&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-68</span>
+          <span class="test-name">Resource with none name excluded from matching</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>res = MagicMock()</code><br><code>res.getName.return_value = None  # unnamed resource</code><br><code>project.getResources.return_value = [res]</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacation = {&quot;start&quot;: &quot;2025-07-01&quot;, &quot;end&quot;: &quot;2025-07-07&quot;, &quot;userName&quot;: &quot;Alice&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = cc._apply_to_project(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1  # Vacation added to auto-created resource</code>. <code>n_res_new</code> equals <code>1  # Resource was auto-created</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1  # Vacation added to auto-created resource</code><br><code>assert n_res_new == 1  # Resource was auto-created</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-69</span>
+          <span class="test-name">Startdate enddate field names accepted</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>cal = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = cal</code><br><code>project.getResources.return_value = []</code><br><code>holiday = {&quot;startDate&quot;: &quot;2025-11-01&quot;, &quot;endDate&quot;: &quot;2025-11-01&quot;}</code><br><code>LocalDate = _make_local_date_class()</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;jpype&#x27;: MagicMock()}):</code><br><code>import jpype</code><br><code>jpype.JClass = MagicMock(return_value=LocalDate)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestApplyToProjectRemoval — Apply To Project Removal</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-70</span>
+          <span class="test-name">Stale vacation removed when absent from new events</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>stale = _make_exc_mock(&quot;2026-07-01&quot;, &quot;2026-07-14&quot;)</code><br><code>res = self._make_resource(&quot;Alice&quot;, exceptions=[stale])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, n_v, n_v_rem, _, _ = self._run(</code><br><code>project, [], [],</code><br><code>sync_start=date(2026, 1, 1), sync_end=date(2026, 12, 31),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>0</code>. <code>n_v_rem</code> equals <code>1</code>. res.getCalendar.return_value.getCalendarExceptions.return_value  # confirm accessed</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 0</code><br><code>assert n_v_rem == 1</code><br><code>res.getCalendar.return_value.getCalendarExceptions.return_value  # confirm accessed</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-71</span>
+          <span class="test-name">Vacation outside window not removed</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>old_exc = _make_exc_mock(&quot;2025-06-01&quot;, &quot;2025-06-05&quot;)  # before sync window</code><br><code>res = self._make_resource(&quot;Bob&quot;, exceptions=[old_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, n_v, n_v_rem, _, _ = self._run(</code><br><code>project, [], [],</code><br><code>sync_start=date(2026, 1, 1), sync_end=date(2026, 12, 31),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v_rem</code> equals <code>0  # exception is outside window — untouched</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v_rem == 0  # exception is outside window — untouched</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-72</span>
+          <span class="test-name">Stale removed and new added in same sync</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>old_exc = _make_exc_mock(&quot;2026-08-01&quot;, &quot;2026-08-07&quot;)</code><br><code>res = self._make_resource(&quot;Carol&quot;, exceptions=[old_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>new_vacation = {&quot;start&quot;: &quot;2026-08-05&quot;, &quot;end&quot;: &quot;2026-08-12&quot;, &quot;userName&quot;: &quot;Carol&quot;}</code><br><code>_, n_v, n_v_rem, _, _ = self._run(</code><br><code>project, [], [new_vacation],</code><br><code>sync_start=date(2026, 1, 1), sync_end=date(2026, 12, 31),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1      # new exception added</code>. <code>n_v_rem</code> equals <code>1  # old exception removed</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1      # new exception added</code><br><code>assert n_v_rem == 1  # old exception removed</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-73</span>
+          <span class="test-name">No removal without sync window</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>old_exc = _make_exc_mock(&quot;2026-07-01&quot;, &quot;2026-07-14&quot;)</code><br><code>res = self._make_resource(&quot;Dave&quot;, exceptions=[old_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, n_v, n_v_rem, _, _ = self._run(project, [], [])  # no sync window</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v_rem</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v_rem == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-74</span>
+          <span class="test-name">All vacations cleared when person has none in confluence</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>exc1 = _make_exc_mock(&quot;2026-06-01&quot;, &quot;2026-06-05&quot;)</code><br><code>exc2 = _make_exc_mock(&quot;2026-09-10&quot;, &quot;2026-09-14&quot;)</code><br><code>res = self._make_resource(&quot;Eve&quot;, exceptions=[exc1, exc2])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, n_v, n_v_rem, _, _ = self._run(</code><br><code>project, [], [],</code><br><code>sync_start=date(2026, 1, 1), sync_end=date(2026, 12, 31),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>0</code>. <code>n_v_rem</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 0</code><br><code>assert n_v_rem == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-75</span>
+          <span class="test-name">Expired vacation removed via prune before</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>old_exc = _make_exc_mock(&quot;2025-03-01&quot;, &quot;2025-03-10&quot;)  # finished 13 months ago</code><br><code>res = self._make_resource(&quot;Frank&quot;, exceptions=[old_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, _, _, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-76</span>
+          <span class="test-name">Expired exception on default calendar pruned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>old_exc = _make_exc_mock(&quot;2025-01-01&quot;, &quot;2025-01-01&quot;)</code><br><code>default_cal = MagicMock()</code><br><code>default_cal.getCalendarExceptions.return_value = [old_exc]</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = default_cal</code><br><code>project.getResources.return_value = []</code><br><code>_, _, _, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-77</span>
+          <span class="test-name">Non expired exception not pruned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>recent_exc = _make_exc_mock(&quot;2026-04-01&quot;, &quot;2026-04-05&quot;)</code><br><code>res = self._make_resource(&quot;Grace&quot;, exceptions=[recent_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, _, _, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-78</span>
+          <span class="test-name">No prune without prune before</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>old_exc = _make_exc_mock(&quot;2024-12-01&quot;, &quot;2024-12-31&quot;)</code><br><code>res = self._make_resource(&quot;Heidi&quot;, exceptions=[old_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>_, _, _, n_pruned, _ = self._run(project, [], [])  # no prune_before</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>0</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 0</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-79</span>
+          <span class="test-name">Exception without end falls back to start for pruning</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>broken_to = MagicMock()</code><br><code>broken_to.getYear.side_effect = AttributeError(&quot;no year&quot;)</code><br><code>s = date(2025, 2, 1)</code><br><code>from_ld = MagicMock()</code><br><code>from_ld.getYear.return_value = s.year</code><br><code>from_ld.getMonthValue.return_value = s.month</code><br><code>from_ld.getDayOfMonth.return_value = s.day</code><br><code>exc = MagicMock()</code><br><code>exc.getFromDate.return_value = from_ld</code><br><code>exc.getToDate.return_value = broken_to</code><br><code>res = self._make_resource(&quot;Ivan&quot;, exceptions=[exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, _, _, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-80</span>
+          <span class="test-name">Mixed expired and future only expired pruned</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>expired_exc = _make_exc_mock(&quot;2025-01-10&quot;, &quot;2025-01-15&quot;)  # finished &gt;30 days ago</code><br><code>future_exc  = _make_exc_mock(&quot;2026-07-01&quot;, &quot;2026-07-10&quot;)  # still in the future</code><br><code>res = self._make_resource(&quot;Judy&quot;, exceptions=[expired_exc, future_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, _, _, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_pruned</code> equals <code>1  # only the one before the cutoff</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_pruned == 1  # only the one before the cutoff</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-81</span>
+          <span class="test-name">Prune and remove window combined</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>from datetime import date</code><br><code>expired_exc = _make_exc_mock(&quot;2025-01-01&quot;, &quot;2025-01-05&quot;)  # pruned</code><br><code>stale_exc   = _make_exc_mock(&quot;2026-06-10&quot;, &quot;2026-06-14&quot;)  # in window, no matching event</code><br><code>res = self._make_resource(&quot;Karl&quot;, exceptions=[expired_exc, stale_exc])</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>_, _, n_v_rem, n_pruned, _ = self._run(</code><br><code>project, [], [],</code><br><code>sync_start=date(2026, 1, 1), sync_end=date(2026, 12, 31),</code><br><code>prune_before=date(2026, 3, 20),</code></div>
+          <div class="block"><div class="block-label">Run</div><code>)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v_rem</code> equals <code>1</code>. <code>n_pruned</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v_rem == 1</code><br><code>assert n_pruned == 1</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-82</span>
+          <span class="test-name">Resource with no calendar and no events skipped</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;Laura&quot;</code><br><code>res.getCalendar.return_value = None</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, _ = self._run(project, [], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>0</code>. res.setCalendar.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 0</code><br><code>res.setCalendar.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-83</span>
+          <span class="test-name">Holiday added to default calendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>holiday = {&quot;start&quot;: &quot;2026-12-25&quot;, &quot;end&quot;: &quot;2026-12-25&quot;}</code><br><code>default_cal = MagicMock()</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = default_cal</code><br><code>project.getResources.return_value = []</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, [holiday], [])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_h</code> equals <code>1</code>. default_cal.addCalendarException.assert_called_once()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_h == 1</code><br><code>default_cal.addCalendarException.assert_called_once()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-84</span>
+          <span class="test-name">Vacation matched by partial username</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>vacation = {&quot;start&quot;: &quot;2026-08-01&quot;, &quot;end&quot;: &quot;2026-08-05&quot;, &quot;userName&quot;: &quot;mike&quot;}</code><br><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;Mike Smith&quot;  # &quot;mike&quot; is a substring of &quot;mike smith&quot;</code><br><code>cal = MagicMock()</code><br><code>cal.getCalendarExceptions.return_value = []</code><br><code>res.getCalendar.return_value = cal</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, [], [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestConfluenceCalendarSyncRun — Confluence Calendar Sync Run</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-85</span>
+          <span class="test-name">Missing requests shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, False), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(MagicMock(), parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>missing requests shows critical</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-86</span>
+          <span class="test-name">Missing playwright shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, False), \</code><br><code>patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(MagicMock(), parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>missing playwright shows critical</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-87</span>
+          <span class="test-name">None project shows warning</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(None, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.warning.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>none project shows warning</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-88</span>
+          <span class="test-name">Missing base url shows information</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(None, &quot;PROJ&quot;)</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.information.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>missing base url shows information</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-89</span>
+          <span class="test-name">Missing space key shows information</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, None)</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.information.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>missing space key shows information</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-90</span>
+          <span class="test-name">Auth failure shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=None), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>auth failure shows critical</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-91</span>
+          <span class="test-name">Auth exception shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, side_effect=RuntimeError(&quot;timeout&quot;)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>auth exception shows critical</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-92</span>
+          <span class="test-name">No calendars found shows information</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Test User&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[]), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.information.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no calendars found shows information</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-93</span>
+          <span class="test-name">Happy path shows summary</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>cal_entry = {&quot;id&quot;: &quot;cal-1&quot;, &quot;name&quot;: &quot;Holidays&quot;, &quot;type&quot;: &quot;custom&quot;}</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._is_debug&#x27;, return_value=False), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._fetch_events&#x27;, return_value=[{&quot;start&quot;: &quot;2025-12-25&quot;, &quot;end&quot;: &quot;2025-12-25&quot;}]), \</code><br><code>patch(&#x27;confluence_calendar._apply_to_project&#x27;, return_value=(1, 0, 0, 0, 0)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code><br><code>qmb.information.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>summary_msg = qmb.information.call_args[0][2]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Alice&quot;</code> is contained in <code>summary_msg</code>. <code>&quot;1&quot;</code> is contained in <code>summary_msg</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Alice&quot; in summary_msg</code><br><code>assert &quot;1&quot; in summary_msg</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-94</span>
+          <span class="test-name">Calendar fetch error included in summary</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>cal_entry = {&quot;id&quot;: &quot;cal-1&quot;, &quot;name&quot;: &quot;Holidays&quot;, &quot;type&quot;: &quot;custom&quot;}</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._is_debug&#x27;, return_value=False), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._fetch_events&#x27;, side_effect=ConnectionError(&quot;network error&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._apply_to_project&#x27;, return_value=(0, 0, 0, 0, 0)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code><br><code>qmb.information.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>summary_msg = qmb.information.call_args[0][2]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;Holidays&quot;</code> is contained in <code>summary_msg</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;Holidays&quot; in summary_msg</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-95</span>
+          <span class="test-name">Fetch subcalendars exception shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, side_effect=RuntimeError(&quot;HTTP 500&quot;)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>fetch subcalendars exception shows critical</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-96</span>
+          <span class="test-name">History manager push all called before apply</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>cal_entry = {&quot;id&quot;: &quot;cal-1&quot;, &quot;name&quot;: &quot;Holidays&quot;, &quot;type&quot;: &quot;custom&quot;}</code><br><code>session = MagicMock()</code><br><code>history = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._is_debug&#x27;, return_value=False), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._fetch_events&#x27;, return_value=[]), \</code><br><code>patch(&#x27;confluence_calendar._apply_to_project&#x27;, return_value=(0, 0, 0, 0, 0)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;):</code><br><code>self._sync().run(project, parent_widget=None, history_manager=history)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>history.push_all.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>history manager push all called before apply</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-97</span>
+          <span class="test-name">History manager not called when auth fails</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>history = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=None), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;):</code><br><code>self._sync().run(project, parent_widget=None, history_manager=history)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>history.push_all.assert_not_called()</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>history manager not called when auth fails</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-98</span>
+          <span class="test-name">History manager none is safe</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>cal_entry = {&quot;id&quot;: &quot;cal-1&quot;, &quot;name&quot;: &quot;Holidays&quot;, &quot;type&quot;: &quot;custom&quot;}</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._is_debug&#x27;, return_value=False), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._fetch_events&#x27;, return_value=[]), \</code><br><code>patch(&#x27;confluence_calendar._apply_to_project&#x27;, return_value=(0, 0, 0, 0, 0)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, history_manager=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>history manager none is safe</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-99</span>
+          <span class="test-name">Summary shows pruned count when nonzero</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project, mock_prop = self._mock_project_with_props(&quot;https://conf.example.com&quot;, &quot;PROJ&quot;)</code><br><code>cal_entry = {&quot;id&quot;: &quot;cal-1&quot;, &quot;name&quot;: &quot;Holidays&quot;, &quot;type&quot;: &quot;custom&quot;}</code><br><code>session = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._is_debug&#x27;, return_value=False), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=mock_prop), \</code><br><code>patch(&#x27;confluence_calendar._try_playwright_auth&#x27;, return_value=(session, &quot;Alice&quot;)), \</code><br><code>patch(&#x27;confluence_calendar._fetch_subcalendars&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._filter_relevant&#x27;, return_value=[cal_entry]), \</code><br><code>patch(&#x27;confluence_calendar._fetch_events&#x27;, return_value=[]), \</code><br><code>patch(&#x27;confluence_calendar._apply_to_project&#x27;, return_value=(0, 0, 0, 3, 0)), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>summary_msg = qmb.information.call_args[0][2]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;3&quot;</code> is contained in <code>summary_msg</code>. <code>&quot;expired&quot;</code> is contained in <code>summary_msg.lower()</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;3&quot; in summary_msg</code><br><code>assert &quot;expired&quot; in summary_msg.lower()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestValidateBaseUrl — Validate Base Url</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-100</span>
+          <span class="test-name">Valid https url accepted</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._validate_base_url(&quot;https://confluence.example.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>&quot;https://confluence.example.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == &quot;https://confluence.example.com&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-101</span>
+          <span class="test-name">Https url with path accepted</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module / fixtures imported; no additional setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._validate_base_url(&quot;https://confluence.example.com/wiki&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> equals <code>&quot;https://confluence.example.com/wiki&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result == &quot;https://confluence.example.com/wiki&quot;</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-102</span>
+          <span class="test-name">Http url rejected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import pytest</code><br><code>with pytest.raises(ValueError) as exc:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._validate_base_url(&quot;http://confluence.example.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;HTTPS&quot;</code> is contained in <code>str(exc.value)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;HTTPS&quot; in str(exc.value)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-103</span>
+          <span class="test-name">No scheme rejected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import pytest</code><br><code>with pytest.raises(ValueError) as exc:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._validate_base_url(&quot;confluence.example.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;HTTPS&quot;</code> is contained in <code>str(exc.value)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;HTTPS&quot; in str(exc.value)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-104</span>
+          <span class="test-name">Ftp scheme rejected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import pytest</code><br><code>with pytest.raises(ValueError) as exc:</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._validate_base_url(&quot;ftp://confluence.example.com&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;HTTPS&quot;</code> is contained in <code>str(exc.value)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;HTTPS&quot; in str(exc.value)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-105</span>
+          <span class="test-name">Empty string rejected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import pytest</code><br><code>with pytest.raises(ValueError):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._validate_base_url(&quot;&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>empty string rejected</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-106</span>
+          <span class="test-name">Malformed url rejected</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>import pytest</code><br><code>with pytest.raises(ValueError):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._validate_base_url(&quot;https://&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>malformed url rejected</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestRestrictFilePermissions — Restrict File Permissions</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-107</span>
+          <span class="test-name">Windows icacls called</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_file = tmp_path / &quot;test.json&quot;</code><br><code>test_file.write_text(&quot;{}&quot;)</code><br><code>with patch(&#x27;sys.platform&#x27;, &#x27;win32&#x27;), \</code><br><code>patch(&#x27;subprocess.run&#x27;) as mock_run, \</code><br><code>patch(&#x27;getpass.getuser&#x27;, return_value=&#x27;testuser&#x27;):</code><br><code>cc._restrict_file_permissions(test_file)</code><br><code>mock_run.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>args = mock_run.call_args[0][0]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&#x27;icacls&#x27;</code> is contained in <code>args</code>. <code>str(test_file)</code> is contained in <code>args</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &#x27;icacls&#x27; in args</code><br><code>assert str(test_file) in args</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-108</span>
+          <span class="test-name">Posix chmod called</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_file = tmp_path / &quot;test.json&quot;</code><br><code>test_file.write_text(&quot;{}&quot;)</code><br><code>with patch(&#x27;sys.platform&#x27;, &#x27;linux&#x27;), \</code><br><code>patch(&#x27;pathlib.Path.chmod&#x27;) as mock_chmod:</code><br><code>cc._restrict_file_permissions(test_file)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>mock_chmod.assert_called_once_with(0o600)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>posix chmod called</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-109</span>
+          <span class="test-name">Windows exception silently ignored</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_file = tmp_path / &quot;test.json&quot;</code><br><code>test_file.write_text(&quot;{}&quot;)</code><br><code>with patch(&#x27;sys.platform&#x27;, &#x27;win32&#x27;), \</code><br><code>patch(&#x27;subprocess.run&#x27;, side_effect=PermissionError(&quot;access denied&quot;)), \</code><br><code>patch(&#x27;getpass.getuser&#x27;, return_value=&#x27;testuser&#x27;):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._restrict_file_permissions(test_file)  # must not raise</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>windows exception silently ignored</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-110</span>
+          <span class="test-name">Posix exception silently ignored</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>test_file = tmp_path / &quot;test.json&quot;</code><br><code>test_file.write_text(&quot;{}&quot;)</code><br><code>with patch(&#x27;sys.platform&#x27;, &#x27;linux&#x27;), \</code><br><code>patch(&#x27;pathlib.Path.chmod&#x27;, side_effect=OSError(&quot;permission denied&quot;)):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._restrict_file_permissions(test_file)  # must not raise</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>posix exception silently ignored</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestResourceAutoCreation — Resource Auto Creation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-111</span>
+          <span class="test-name">Auto creates resource for unmatched username</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []  # no existing resources</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;John Doe&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_res_new</code> equals <code>1</code>. project.addResource.assert_called_once() new_res.setName.assert_called_once_with(&quot;John Doe&quot;) … and 1 more assertion(s).</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_res_new == 1</code><br><code>project.addResource.assert_called_once()</code><br><code>new_res.setName.assert_called_once_with(&quot;John Doe&quot;)</code><br><code>assert n_v == 1  # vacation was applied to the new resource</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-112</span>
+          <span class="test-name">Multiple vacations for new resource create one</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacations = [</code><br><code>{&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;Alice&quot;},</code><br><code>{&quot;start&quot;: &quot;2026-08-01&quot;, &quot;end&quot;: &quot;2026-08-05&quot;, &quot;userName&quot;: &quot;Alice&quot;},</code><br><code>]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, vacations)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_res_new</code> equals <code>1  # only one resource created</code>. <code>n_v</code> equals <code>2  # both vacations applied</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_res_new == 1  # only one resource created</code><br><code>assert n_v == 2  # both vacations applied</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-113</span>
+          <span class="test-name">Blank username not auto created</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;   &quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_res_new</code> equals <code>0</code>. <code>n_v</code> equals <code>0</code>. project.addResource.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_res_new == 0</code><br><code>assert n_v == 0</code><br><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-114</span>
+          <span class="test-name">Existing resource not duplicated</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>existing_res = MagicMock()</code><br><code>existing_res.getName.return_value = &quot;Bob&quot;</code><br><code>existing_cal = MagicMock()</code><br><code>existing_cal.getCalendarExceptions.return_value = []</code><br><code>existing_res.getCalendar.return_value = existing_cal</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [existing_res]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;Bob&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_res_new</code> equals <code>0  # no new resource created</code>. <code>n_v</code> equals <code>1  # vacation applied to existing resource</code>. project.addResource.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_res_new == 0  # no new resource created</code><br><code>assert n_v == 1  # vacation applied to existing resource</code><br><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPlaywrightSession — Playwright Session</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-115</span>
+          <span class="test-name">Creates requests session with cookies</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ctx = MagicMock()</code><br><code>ctx.cookies.return_value = [</code><br><code>{&quot;name&quot;: &quot;JSESSIONID&quot;, &quot;value&quot;: &quot;abc123&quot;},</code><br><code>{&quot;name&quot;: &quot;auth_token&quot;, &quot;value&quot;: &quot;xyz789&quot;},</code><br><code>]</code><br><code>base_url = &quot;https://confluence.example.com&quot;</code><br><code>with patch.object(cc._requests, &#x27;Session&#x27;) as mock_session_cls:</code><br><code>mock_session = MagicMock()</code><br><code>mock_session_cls.return_value = mock_session</code></div>
+          <div class="block"><div class="block-label">Run</div><code>session = cc._playwright_session(ctx, base_url)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>mock_session.cookies.set.call_count</code> equals <code>2</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert mock_session.cookies.set.call_count == 2</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-116</span>
+          <span class="test-name">Sets user agent header</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>ctx = MagicMock()</code><br><code>ctx.cookies.return_value = []</code><br><code>base_url = &quot;https://confluence.example.com&quot;</code><br><code>with patch.object(cc._requests, &#x27;Session&#x27;) as mock_session_cls:</code><br><code>mock_session = MagicMock()</code><br><code>mock_session_cls.return_value = mock_session</code><br><code>session = cc._playwright_session(ctx, base_url)</code><br><code>mock_session.headers.update.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>headers = mock_session.headers.update.call_args[0][0]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;User-Agent&quot;</code> is contained in <code>headers</code>. <code>&quot;Mozilla&quot;</code> is contained in <code>headers[&quot;User-Agent&quot;]</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;User-Agent&quot; in headers</code><br><code>assert &quot;Mozilla&quot; in headers[&quot;User-Agent&quot;]</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestClearSavedSession — Clear Saved Session</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-117</span>
+          <span class="test-name">Deletes state file when present</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>fake_state = tmp_path / &quot;.confluence_playwright_state.json&quot;</code><br><code>fake_state.write_text(&quot;{}&quot;)</code><br><code>with patch.object(cc, &#x27;_STATE_FILE&#x27;, fake_state):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc.clear_saved_session()</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>fake_state.exists()</code> is falsy.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert not fake_state.exists()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-118</span>
+          <span class="test-name">No error when file absent</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>fake_state = tmp_path / &quot;.confluence_playwright_state.json&quot;</code><br><code>with patch.object(cc, &#x27;_STATE_FILE&#x27;, fake_state):</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc.clear_saved_session()  # must not raise</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no error when file absent</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestConfluenceCalendarSyncInvalidUrl — Confluence Calendar Sync Invalid Url</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-119</span>
+          <span class="test-name">Non https base url shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=lambda p, k: &quot;http://confluence.example.com&quot; if k == &quot;CALENDAR Base URL&quot; else &quot;PROJ&quot;), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code><br><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>msg = qmb.critical.call_args[0][2]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;HTTPS&quot;</code> is contained in <code>msg</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;HTTPS&quot; in msg</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-120</span>
+          <span class="test-name">Malformed base url shows critical</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>with patch(&#x27;confluence_calendar._REQUESTS_OK&#x27;, True), \</code><br><code>patch(&#x27;confluence_calendar._PLAYWRIGHT_OK&#x27;, True), \</code><br><code>patch.object(cc, &#x27;_get_enterprise_prop&#x27;, side_effect=lambda p, k: &quot;not-a-valid-url&quot; if k == &quot;CALENDAR Base URL&quot; else &quot;PROJ&quot;), \</code><br><code>patch(&#x27;PyQt5.QtWidgets.QMessageBox&#x27;) as qmb:</code><br><code>self._sync().run(project, parent_widget=None)</code><br><code>qmb.critical.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>msg = qmb.critical.call_args[0][2]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;valid URL&quot;</code> is contained in <code>msg or &quot;HTTPS&quot; in msg  # either error message is acceptable</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;valid URL&quot; in msg or &quot;HTTPS&quot; in msg  # either error message is acceptable</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestPartialMatchRename — Partial Match Rename</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-121</span>
+          <span class="test-name">Short resource renamed to full confluence name</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = self._res(&quot;Yassine&quot;)</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-05-04&quot;, &quot;end&quot;: &quot;2026-05-15&quot;, &quot;userName&quot;: &quot;Trabelsi, Yassine&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. res.setName.assert_called_once_with(&quot;Trabelsi, Yassine&quot;)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>res.setName.assert_called_once_with(&quot;Trabelsi, Yassine&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-122</span>
+          <span class="test-name">Multiple vacations for same person no duplicate rename</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = self._res(&quot;Yassine&quot;)</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>vacations = [</code><br><code>{&quot;start&quot;: &quot;2026-05-04&quot;, &quot;end&quot;: &quot;2026-05-15&quot;, &quot;userName&quot;: &quot;Trabelsi, Yassine&quot;},</code><br><code>{&quot;start&quot;: &quot;2026-08-01&quot;, &quot;end&quot;: &quot;2026-08-07&quot;, &quot;userName&quot;: &quot;Trabelsi, Yassine&quot;},</code><br><code>]</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, vacations)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>2</code>. res.setName.assert_called_once_with(&quot;Trabelsi, Yassine&quot;)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 2</code><br><code>res.setName.assert_called_once_with(&quot;Trabelsi, Yassine&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-123</span>
+          <span class="test-name">No rename when full name already exists as resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res_short = self._res(&quot;Yassine&quot;)</code><br><code>res_full  = self._res(&quot;Trabelsi, Yassine&quot;)</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res_short, res_full]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-05-04&quot;, &quot;end&quot;: &quot;2026-05-15&quot;, &quot;userName&quot;: &quot;Trabelsi, Yassine&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. res_short.setName.assert_not_called() res_full.setName.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>res_short.setName.assert_not_called()</code><br><code>res_full.setName.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-124</span>
+          <span class="test-name">Ambiguous partial no rename when new name already taken</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res_a = self._res(&quot;Smith, Alice&quot;)</code><br><code>res_b = self._res(&quot;Smith, Bob&quot;)</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res_a, res_b]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-06-01&quot;, &quot;end&quot;: &quot;2026-06-05&quot;, &quot;userName&quot;: &quot;Smith, Alice&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. res_a.setName.assert_not_called() res_b.setName.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>res_a.setName.assert_not_called()</code><br><code>res_b.setName.assert_not_called()</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestSemicolonNormalisation — Semicolon Normalisation</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-125</span>
+          <span class="test-name">Semicolon username matched against comma resource</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;Smith, John&quot;</code><br><code>cal = MagicMock()</code><br><code>cal.getCalendarExceptions.return_value = []</code><br><code>res.getCalendar.return_value = cal</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-06-01&quot;, &quot;end&quot;: &quot;2026-06-05&quot;, &quot;userName&quot;: &quot;Smith; John&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. <code>n_res_new</code> equals <code>0          # no new resource — exact match after normalisation</code>. project.addResource.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>assert n_res_new == 0          # no new resource — exact match after normalisation</code><br><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-126</span>
+          <span class="test-name">Semicolon username new resource stored with comma</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;Doe; Jane&quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_res_new</code> equals <code>1</code>. new_res.setName.assert_called_once_with(&quot;Doe, Jane&quot;)</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_res_new == 1</code><br><code>new_res.setName.assert_called_once_with(&quot;Doe, Jane&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-127</span>
+          <span class="test-name">Trailing whitespace stripped from username</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;Alice&quot;</code><br><code>cal = MagicMock()</code><br><code>cal.getCalendarExceptions.return_value = []</code><br><code>res.getCalendar.return_value = cal</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>vacation = {&quot;start&quot;: &quot;2026-06-01&quot;, &quot;end&quot;: &quot;2026-06-05&quot;, &quot;userName&quot;: &quot;  Alice  &quot;}</code></div>
+          <div class="block"><div class="block-label">Run</div><code>n_h, n_v, n_v_rem, n_pruned, n_res_new = self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>n_v</code> equals <code>1</code>. <code>n_res_new</code> equals <code>0</code>. project.addResource.assert_not_called()</div>
+          <div class="block"><div class="block-label">Check</div><code>assert n_v == 1</code><br><code>assert n_res_new == 0</code><br><code>project.addResource.assert_not_called()</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-128</span>
+          <span class="test-name">Semicolon with spaces normalised</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = []</code><br><code>new_res = MagicMock()</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getCalendarExceptions.return_value = []</code><br><code>new_res.getCalendar.return_value = new_cal</code><br><code>project.addResource.return_value = new_res</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;Smith ; John&quot;}</code><br><code>self._run(project, [vacation])</code></div>
+          <div class="block"><div class="block-label">Run</div><code>call_name = new_res.setName.call_args[0][0]</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>&quot;;&quot; not</code> is contained in <code>call_name</code>. <code>&quot;,&quot;</code> is contained in <code>call_name</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert &quot;;&quot; not in call_name</code><br><code>assert &quot;,&quot; in call_name</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">?</span><h3>TestCalendarUIDBeforeSetCalendar — Calendar UIDBefore Set Calendar</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-129</span>
+          <span class="test-name">Uid assigned to new calendar before setcalendar</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;New Person&quot;</code><br><code>res.getCalendarUniqueID.return_value = None</code><br><code>res.getCalendar.return_value = None</code><br><code>new_cal = MagicMock()</code><br><code>new_cal.getUniqueID.return_value = None   # new calendar has no UID yet</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>project.addCalendar.return_value = new_cal</code><br><code>project.getCalendarByName.return_value = None</code><br><code>project.getCalendars.return_value = []</code><br><code>mock_jint = MagicMock(side_effect=lambda v: v)</code><br><code>with patch.dict(&#x27;sys.modules&#x27;, {&#x27;java&#x27;: MagicMock(), &#x27;java.lang&#x27;: MagicMock(Integer=mock_jint)}):</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;New Person&quot;}</code><br><code>self._run(project, [vacation])</code><br><code>new_cal.setUniqueID.assert_called_once()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res.setCalendar.assert_called_once_with(new_cal)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>uid assigned to new calendar before setcalendar</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-130</span>
+          <span class="test-name">No uid assignment when calendar already has uid</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>res = MagicMock()</code><br><code>res.getName.return_value = &quot;Existing Person&quot;</code><br><code>res.getCalendarUniqueID.return_value = None</code><br><code>res.getCalendar.return_value = None</code><br><code>orphan_cal = MagicMock()</code><br><code>orphan_cal.getUniqueID.return_value = 42   # already has a UID</code><br><code>project = MagicMock()</code><br><code>project.getDefaultCalendar.return_value = MagicMock()</code><br><code>project.getResources.return_value = [res]</code><br><code>project.getCalendarByName.return_value = orphan_cal</code><br><code>project.getCalendars.return_value = []</code><br><code>vacation = {&quot;start&quot;: &quot;2026-07-01&quot;, &quot;end&quot;: &quot;2026-07-07&quot;, &quot;userName&quot;: &quot;Existing Person&quot;}</code><br><code>self._run(project, [vacation])</code><br><code>orphan_cal.setUniqueID.assert_not_called()</code></div>
+          <div class="block"><div class="block-label">Run</div><code>res.setCalendar.assert_called_once_with(orphan_cal)</code></div>
+          <div class="block"><div class="block-label">Expect</div>Executing <em>no uid assignment when calendar already has uid</em> raises no exception.</div>
+          <div class="block"><div class="block-label">Check</div>—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestAutofillMicrosoftSso &#8212; Autofill Microsoft SSO</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-131</span>
+          <span class="test-name">Returns false when not microsoft url</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>page = MagicMock()</code><br><code>page.url = &quot;https://confluence.example.com/login&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._autofill_microsoft_sso(page, &quot;user@example.com&quot;, &quot;password&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code> — non-MS URL skipped immediately.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-132</span>
+          <span class="test-name">Returns true when fill succeeds</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>page = MagicMock()</code><br><code>page.url = &quot;https://login.microsoftonline.com/tenant/oauth2/v2.0/authorize&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._autofill_microsoft_sso(page, &quot;user@example.com&quot;, &quot;password&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>True</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is True</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-133</span>
+          <span class="test-name">Returns false when email selector times out</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>page = MagicMock()</code><br><code>page.url = &quot;https://login.microsoftonline.com/tenant/oauth2&quot;</code><br><code>page.wait_for_selector.side_effect = Exception(&quot;Timeout waiting for selector&quot;)</code></div>
+          <div class="block"><div class="block-label">Run</div><code>result = cc._autofill_microsoft_sso(page, &quot;user@example.com&quot;, &quot;password&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>result</code> is <code>False</code> — selector timeout handled gracefully.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert result is False</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-134</span>
+          <span class="test-name">Fills email field</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>page = MagicMock()</code><br><code>page.url = &quot;https://login.microsoftonline.com/tenant/oauth2&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._autofill_microsoft_sso(page, &quot;user@example.com&quot;, &quot;secret&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>page.fill</code> called with email selector and <code>&quot;user@example.com&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>page.fill.assert_any_call(&quot;input[type=&#x27;email&#x27;], #i0116&quot;, &quot;user@example.com&quot;)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-135</span>
+          <span class="test-name">Fills password field</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>page = MagicMock()</code><br><code>page.url = &quot;https://login.microsoftonline.com/tenant/oauth2&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>cc._autofill_microsoft_sso(page, &quot;user@example.com&quot;, &quot;mysecret&quot;)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>page.fill</code> called with password selector and <code>&quot;mysecret&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>page.fill.assert_any_call(&quot;input[type=&#x27;password&#x27;], #i0118&quot;, &quot;mysecret&quot;)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestSyncRunWithSettingsManager &#8212; Sync Run With Settings Manager</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-136</span>
+          <span class="test-name">Settings manager none passes no creds</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>settings_manager=None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, settings_manager=None)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_try_playwright_auth</code> called with <code>keepass_creds=None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_auth.assert_called_once_with(&quot;https://conf.example.com&quot;, keepass_creds=None)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-137</span>
+          <span class="test-name">Keepass creds passed when configured and unlocked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_confluence_keepass_entry.return_value = &quot;Confluence/prod&quot;</code><br><code>sm.is_keepass_unlocked.return_value = True</code><br><code>entry = MagicMock(username=&quot;user@example.com&quot;, password=&quot;secret&quot;)</code><br><code>sm.find_keepass_entry.return_value = entry</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, settings_manager=sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_try_playwright_auth</code> called with <code>keepass_creds=(&quot;user@example.com&quot;, &quot;secret&quot;)</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_auth.assert_called_once_with(&quot;https://conf.example.com&quot;, keepass_creds=(&quot;user@example.com&quot;, &quot;secret&quot;))</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-138</span>
+          <span class="test-name">No creds when db locked</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_confluence_keepass_entry.return_value = &quot;Confluence/prod&quot;</code><br><code>sm.is_keepass_unlocked.return_value = False</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, settings_manager=sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_try_playwright_auth</code> called with <code>keepass_creds=None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_auth.assert_called_once_with(&quot;https://conf.example.com&quot;, keepass_creds=None)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-139</span>
+          <span class="test-name">No creds when entry not found</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_confluence_keepass_entry.return_value = &quot;Confluence/prod&quot;</code><br><code>sm.is_keepass_unlocked.return_value = True</code><br><code>sm.find_keepass_entry.return_value = None</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, settings_manager=sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_try_playwright_auth</code> called with <code>keepass_creds=None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_auth.assert_called_once_with(&quot;https://conf.example.com&quot;, keepass_creds=None)</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header">
+          <span class="test-id">CC-140</span>
+          <span class="test-name">No creds when entry title empty</span>
+          <span class="status-badge">PASS</span>
+        </div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div><code>sm.get_confluence_keepass_entry.return_value = &quot;&quot;</code></div>
+          <div class="block"><div class="block-label">Run</div><code>self._sync().run(project, parent_widget=None, settings_manager=sm)</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_try_playwright_auth</code> called with <code>keepass_creds=None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>mock_auth.assert_called_once_with(&quot;https://conf.example.com&quot;, keepass_creds=None)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestModuleLocation &mdash; Module Location</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">CC-141</span><span class="test-name">Importable from integrations</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module already loaded in <code>sys.modules</code> via test-file setup.</div>
+          <div class="block"><div class="block-label">Run</div><code>from integrations import confluence_calendar_integration as _cc</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>_cc</code> is not <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert _cc is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">CC-142</span><span class="test-name">Importable via full dotted path</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module already loaded in <code>sys.modules</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>from integrations.confluence_calendar_integration import ConfluenceCalendarSync</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>ConfluenceCalendarSync</code> is not <code>None</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert ConfluenceCalendarSync is not None</code></div>
+        </div>
+      </div>
+      <div class="test-case">
+        <div class="test-case-header"><span class="test-id">CC-143</span><span class="test-name">Public constants accessible via new path</span><span class="status-badge">PASS</span></div>
+        <div class="four-blocks">
+          <div class="block"><div class="block-label">Init</div>Module already loaded in <code>sys.modules</code>.</div>
+          <div class="block"><div class="block-label">Run</div><code>from integrations.confluence_calendar_integration import CONFLUENCE_BASE_URL_PROP, CONFLUENCE_SPACE_KEY_PROP</code></div>
+          <div class="block"><div class="block-label">Expect</div><code>CONFLUENCE_BASE_URL_PROP</code> equals <code>&quot;CALENDAR Base URL&quot;</code>. <code>CONFLUENCE_SPACE_KEY_PROP</code> equals <code>&quot;CALENDAR Space Key&quot;</code>.</div>
+          <div class="block"><div class="block-label">Check</div><code>assert CONFLUENCE_BASE_URL_PROP == &quot;CALENDAR Base URL&quot;</code><br><code>assert CONFLUENCE_SPACE_KEY_PROP == &quot;CALENDAR Space Key&quot;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)">
+      <span class="arrow">&#9660;</span><h3>TestApplyToProject (Schulferien filter) &mdash; Multi-Day Holiday Span Filter</h3>
+    </div>
+    <div class="chapter-body">
+      <div class="test-case"><span class="test-name">Multi-day holiday span is skipped (16 days)</span><div class="block"><div class="block-label">Init</div><code>holiday = {&quot;start&quot;: &quot;2026-05-06&quot;, &quot;end&quot;: &quot;2026-05-21&quot;}</code><br><code>project.getResources.return_value = []</code></div><div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div><div class="block"><div class="block-label">Expect</div><code>n_h == 0</code>; <code>cal.addCalendarException</code> not called. 16-day Schulferien block must not pollute the default calendar.</div><div class="block"><div class="block-label">Check</div><code>assert n_h == 0</code><br><code>cal.addCalendarException.assert_not_called()</code></div></div>
+      <div class="test-case"><span class="test-name">Two-day holiday span is skipped</span><div class="block"><div class="block-label">Init</div><code>holiday = {&quot;start&quot;: &quot;2026-11-30&quot;, &quot;end&quot;: &quot;2026-12-01&quot;}</code><br><code>project.getResources.return_value = []</code></div><div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div><div class="block"><div class="block-label">Expect</div><code>n_h == 0</code>. A 2-day span (<code>end &minus; start == 1 day</code>) must also be rejected &mdash; Confluence uses exclusive-end-date conventions for some short blocks.</div><div class="block"><div class="block-label">Check</div><code>assert n_h == 0</code></div></div>
+      <div class="test-case"><span class="test-name">Single-day holiday still accepted</span><div class="block"><div class="block-label">Init</div><code>holiday = {&quot;start&quot;: &quot;2026-05-14&quot;, &quot;end&quot;: &quot;2026-05-14&quot;}</code><br><code>project.getResources.return_value = []</code></div><div class="block"><div class="block-label">Run</div><code>n_h, n_v, *_ = cc._apply_to_project(project, [holiday], [])</code></div><div class="block"><div class="block-label">Expect</div><code>n_h == 1</code>; <code>cal.addCalendarException</code> called once. A genuine same-day public holiday (Christi Himmelfahrt) must still be written to the calendar.</div><div class="block"><div class="block-label">Check</div><code>assert n_h == 1</code><br><code>cal.addCalendarException.assert_called_once()</code></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+</div><!-- /.page-body -->
+<script>
+function toggle(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  if (body) body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+(function () {
+  const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"]'));
+  const modules  = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  function onScroll() {
+    let cur = modules[0];
+    for (const m of modules) {
+      if (m.getBoundingClientRect().top <= 80) cur = m;
+    }
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur.id));
+    const activeLink = document.querySelector('nav a.active');
+    if (activeLink) activeLink.scrollIntoView({ block: 'nearest' });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+</script>
+</body>
+</html>

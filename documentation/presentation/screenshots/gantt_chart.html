@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Gantt Chart – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:1200px;height:640px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Ribbon ─────────────────────────────────────── */
+.menubar{background:#2B579A;color:#fff;display:flex;align-items:center;height:28px;font-size:13px}
+.menubar span{padding:5px 12px;cursor:default}.menubar span:hover{background:#3A6EBC}
+.ribbon{background:linear-gradient(to bottom,#3C71C0,#2B579A);display:flex;flex-direction:column}
+.ribbon-tabs{display:flex;padding:4px 6px 0;gap:2px;align-items:flex-end}
+.rtab{background:transparent;color:rgba(255,255,255,.8);border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;padding:3px 14px;font-size:12px;font-weight:700;font-family:"Segoe UI",Arial,sans-serif;cursor:default;line-height:20px}
+.rtab.active{background:#f0f4f8;color:#1A3F7A;border-color:#BDD0E8}
+.ribbon-panel{background:#f0f4f8;border-bottom:2px solid #2B579A;display:flex;align-items:stretch;padding:2px 8px 0;min-height:60px}
+.rgroup{display:flex;flex-direction:column;padding:2px 4px 0}
+.rgroup-btns{display:flex;gap:1px;flex:1;align-items:flex-start;padding-top:2px}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:46px;padding:3px 5px;border:1px solid transparent;border-radius:3px;cursor:default;font-size:10px;color:#1a2a5e;text-align:center;line-height:1.3;gap:2px}
+.rbtn-icon{font-size:16px;line-height:1.2}
+.rgroup-lbl{font-size:9.5px;color:#667;text-align:center;padding:2px 0 3px;border-top:1px solid #c8d8ee;margin-top:2px}
+.rgroup-sep{width:1px;background:#c8d8ee;margin:6px 3px;align-self:stretch}
+.tabbar{background:#E4EDF8;display:flex;border-bottom:2px solid #2B579A;padding-top:4px}
+.tab{background:#E4EDF8;color:#2B579A;border:1px solid #BDD0E8;border-bottom:none;padding:5px 16px;font-size:12px;font-weight:700;cursor:default;margin-right:1px}
+.tab.active{background:#fff;color:#1A3F7A;border-top:2px solid #2B579A}
+
+/* ── Gantt splitter layout ──── */
+.gantt-area{display:flex;flex:1;overflow:hidden}
+
+/* Left task list pane */
+.task-pane{width:370px;flex-shrink:0;display:flex;flex-direction:column;border-right:2px solid #B8CBE4}
+.pane-hdr{background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);display:flex;border-bottom:2px solid #2B579A;height:52px}
+.ph-cell{border-right:1px solid #B0C8E0;padding:4px 6px;font-size:12px;font-weight:700;color:#1A3F7A;display:flex;align-items:center}
+.task-rows{flex:1;overflow:hidden}
+.t-row{display:flex;height:26px;align-items:center;border-bottom:1px solid #D0DDF0}
+.t-row.even{background:#fff}.t-row.odd{background:#F0F5FF}
+.t-row.sel{background:#BDD7EE}
+.t-row.summary{font-weight:700;background:#E8EFF8}
+.t-row.summary.odd{background:#DDE8F5}
+.t-cell{overflow:hidden;white-space:nowrap;font-size:12px;padding:0 5px;display:flex;align-items:center}
+.icon{width:12px;height:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;margin-right:2px;flex-shrink:0}
+.ic-crit{background:#c0392b;color:#fff}
+.ic-late{background:#e07b1a;color:#fff}
+.tri{font-size:9px;color:#555;margin-right:2px}
+.i1{padding-left:14px}.i2{padding-left:26px}
+
+/* Right canvas pane */
+.chart-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* Calendar header */
+.cal-hdr{flex-shrink:0;background:linear-gradient(to bottom,#ECF3FB,#D8E8F5);border-bottom:2px solid #2B579A}
+.month-row{display:flex;height:24px;border-bottom:1px solid #B0C8E0}
+.month-cell{border-right:1px solid #B0C8E0;font-size:11px;font-weight:700;color:#1A3F7A;padding:4px 6px;overflow:hidden;white-space:nowrap}
+.day-row{display:flex;height:24px}
+.day-cell{border-right:1px solid #D0DDF0;font-size:10px;color:#4a5570;display:flex;align-items:center;justify-content:center;width:34px;flex-shrink:0}
+.day-cell.sat,.day-cell.sun{color:#888}
+.day-cell.today-hdr{background:#d4f0d4;color:#145214;font-weight:700}
+
+/* Chart rows (SVG-like via CSS) */
+.chart-rows{flex:1;overflow:hidden;position:relative}
+.c-row{height:26px;display:flex;align-items:center;position:relative;border-bottom:1px solid #D0DDF0}
+.c-row.even{background:#fff}.c-row.odd{background:#F0F5FF}
+.c-row.summary{background:#E8EFF8}
+.c-row.summary.odd{background:#DDE8F5}
+
+/* Weekend column overlays – rendered as a single background band trick */
+.chart-rows::before{content:'';position:absolute;inset:0;pointer-events:none}
+
+/* Grid vertical lines */
+.vgrid{position:absolute;top:0;bottom:0;width:1px;background:#D0DDF0}
+.vgrid.sat{background:#d0d0d0}
+
+/* Today line */
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#00a800;z-index:10}
+
+/* Task bars */
+.bar{position:absolute;height:16px;top:50%;transform:translateY(-50%);border-radius:3px;overflow:hidden;display:flex;align-items:center}
+.bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px 0 0 3px;background:rgba(255,255,255,.3)}
+.bar.normal{background:#4682C8}
+.bar.crit  {background:#c0392b}
+.bar.done  {background:#2e8b57}
+.bar-lbl{color:#fff;font-size:10px;font-weight:600;padding:0 5px;position:relative;z-index:1;white-space:nowrap;overflow:hidden}
+
+/* Milestone diamond */
+.milestone{position:absolute;width:12px;height:12px;background:#7b4bbf;transform:rotate(45deg);top:50%;margin-top:-6px}
+
+/* Baseline strip */
+.baseline{position:absolute;height:4px;bottom:2px;background:rgba(80,80,80,.45);border-radius:2px}
+
+/* Dependency arrow stub (simplified, no real SVG path) */
+.dep-arrow{position:absolute;font-size:10px;color:#c0392b}
+
+/* status bar */
+.statusbar{background:#2B579A;color:#fff;font-size:11px;padding:2px 8px;display:flex;gap:16px;height:22px;align-items:center}
+
+/* zoom widget */
+.zoom-box{position:absolute;bottom:24px;right:4px;background:rgba(255,255,255,.92);border:1px solid #c0cfe0;border-radius:5px;padding:4px 8px;font-size:11px;color:#2B579A;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="menubar">
+    <span>File</span><span>Options</span><span>Project</span>
+  </div>
+  <!-- Ribbon (TASK tab active) -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <button class="rtab active">TASK</button>
+      <button class="rtab">RESOURCE</button>
+      <button class="rtab">REPORT</button>
+      <button class="rtab">BASELINE</button>
+      <button class="rtab">VERSION CONTROL</button>
+    </div>
+    <div class="ribbon-panel">
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📋</div><div class="rbtn-lbl">Task<br>Sheet</div></div>
+        </div>
+        <div class="rgroup-lbl">Sheet</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn" style="background:#dde8f5;border-color:#a0bcd8"><div class="rbtn-icon">⊟</div><div class="rbtn-lbl">Gantt<br>Chart</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⤢</div><div class="rbtn-lbl">Depend-<br>encies</div></div>
+        </div>
+        <div class="rgroup-lbl">View</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">📋</div><div class="rbtn-lbl">Paste</div></div>
+          <div class="rbtn"><div class="rbtn-icon">✂</div><div class="rbtn-lbl">Cut</div></div>
+          <div class="rbtn"><div class="rbtn-icon">⎘</div><div class="rbtn-lbl">Copy</div></div>
+        </div>
+        <div class="rgroup-lbl">Clipboard</div>
+      </div>
+      <div class="rgroup-sep"></div>
+      <div class="rgroup">
+        <div class="rgroup-btns">
+          <div class="rbtn"><div class="rbtn-icon">🔗</div><div class="rbtn-lbl">Jira Sync<br>Config</div></div>
+          <div class="rbtn"><div class="rbtn-icon">🔄</div><div class="rbtn-lbl">Sync from<br>Jira</div></div>
+        </div>
+        <div class="rgroup-lbl">Jira</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar">
+    <div class="tab active">Gantt Chart</div>
+    <div class="tab">Resources</div>
+    <div class="tab">Dependencies</div>
+    <div class="tab">Baseline</div>
+    <div class="tab">Team Planner</div>
+    <div class="tab">Task Sheet</div>
+    <div class="tab">Resource Usage</div>
+  </div>
+
+  <div class="gantt-area">
+
+    <!-- ── Left task pane ── -->
+    <div class="task-pane">
+      <div class="pane-hdr">
+        <div class="ph-cell" style="width:22px"></div>
+        <div class="ph-cell" style="width:24px">#</div>
+        <div class="ph-cell" style="flex:1">Task Name</div>
+        <div class="ph-cell" style="width:60px">Duration</div>
+      </div>
+      <div class="task-rows">
+        <!-- row height 26px each -->
+        <div class="t-row summary even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">1</div><div class="t-cell" style="flex:1"><span class="tri">▼</span> Requirements</div><div class="t-cell" style="width:60px">5d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">2</div><div class="t-cell i1" style="flex:1">Stakeholder interviews</div><div class="t-cell" style="width:60px">2d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">3</div><div class="t-cell i1" style="flex:1">Requirements document</div><div class="t-cell" style="width:60px">3d</div></div>
+        <div class="t-row summary odd"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">4</div><div class="t-cell" style="flex:1"><span class="tri">▼</span> Design</div><div class="t-cell" style="width:60px">6d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">5</div><div class="t-cell i1" style="flex:1">Architecture review</div><div class="t-cell" style="width:60px">1d</div></div>
+        <div class="t-row odd sel"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">6</div><div class="t-cell i1" style="flex:1">Component design</div><div class="t-cell" style="width:60px">5d</div></div>
+        <div class="t-row summary even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">7</div><div class="t-cell" style="flex:1"><span class="tri">▶</span> Implementation</div><div class="t-cell" style="width:60px">14d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:22px"><span class="icon ic-crit">●</span></div><div class="t-cell" style="width:24px">8</div><div class="t-cell i1" style="flex:1">Module A coding</div><div class="t-cell" style="width:60px">8d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"><span class="icon ic-crit">●</span></div><div class="t-cell" style="width:24px">9</div><div class="t-cell i1" style="flex:1">Module B coding</div><div class="t-cell" style="width:60px">6d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">10</div><div class="t-cell i1" style="flex:1">Unit tests</div><div class="t-cell" style="width:60px">3d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">11</div><div class="t-cell i1" style="flex:1">Integration module</div><div class="t-cell" style="width:60px">4d</div></div>
+        <div class="t-row summary odd"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">12</div><div class="t-cell" style="flex:1"><span class="tri">▼</span> QA &amp; Release</div><div class="t-cell" style="width:60px">5d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"><span class="icon ic-crit">●</span></div><div class="t-cell" style="width:24px">13</div><div class="t-cell i1" style="flex:1">Integration testing</div><div class="t-cell" style="width:60px">4d</div></div>
+        <div class="t-row odd"><div class="t-cell" style="width:22px"><span class="icon ic-late">●</span></div><div class="t-cell" style="width:24px">14</div><div class="t-cell i1" style="flex:1">User acceptance testing</div><div class="t-cell" style="width:60px">3d</div></div>
+        <div class="t-row even"><div class="t-cell" style="width:22px"></div><div class="t-cell" style="width:24px">15</div><div class="t-cell i1" style="flex:1">Release sign-off ◆</div><div class="t-cell" style="width:60px">0d</div></div>
+      </div>
+    </div>
+
+    <!-- ── Chart pane ── -->
+    <div class="chart-pane">
+      <!-- Calendar header: 24 visible days starting 2026-04-01 (Wed) -->
+      <div class="cal-hdr">
+        <!-- Month row: April = 21 days × 34px = 714px, May = 14 days -->
+        <div class="month-row">
+          <div class="month-cell" style="width:714px">April 2026</div>
+          <div class="month-cell" style="flex:1">May 2026</div>
+        </div>
+        <!-- Day row: Apr 1-30, May 1-14 (44 days × 34px) -->
+        <div class="day-row">
+          <!-- April: 1 Wed, 2 Thu, 3 Fri, 4 Sat, 5 Sun, 6 Mon … 30 Thu -->
+          <div class="day-cell">1</div><div class="day-cell">2</div><div class="day-cell">3</div>
+          <div class="day-cell sat" style="background:#e8e8e8">4</div><div class="day-cell sun" style="background:#D0D8EE;opacity:.7">5</div>
+          <div class="day-cell">6</div><div class="day-cell">7</div><div class="day-cell">8</div><div class="day-cell">9</div><div class="day-cell">10</div>
+          <div class="day-cell sat" style="background:#e8e8e8">11</div><div class="day-cell sun" style="background:#D0D8EE;opacity:.7">12</div>
+          <div class="day-cell">13</div><div class="day-cell">14</div><div class="day-cell">15</div><div class="day-cell">16</div><div class="day-cell">17</div>
+          <div class="day-cell sat" style="background:#e8e8e8">18</div><div class="day-cell today-hdr">19</div>
+          <div class="day-cell">20</div><div class="day-cell">21</div><div class="day-cell">22</div><div class="day-cell">23</div><div class="day-cell">24</div>
+          <div class="day-cell sat" style="background:#e8e8e8">25</div><div class="day-cell sun" style="background:#D0D8EE;opacity:.7">26</div>
+          <div class="day-cell">27</div><div class="day-cell">28</div><div class="day-cell">29</div><div class="day-cell">30</div>
+          <!-- May -->
+          <div class="day-cell sat" style="background:#e8e8e8">1</div><div class="day-cell sun" style="background:#D0D8EE;opacity:.7">2</div>
+          <div class="day-cell">3</div><div class="day-cell">4</div><div class="day-cell">5</div><div class="day-cell">6</div><div class="day-cell">7</div>
+          <div class="day-cell sat" style="background:#e8e8e8">8</div><div class="day-cell sun" style="background:#D0D8EE;opacity:.7">9</div>
+          <div class="day-cell">10</div><div class="day-cell">11</div><div class="day-cell">12</div><div class="day-cell">13</div><div class="day-cell">14</div>
+        </div>
+      </div>
+
+      <!-- Scrollable chart body; day 0 = Apr 1; each day = 34px -->
+      <!-- Today = Apr 19 = day 18 → left = 18*34 = 612px -->
+      <div class="chart-rows" style="position:relative;flex:1;overflow:hidden">
+
+        <!-- Weekend shading columns (Sat/Sun pairs) -->
+        <!-- Sat Apr 4 = day3 → 3*34=102; width=34 -->
+        <div style="position:absolute;top:0;bottom:0;left:102px;width:68px;background:rgba(210,210,210,.4);pointer-events:none"></div>
+        <div style="position:absolute;top:0;bottom:0;left:374px;width:68px;background:rgba(210,210,210,.4);pointer-events:none"></div>
+        <div style="position:absolute;top:0;bottom:0;left:646px;width:68px;background:rgba(210,210,210,.4);pointer-events:none"></div>
+        <div style="position:absolute;top:0;bottom:0;left:918px;width:68px;background:rgba(210,210,210,.4);pointer-events:none"></div>
+        <!-- May Sat 1 = day30 → 1020; May Sat 8 = day37 → 1258 -->
+        <div style="position:absolute;top:0;bottom:0;left:1020px;width:68px;background:rgba(210,210,210,.4);pointer-events:none"></div>
+
+        <!-- Today line Apr 19 = day18 → 18*34=612 + 17px centre -->
+        <div class="today-line" style="left:629px"></div>
+
+        <!-- Row backgrounds -->
+        <div class="c-row summary even" style="height:26px"></div>
+        <div class="c-row odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+        <div class="c-row summary odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+        <div class="c-row odd" style="height:26px"></div>
+        <div class="c-row summary even" style="height:26px"></div>
+        <div class="c-row odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+        <div class="c-row odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+        <div class="c-row summary odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+        <div class="c-row odd" style="height:26px"></div>
+        <div class="c-row even" style="height:26px"></div>
+
+        <!-- Task bars (absolute positioned over all rows) -->
+        <!-- Row y: row n → top = n*26 + 5px  bar height 16 -->
+        <!-- Bar positioning: left = (startDay * 34), width = (duration * 34) -->
+        <!-- Apr 1=d0, Apr 3=d2, Apr 8=d7, Apr 9=d8, Apr 16=d15, Apr 24=d23, Apr 28=d27, May 5=d34, May 8=d37, May 11=d40, May 14=d43 -->
+
+        <!-- Row 0 summary: Requirements (d0..d4) 5d = 170px  -->
+        <div class="bar done" style="left:0;width:170px;top:5px"><div class="bar-fill" style="width:100%"></div><span class="bar-lbl">Requirements</span></div>
+        <!-- Baseline strip row0 -->
+        <div class="baseline" style="left:0;width:170px;top:22px"></div>
+
+        <!-- Row 1 (d0, 2d) Stakeholder interviews -->
+        <div class="bar done" style="left:0;width:68px;top:31px"><span class="bar-lbl">Stakeholder interviews</span></div>
+
+        <!-- Row 2 (d2, 3d) Requirements document -->
+        <div class="bar done" style="left:68px;width:102px;top:57px"><span class="bar-lbl">Requirements doc</span></div>
+
+        <!-- Row 3 summary: Design (d5..d12) -->
+        <div class="bar normal" style="left:170px;width:204px;top:83px;background:#5a8ad0"><div class="bar-fill" style="width:60%"></div><span class="bar-lbl">Design</span></div>
+        <div class="baseline" style="left:170px;width:204px;top:100px"></div>
+
+        <!-- Row 4 (d5 → Apr 8=d7, 1d=34) Architecture review -->
+        <div class="bar done" style="left:238px;width:34px;top:109px"><span class="bar-lbl"></span></div>
+
+        <!-- Row 5 (d8 → Apr 9, 5d=170) Component design [selected] -->
+        <div class="bar normal" style="left:272px;width:170px;top:135px"><div class="bar-fill" style="width:40%"></div><span class="bar-lbl">Component design</span></div>
+
+        <!-- Row 6 summary: Implementation collapsed (d15..d29=14d=476px) -->
+        <div class="bar crit" style="left:510px;width:476px;top:161px"><span class="bar-lbl">Implementation</span></div>
+
+        <!-- Row 7 (d15→Apr16, 8d=272) Module A -->
+        <div class="bar crit" style="left:510px;width:272px;top:187px"><span class="bar-lbl">Module A coding</span></div>
+        <div class="baseline" style="left:510px;width:272px;top:204px"></div>
+
+        <!-- Row 8 (d15→Apr16, 6d=204) Module B -->
+        <div class="bar crit" style="left:510px;width:204px;top:213px"><span class="bar-lbl">Module B coding</span></div>
+
+        <!-- Row 9 (d27→Apr28, 3d=102) Unit tests -->
+        <div class="bar normal" style="left:918px;width:102px;top:239px"><span class="bar-lbl">Unit tests</span></div>
+
+        <!-- Row 10 (d23→Apr24, 4d=136) Integration module -->
+        <div class="bar normal" style="left:782px;width:136px;top:265px"><span class="bar-lbl">Integration module</span></div>
+
+        <!-- Row 11 summary: QA (d34..d43=10d) -->
+        <div class="bar crit" style="left:1156px;width:306px;top:291px"><span class="bar-lbl">QA &amp; Release</span></div>
+
+        <!-- Row 12 (d34→May5, 4d=136) Integration testing -->
+        <div class="bar crit" style="left:1156px;width:136px;top:317px"><span class="bar-lbl">Integration testing</span></div>
+
+        <!-- Row 13 (d40→May11, 3d=102) UAT -->
+        <div class="bar normal" style="left:1360px;width:102px;top:343px;background:#e07b1a"><span class="bar-lbl">UAT</span></div>
+
+        <!-- Row 14: Milestone May 14=d43 → 1462px -->
+        <div class="milestone" style="left:1455px;top:356px"></div>
+
+        <!-- Dependency arrows (simplified lines using borders) -->
+        <!-- FS 2→3: from end of row1 to start of row2 -->
+        <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+          <!-- 2→3: from (68,44) to (68,57+8=65) -->
+          <polyline points="68,44 68,65 68,65" stroke="#c0392b" stroke-width="1.5" fill="none"/>
+          <!-- 3→5 (design start): from (170,70) down to (272,140) -->
+          <polyline points="170,70 180,70 180,96 272,96 272,143" stroke="#666" stroke-width="1" fill="none" marker-end="url(#arr)"/>
+          <!-- 6→8 (Module A): -->
+          <polyline points="442,148 452,148 452,174 510,174 510,195" stroke="#666" stroke-width="1" fill="none"/>
+          <!-- 8→10 (unit tests) -->
+          <polyline points="782,200 800,200 800,222 918,222 918,247" stroke="#666" stroke-width="1" fill="none"/>
+          <defs>
+            <marker id="arr" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#666"/>
+            </marker>
+          </defs>
+        </svg>
+
+        <!-- Zoom widget -->
+        <div class="zoom-box">🔍 34 px/day</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>Tasks: 14</span><span>|</span><span>Critical: 4</span><span>|</span><span>Project end: 14 May 2026</span><span>|</span><span>Today: 19 Apr 2026</span>
+  </div>
+</div>
+</body>
+</html>

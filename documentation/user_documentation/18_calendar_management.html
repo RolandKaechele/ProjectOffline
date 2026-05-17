@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holiday Calendar Management – Project Offline Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav-sidebar">
+  <a class="logo" href="index.html">Project Offline<span>User Documentation</span></a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" class="section-head">Getting Started</a></li>
+    <li><a href="01_getting_started.html">Overview &amp; Interface</a></li>
+    <li><a href="#" class="section-head">Tasks</a></li>
+    <li><a href="02_task_creation.html">Task Creation &amp; Editing</a></li>
+    <li><a href="03_gantt_chart.html">Gantt Chart</a></li>
+    <li><a href="04_dependencies.html">Dependencies</a></li>
+    <li><a href="#" class="section-head">Resources</a></li>
+    <li><a href="05_resource_creation.html">Resource Creation &amp; Editing</a></li>
+    <li><a href="06_team_planner.html">Team Planner</a></li>
+    <li><a href="07_resource_usage.html">Resource Usage Graph</a></li>
+    <li><a href="20_resource_usage_histogram.html">Resource Usage Histogram</a></li>
+    <li><a href="#" class="section-head">Planning</a></li>
+    <li><a href="08_baseline.html">Baseline Tracking</a></li>
+    <li><a href="09_calendar_sync.html">Confluence Calendar Sync</a></li>
+    <li><a href="18_calendar_management.html" class="active">Holiday Calendar Management</a></li>
+    <li><a href="#" class="section-head">File Operations</a></li>
+    <li><a href="10_file_operations.html">Open, Save &amp; Export</a></li>
+    <li><a href="#" class="section-head">Views</a></li>
+    <li><a href="11_timeline.html">Timeline Strip</a></li>
+    <li><a href="12_task_splitting.html">Task Splitting &amp; Merging</a></li>
+    <li><a href="#" class="section-head">Settings &amp; Security</a></li>
+    <li><a href="13_keepass.html">KeePass Credentials</a></li>
+    <li><a href="14_ad_integration.html">Active Directory Sync</a></li>
+    <li><a href="15_email_integration.html">Email Integration</a></li>
+    <li><a href="#" class="section-head">Jira</a></li>
+    <li><a href="16_jira_integration.html">Jira Integration</a></li>
+    <li><a href="17_jira_sync.html">Jira Sync</a></li>
+    <li><a href="#" class="section-head">Version Control</a></li>
+    <li><a href="19_version_control.html">Git &amp; SVN Integration</a></li>
+    <li><a href="#" class="section-head">Advanced</a></li>
+    <li><a href="21_progress_dialogs.html">Progress Dialogs</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Holiday Calendar Management</h1>
+    <p>Automatically populate project calendars with public holidays for Germany
+       (national + all 15 federal states) and 5 international countries — no internet
+       connection required.</p>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>›</span> Holiday Calendar Management</div>
+
+    <h2>Overview</h2>
+    <p>Project Offline can automatically create and fill project calendars with public-holiday
+       dates so that the Gantt chart, Team Planner, and Resource Usage Graph correctly skip
+       non-working days during scheduling. Holidays are computed entirely offline — no
+       network connection, no external files, and no licence needed.</p>
+
+    <p>Holiday calendars are populated for a <strong>rolling 15-year window</strong>
+       (current year &minus;2 through current year +13).</p>
+
+    <div class="callout note">
+      <strong>No internet required</strong>
+      All holiday dates are built into the application. Movable dates such as Easter,
+      Corpus Christi, and Buß-und-Bettag are calculated algorithmically; fixed-date
+      holidays use the official legal rules for each country.
+    </div>
+
+    <h2>Step 1 &mdash; Create a new project</h2>
+    <p>Use <strong>File &rarr; New</strong> (<kbd>Ctrl</kbd>+<kbd>N</kbd>). The application
+       immediately:</p>
+    <ol>
+      <li>Reads the <strong>OS locale monetary settings</strong> and applies them as the project
+          currency (symbol, currency code, decimal digits, symbol position). On a German Windows
+          system this sets <em>&euro;</em> / EUR automatically instead of the generic
+          <em>$</em> default.</li>
+      <li>Creates a project calendar named <em>Standard (Deutschland)</em>.</li>
+      <li>Populates it with all <strong>9 German national public holidays</strong>
+          for the 15-year window.</li>
+      <li>Opens the <strong>Select Additional Calendars</strong> dialog (see below).</li>
+      <li>After you close that dialog, opens the <strong>Project Information</strong>
+          dialog so you can set the start and end dates.</li>
+    </ol>
+
+    <h2>Step 2 &mdash; Pick optional regional / country calendars</h2>
+    <p>The <em>Select Additional Calendars</em> dialog opens automatically after
+       <strong>File &rarr; New</strong>. It lists:</p>
+
+    <table>
+      <thead><tr><th>Section</th><th>Entries</th><th>What is added</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>German Federal States</strong></td>
+          <td>All 15 states</td>
+          <td>State-specific extra holidays (Corpus Christi, Epiphany, Assumption, All Saints&apos;,
+              Buß-und-Bettag, Children&apos;s Day, etc.)</td>
+        </tr>
+        <tr>
+          <td><strong>Other Countries</strong></td>
+          <td>France, India, Romania, China, Japan</td>
+          <td>National public holidays for the selected country</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Tick the calendars you need and click <strong>OK</strong>. Each ticked entry
+       creates a separate named project calendar pre-loaded with the corresponding holidays.
+       Unticked entries are simply skipped — you can add them later via
+       <strong>Add Holidays&hellip;</strong> (see below).</p>
+
+    <div class="callout tip">
+      <strong>Tip</strong>
+      Select your country's state calendar to ensure regional bank holidays (e.g.
+      Corpus Christi in Bavaria, or Reformation Day in Brandenburg) are treated as
+      non-working days in your schedule.
+    </div>
+
+    <h2>German national holidays (included in all new projects)</h2>
+    <table>
+      <thead><tr><th>Holiday</th><th>Date rule</th></tr></thead>
+      <tbody>
+        <tr><td>New Year&apos;s Day</td><td>1 January</td></tr>
+        <tr><td>Good Friday</td><td>Easter &minus; 2 days</td></tr>
+        <tr><td>Easter Monday</td><td>Easter + 1 day</td></tr>
+        <tr><td>Labour Day</td><td>1 May</td></tr>
+        <tr><td>Ascension Day</td><td>Easter + 39 days</td></tr>
+        <tr><td>Whit Monday</td><td>Easter + 50 days</td></tr>
+        <tr><td>German Unity Day</td><td>3 October</td></tr>
+        <tr><td>Christmas Day</td><td>25 December</td></tr>
+        <tr><td>2nd Christmas Day</td><td>26 December</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Adding or changing calendars in an existing project</h2>
+    <p>You can manage holiday calendars at any time via the
+       <strong>Project Information</strong> dialog:</p>
+    <ol>
+      <li>Open <strong>Project &rarr; Project Information&hellip;</strong>
+          (or press <kbd>Alt</kbd>+<kbd>F11</kbd>).</li>
+      <li>Go to the <strong>Calendars</strong> tab.</li>
+      <li>Select the calendar you want to modify in the list on the left.</li>
+      <li>Use the action buttons on the right:</li>
+    </ol>
+
+    <table>
+      <thead><tr><th>Button</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Import ICS&hellip;</strong></td>
+          <td>
+            Opens a file-picker dialog. Select any <code>.ics</code> or <code>.ical</code>
+            iCalendar file (e.g. a corporate public-holiday feed, a shared team
+            out-of-office calendar). Every event in the file is converted to a
+            non-working exception on the selected calendar.<br><br>
+            <em>Multi-day events are expanded day-by-day</em> — a conference that runs
+            Monday to Friday generates five individual non-working exception days.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Add Holidays&hellip;</strong></td>
+          <td>
+            Re-opens the <em>Select Additional Calendars</em> dialog. Tick any German
+            state or country you want to add. The newly selected calendars are created
+            immediately; already-existing calendars are not duplicated.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>ICS import — what is imported</strong>
+      The importer reads the <code>DTSTART</code> value of each <code>VEVENT</code> block
+      and marks that date as non-working. Events that span multiple days
+      (<code>DTSTART</code> + <code>DTEND</code>) generate one non-working day per day
+      in the range. <code>VTIMEZONE</code>, recurrence rules (<code>RRULE</code>), and
+      alarms (<code>VALARM</code>) are ignored — only the explicit date is used.
+    </div>
+
+    <h2>Supported countries</h2>
+    <table>
+      <thead><tr><th>Country / Region</th><th>Calendar name created</th><th>Notable movable dates</th></tr></thead>
+      <tbody>
+        <tr><td>Germany (national)</td><td>Standard (Deutschland)</td><td>Easter, Ascension, Whit Monday</td></tr>
+        <tr><td>Baden-Württemberg</td><td>Standard (Baden-Württemberg)</td><td>Corpus Christi</td></tr>
+        <tr><td>Bayern</td><td>Standard (Bayern)</td><td>Corpus Christi, Buß-und-Bettag</td></tr>
+        <tr><td>Berlin</td><td>Standard (Berlin)</td><td>International Women&apos;s Day (fixed)</td></tr>
+        <tr><td>Brandenburg</td><td>Standard (Brandenburg)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Bremen</td><td>Standard (Bremen)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Hamburg</td><td>Standard (Hamburg)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Hessen</td><td>Standard (Hessen)</td><td>Corpus Christi</td></tr>
+        <tr><td>Mecklenburg-Vorpommern</td><td>Standard (Mecklenburg-Vorpommern)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Niedersachsen</td><td>Standard (Niedersachsen)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Nordrhein-Westfalen</td><td>Standard (Nordrhein-Westfalen)</td><td>Corpus Christi, All Saints&apos;</td></tr>
+        <tr><td>Rheinland-Pfalz</td><td>Standard (Rheinland-Pfalz)</td><td>Corpus Christi, All Saints&apos;</td></tr>
+        <tr><td>Saarland</td><td>Standard (Saarland)</td><td>Corpus Christi, All Saints&apos;</td></tr>
+        <tr><td>Sachsen</td><td>Standard (Sachsen)</td><td>Corpus Christi, Buß-und-Bettag</td></tr>
+        <tr><td>Sachsen-Anhalt</td><td>Standard (Sachsen-Anhalt)</td><td>Epiphany (fixed)</td></tr>
+        <tr><td>Schleswig-Holstein</td><td>Standard (Schleswig-Holstein)</td><td>Reformation Day (fixed)</td></tr>
+        <tr><td>Thüringen</td><td>Standard (Thüringen)</td><td>Children&apos;s Day, Reformation Day</td></tr>
+        <tr><td>France</td><td>Standard (France)</td><td>Easter Monday, Ascension, Whit Monday</td></tr>
+        <tr><td>India</td><td>Standard (India)</td><td>Fixed national holidays only</td></tr>
+        <tr><td>Romania</td><td>Standard (Romania)</td><td>Orthodox Easter, Orthodox Whit</td></tr>
+        <tr><td>China</td><td>Standard (China)</td><td>Spring Festival, National Day Golden Week</td></tr>
+        <tr><td>Japan</td><td>Standard (Japan)</td><td>nth-weekday rules (Coming of Age, Sports Day, etc.)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>How holiday calendars affect scheduling</h2>
+    <p>Holiday calendars in Project Offline work the same as in Microsoft Project:</p>
+    <ul>
+      <li>Non-working exception days are skipped when calculating task durations and
+          dependency dates.</li>
+      <li>Tasks that would land on a holiday are shifted forward automatically.</li>
+      <li>The Gantt chart and Team Planner shade holiday columns distinctly from regular
+          weekends.</li>
+    </ul>
+    <p>To assign a specific calendar to a task or resource, use the
+       <strong>Calendar</strong> drop-down in the Task Information or Resource
+       Information dialog respectively.</p>
+
+    <h2>Base Calendar Selector</h2>
+    <p>In <strong>Project Information &rarr; Calendars</strong>, the <strong>Base Calendar</strong>
+       field is an editable selector. The project default calendar appears first with a
+       star prefix, the currently edited calendar is excluded, and the selected parent
+       calendar is saved when you confirm the dialog.</p>
+
+    <figure class="screenshot">
+      <svg viewBox="0 0 760 500" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">
+        <rect width="760" height="500" fill="#f4f7fb"/>
+        <rect x="8" y="8" width="744" height="484" rx="6" fill="#fff" stroke="#8aa0be"/>
+        <rect x="8" y="8" width="744" height="46" rx="6" fill="#2B579A"/>
+        <text x="22" y="29" fill="#fff" font-size="14" font-weight="700">Project Information - Calendars</text>
+        <text x="22" y="44" fill="#c7d7f2" font-size="11">Base Calendar is editable and saved as parent calendar via setParent().</text>
+
+        <rect x="20" y="66" width="220" height="370" rx="5" fill="#fff" stroke="#cad9ef"/>
+        <rect x="20" y="66" width="220" height="30" fill="#e8f0fc" stroke="#cad9ef"/>
+        <text x="30" y="86" fill="#1a3f7a" font-size="12" font-weight="700">Project Calendars</text>
+        <rect x="30" y="108" width="200" height="30" rx="4" fill="#fff" stroke="#d6e2f2"/>
+        <text x="40" y="127" fill="#334">Standard (Deutschland)</text>
+        <rect x="30" y="146" width="200" height="30" rx="4" fill="#edf4ff" stroke="#2B579A"/>
+        <text x="40" y="165" fill="#1a3f7a" font-weight="700">Muller, Max Calendar</text>
+        <rect x="30" y="184" width="200" height="30" rx="4" fill="#fff" stroke="#d6e2f2"/>
+        <text x="40" y="203" fill="#334">Bayern Holidays</text>
+        <rect x="30" y="222" width="200" height="30" rx="4" fill="#fff" stroke="#d6e2f2"/>
+        <text x="40" y="241" fill="#334">France Holidays</text>
+
+        <rect x="252" y="66" width="490" height="370" rx="5" fill="#fff" stroke="#cad9ef"/>
+        <rect x="252" y="66" width="490" height="30" fill="#e8f0fc" stroke="#cad9ef"/>
+        <text x="262" y="86" fill="#1a3f7a" font-size="12" font-weight="700">Calendar Properties</text>
+
+        <text x="270" y="122" fill="#465a7b" font-size="11">Name:</text>
+        <rect x="360" y="108" width="360" height="24" rx="3" fill="#fff" stroke="#adc2df"/>
+        <text x="368" y="124" fill="#222">Muller, Max Calendar</text>
+
+        <text x="270" y="158" fill="#465a7b" font-size="11">Unique ID:</text>
+        <rect x="360" y="144" width="360" height="24" rx="3" fill="#fff" stroke="#adc2df"/>
+        <text x="368" y="160" fill="#222">104</text>
+
+        <text x="270" y="194" fill="#465a7b" font-size="11">Base Calendar:</text>
+        <rect x="360" y="180" width="360" height="24" rx="3" fill="#fff" stroke="#adc2df"/>
+        <text x="368" y="196" fill="#222">★ Standard (Deutschland)</text>
+
+        <rect x="264" y="216" width="466" height="52" fill="#eef4ff" stroke="#2B579A"/>
+        <text x="274" y="236" fill="#264069" font-size="11" font-weight="700">Behavior:</text>
+        <text x="334" y="236" fill="#264069" font-size="11">Current calendar excluded from list; default calendar shown first with star prefix.</text>
+
+        <rect x="264" y="278" width="466" height="138" rx="4" fill="#fff" stroke="#d4e0f1"/>
+        <rect x="264" y="278" width="466" height="24" fill="#f2f6fd"/>
+        <text x="278" y="294" fill="#344b73" font-size="11" font-weight="700">Day</text>
+        <text x="620" y="294" fill="#344b73" font-size="11" font-weight="700">Working Time</text>
+        <line x1="264" y1="310" x2="730" y2="310" stroke="#e3ebf7"/>
+        <text x="278" y="326" fill="#333" font-size="11">Monday</text><text x="560" y="326" fill="#333" font-size="11">08:00-12:00, 13:00-17:00</text>
+        <line x1="264" y1="334" x2="730" y2="334" stroke="#e3ebf7"/>
+        <text x="278" y="350" fill="#333" font-size="11">Tuesday</text><text x="560" y="350" fill="#333" font-size="11">08:00-12:00, 13:00-17:00</text>
+        <line x1="264" y1="358" x2="730" y2="358" stroke="#e3ebf7"/>
+        <text x="278" y="374" fill="#333" font-size="11">Wednesday</text><text x="560" y="374" fill="#333" font-size="11">08:00-12:00, 13:00-17:00</text>
+
+        <rect x="8" y="448" width="744" height="44" fill="#f3f7fd" stroke="#d0ddef"/>
+        <rect x="590" y="460" width="62" height="24" rx="3" fill="#fff" stroke="#9db3d2"/>
+        <text x="621" y="476" fill="#2B579A" font-size="11" text-anchor="middle">Cancel</text>
+        <rect x="660" y="460" width="44" height="24" rx="3" fill="#2B579A"/>
+        <text x="682" y="476" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">OK</text>
+      </svg>
+      <figcaption>Fig. 1 — Base Calendar selector in Project Information &rarr; Calendars.</figcaption>
+    </figure>
+
+  </div>
+</div>
+
+</body>
+</html>

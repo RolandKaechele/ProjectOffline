@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Resource Information Dialog – Project Offline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;background:#fff;overflow:hidden;user-select:none}
+.window{display:flex;flex-direction:column;width:500px;height:490px;border:1px solid #888;border-radius:4px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+
+/* ── Dialog header ─────────────────────────── */
+.dlg-header{background:#2B579A;color:#fff;padding:12px 18px 10px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.dlg-header h2{font-size:14px;font-weight:700;margin:0}
+.avatar{width:52px;height:52px;border-radius:50%;background:#1a4070;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;margin-top:-4px}
+
+/* ── Dialog body ───────────────────────────── */
+.dlg-body{flex:1;display:flex;flex-direction:column;padding:14px 18px 10px;background:#fff;gap:0;overflow:hidden}
+
+/* ── Form rows ─────────────────────────────── */
+.form-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.form-label{width:108px;font-size:11.5px;color:#444;flex-shrink:0;text-align:right}
+.form-hint{font-size:10px;color:#888;flex-shrink:0}
+.form-input{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff}
+.form-input::placeholder{color:#aaa}
+.form-select{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 6px;font-size:12px;color:#222;background:#fff}
+.form-textarea{flex:1;border:1px solid #b0c4dc;border-radius:3px;padding:4px 7px;font-size:12px;color:#222;background:#fff;resize:none;height:48px}
+
+/* ── Email row with inline button ──────────── */
+.email-row{display:flex;align-items:center;gap:6px;flex:1}
+.btn-ad{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:4px 10px;font-size:11px;cursor:default;white-space:nowrap;font-weight:600;flex-shrink:0}
+
+/* ── Work-only badge ────────────────────────── */
+.work-tag{font-size:9.5px;color:#2B579A;background:#e0eaf8;border:1px solid #b0c4dc;border-radius:8px;padding:1px 6px;flex-shrink:0}
+
+/* ── Footer ────────────────────────────────── */
+.dlg-footer{background:#f0f4fb;border-top:1px solid #d0dce8;padding:9px 18px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:#2B579A;color:#fff;border:none;border-radius:3px;padding:5px 18px;font-size:12px;cursor:default;font-weight:600}
+.btn-default{background:#fff;color:#333;border:1px solid #b0c4dc;border-radius:3px;padding:5px 16px;font-size:12px;cursor:default}
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <!-- Dialog header with avatar -->
+  <div class="dlg-header">
+    <h2>Resource Information</h2>
+    <div class="avatar">👤</div>
+  </div>
+
+  <!-- Dialog body -->
+  <div class="dlg-body">
+
+    <div class="form-row">
+      <span class="form-label">Name:</span>
+      <input class="form-input" type="text" value="Müller, Max">
+      <span class="form-hint">· unique per project</span>
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">Type:</span>
+      <select class="form-select">
+        <option selected>Work</option>
+        <option>Material</option>
+        <option>Cost</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">E-Mail:</span>
+      <div class="email-row">
+        <input class="form-input" type="text" value="max.mueller@company.com">
+        <button class="btn-ad">Look up in AD…</button>
+      </div>
+      <span class="work-tag">Work only</span>
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">Department:</span>
+      <input class="form-input" type="text" value="Engineering / Embedded Systems">
+      <span class="work-tag">Work only</span>
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">Max Units:</span>
+      <input class="form-input" type="text" value="100">
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">Standard Rate:</span>
+      <input class="form-input" type="text" value="90.00 €/h">
+    </div>
+
+    <div class="form-row">
+      <span class="form-label">Overtime Rate:</span>
+      <input class="form-input" type="text" value="135.00 €/h">
+    </div>
+
+    <div class="form-row" style="align-items:flex-start">
+      <span class="form-label" style="padding-top:4px">Notes:</span>
+      <textarea class="form-textarea" placeholder="Optional notes about this resource…"></textarea>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="dlg-footer">
+    <button class="btn-primary">OK</button>
+    <button class="btn-default">Cancel</button>
+  </div>
+
+</div>
+
+</body>
+</html>
