@@ -43,7 +43,7 @@ goto :pythonready
 
 :foundinstaller
 echo Extracting Python from !PYTHON_INSTALLER! to temp\Python312 ...
-"!PYTHON_INSTALLER!" /quiet InstallAllUsers=0 PrependPath=0 Include_launcher=0 AssociateFiles=0 TargetDir="%~dp0temp\Python312"
+"!PYTHON_INSTALLER!" -o"%~dp0temp\Python312" -y
 if exist "%~dp0temp\Python312\python.exe" (
     set "PYTHON_EXE=%~dp0temp\Python312\python.exe"
     echo Python extracted successfully.
