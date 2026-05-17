@@ -34,9 +34,12 @@ jobs:
             exit 1
           fi
           VERSION="${TAG#v}"
+          # Tag for the release uses only the date part (strip -HH.MM)
+          RELEASE_TAG="${TAG%%-*}"
           echo "Version: $VERSION"
+          echo "Release tag: $RELEASE_TAG"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: Extract changelog from commits
         id: changelog
