@@ -46,6 +46,19 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Create and push tag if not exists
+        run: |
+          RELEASE_TAG="${{ steps.version.outputs.tag }}"
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG already exists."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
+            git push origin "$RELEASE_TAG"
+            echo "Tag $RELEASE_TAG created and pushed."
+          fi
+
       - name: Extract changelog from commits
         id: changelog
         run: |
@@ -65,7 +78,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release (Draft)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ steps.version.outputs.tag }}
           tag_name: ${{ steps.version.outputs.tag }}
