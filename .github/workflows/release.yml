@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'  # Trigger on version tags like v1.0.0, v2026.05.01, etc.
   workflow_dispatch:  # Allow manual triggering
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v2026.05.17-10.28)'
+        required: true
 
 permissions:
   contents: write
@@ -23,10 +27,16 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION=$(git describe --tags --exact-match | sed 's/^v//')
+          # Use the pushed tag or the manually supplied input
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          if [ -z "$TAG" ] || [[ "$TAG" != v* ]]; then
+            echo "::error::No valid v* tag found. Push a v* tag or supply one via workflow_dispatch input."
+            exit 1
+          fi
+          VERSION="${TAG#v}"
           echo "Version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$(git describe --tags --exact-match)" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Extract changelog from commits
         id: changelog
@@ -53,6 +63,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           draft: true
           prerelease: false
+          make_latest: true
           generate_release_notes: true
           body: |
             ## Release ${{ steps.version.outputs.tag }}
