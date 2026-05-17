@@ -11,6 +11,7 @@ on:
       - main
       - master
   workflow_dispatch:
+  workflow_call:  # Allow this workflow to be called by other workflows
 
 jobs:
   test:
