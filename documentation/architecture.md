@@ -101,6 +101,13 @@ ui.py  (MainWindow)
   │                      apply_to_resource() persists email via setEmailAddress(),
   │                      department via setDepartment() (empty string stored as None), and
   │                      resource type via setType(ResourceType.WORK/MATERIAL/COST);
+  │                      "Active Directory" tab (_tab_active_directory): shows AD Display
+  │                      Name + Username (read-only), plus editable E-Mail, Department,
+  │                      City, and Country (editable QComboBox pre-populated with country
+  │                      names); all fields pre-filled from resource._ad_data or from MPXJ
+  │                      EMAIL_ADDRESS / TEXT1 (City) / TEXT2 (Department) / TEXT3 (Country)
+  │                      resource fields; on accept, E-Mail is saved via setEmailAddress()
+  │                      (when non-empty), City/Department/Country to TEXT1/TEXT2/TEXT3;
   │                      duplicate-name guard: after dialog is accepted the proposed name is
   │                      checked against all other resources by UID exclusion; if a duplicate
   │                      is found the new resource and its personal calendar are rolled back
@@ -174,7 +181,11 @@ ui.py  (MainWindow)
   │   ├── keepass_integration.py  (KeePassManager — runtime KeePass session singleton;
   │   │                            unlock/lock/auto-unlock, entry CRUD, key-file generation)
   │   ├── jira_integration.py  (test_connection, get_jira_client, record_filter_test, get_config_summary,
-  │   │                         _extract_filter_id, resolve_filter_to_jql;
+  │   │                         _extract_filter_id, resolve_filter_to_jql,
+  │   │                         fetch_server_capabilities(server, project_key="") — returns sorted
+  │   │                         issue_types list (project-specific via createmeta with global fallback)
+  │   │                         and sorted priorities list; priorities failure is non-fatal;
+  │   │                         called by _validate_project_to_jira_settings in settings_dialogs.py;
   │   │                         supports API Token/Password/PAT auth; basic_auth + token_auth;
   │   │                         credential stripping; _last_connection_test and _last_filter_test tracking
   │   │                         for debug dumps; filter value, filter type, and field-checkbox states stored
@@ -301,6 +312,11 @@ ProjectLogic.project_data   ← in-memory MPXJ ProjectFile (Java object)
      └── <basename>.splits.json   (sidecar — task split segments; written on every save;
                                     read back on open to override MPXJ-native getSplits() data;
                                     managed by MainWindow._save_splits_json / _load_splits_json)
+     └── <basename>.xml.cal-exc-names.json  (sidecar — calendar exception names that
+                                    MSPDIWriter drops; written by _patch_save_cal_exc_names
+                                    on every XML save; re-applied by _patch_load_cal_exc_names
+                                    on open; key is (calendar_name, from_date, to_date);
+                                    removed automatically when no named exceptions remain)
 ```
 
 On **save**, `ProjectFileHandler.save_project()` calls MPXJ's `MSPDIWriter` to write the in-memory Java object back to an XML file.

@@ -243,8 +243,9 @@ class ResourceView(QTableWidget):
     def add_resource(self):
         if self._project is None:
             return
-        # Collect existing IDs *before* addResource() so the new resource
-        # is not included in the set (MPXJ may auto-assign an ID to it).
+
+        # Compute next resource ID as max(existing) + 1, matching MS Project's
+        # sequential assignment (IDs of deleted resources are not reused).
         try:
             from java.lang import Integer as _JInt2  # type: ignore
             existing_ids: set = set()
@@ -255,18 +256,16 @@ class ResourceView(QTableWidget):
                         existing_ids.add(int(str(rid)))
                     except Exception:
                         pass
+            next_res_id = (max(existing_ids) + 1) if existing_ids else 1
         except Exception:
-            existing_ids = set()
+            next_res_id = 1
 
         new_res = self._project.addResource()
         self._ensure_resource_uid(new_res)
         new_res.setName("New Resource")
 
-        # Assign the next free resource ID so the sheet shows it immediately
         try:
-            next_res_id = (max(existing_ids) + 1) if existing_ids else 1
-            while next_res_id in existing_ids:
-                next_res_id += 1
+            from java.lang import Integer as _JInt2  # type: ignore  # noqa: F811
             new_res.setID(_JInt2(next_res_id))
         except Exception:
             pass
@@ -361,8 +360,8 @@ class ResourceView(QTableWidget):
             )
             return
 
-        # Collect existing IDs *before* addResource() so the new resource
-        # is not included in the set (MPXJ may auto-assign an ID to it).
+        # Compute next resource ID as max(existing) + 1, matching MS Project's
+        # sequential assignment (IDs of deleted resources are not reused).
         try:
             from java.lang import Integer as _JInt2  # type: ignore
             existing_ids: set = set()
@@ -373,20 +372,16 @@ class ResourceView(QTableWidget):
                         existing_ids.add(int(str(rid)))
                     except Exception:
                         pass
+            next_res_id = (max(existing_ids) + 1) if existing_ids else 1
         except Exception:
-            existing_ids = set()
+            next_res_id = 1
 
         new_res = self._project.addResource()
         self._ensure_resource_uid(new_res)
         new_res.setName(resource_name)
 
-        # Assign the next free resource ID immediately so the sheet shows it
-        # before the file is saved (file_handler does this on save, but we
-        # need it right away for the resource sheet display).
         try:
-            next_res_id = (max(existing_ids) + 1) if existing_ids else 1
-            while next_res_id in existing_ids:
-                next_res_id += 1
+            from java.lang import Integer as _JInt2  # type: ignore  # noqa: F811
             new_res.setID(_JInt2(next_res_id))
         except Exception:
             pass
@@ -615,33 +610,32 @@ class ResourceView(QTableWidget):
                 continue
 
             try:
-                # Collect existing IDs *before* addResource() so the new
-                # resource is not counted (MPXJ may auto-assign an ID to it).
+                # Compute next resource ID as max(existing) + 1, matching
+                # MS Project's sequential assignment behavior.
                 try:
                     from java.lang import Integer as _JInt2  # type: ignore
-                    existing_ids: set = set()
-                    for r in self._project.getResources():
-                        rid = r.getID()
-                        if rid is not None:
+                    _existing_ids: set = set()
+                    for _r in self._project.getResources():
+                        _rid = _r.getID()
+                        if _rid is not None:
                             try:
-                                existing_ids.add(int(str(rid)))
+                                _existing_ids.add(int(str(_rid)))
                             except Exception:
                                 pass
+                    _next_res_id = (max(_existing_ids) + 1) if _existing_ids else 1
                 except Exception:
-                    existing_ids = set()
+                    _next_res_id = None
 
                 new_res = self._project.addResource()
                 self._ensure_resource_uid(new_res)
                 new_res.setName(resource_name)
 
-                # Assign the next free resource ID
-                try:
-                    next_res_id = (max(existing_ids) + 1) if existing_ids else 1
-                    while next_res_id in existing_ids:
-                        next_res_id += 1
-                    new_res.setID(_JInt2(next_res_id))
-                except Exception:
-                    pass
+                if _next_res_id is not None:
+                    try:
+                        from java.lang import Integer as _JInt2  # type: ignore  # noqa: F811
+                        new_res.setID(_JInt2(_next_res_id))
+                    except Exception:
+                        pass
 
                 # Write AD attributes
                 try:

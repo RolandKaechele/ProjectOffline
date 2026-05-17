@@ -78,8 +78,8 @@ Pass `timeline_view` to expose the **Show in Timeline** checkbox on the General 
 **Resources tab behaviour**
 
 - The resource selector drop-down is populated **only** from resources present in the current project (never from a stale or empty list).
-- Each assignment row displays the resource name resolved by **Unique ID** — if a resource was added without a UID, it would appear as “(unknown)”; the auto-UID assignment in `ResourceView` prevents this.
-- Each assignment row includes a per-row **✕ delete button**.  Clicking it removes that specific assignment without affecting other rows.  The row-level delete replaces the old global “Remove” button.
+- Each assignment row displays the resource name resolved by **Unique ID** — if a resource was added without a UID, it would appear as "(unknown)"; the auto-UID assignment in `ResourceView` prevents this.
+- Each assignment row includes a per-row **✕ delete button**.  Clicking it removes that specific assignment without affecting other rows.  The row-level delete replaces the old global "Remove" button.
 
 Accepts changes and writes them back to the MPXJ `Task` object via its Java setter methods.  After editing dates, `_propagate_schedule` is called to shift affected successors.
 
@@ -111,6 +111,7 @@ Opens on double-click in **ResourceView**.
 | Tab | Fields |
 | - | - |
 | General | Avatar, Name, Type, E-Mail, Department, Max Units, Standard Rate, Overtime Rate |
+| Active Directory | AD Display Name (read-only), Username (read-only), E-Mail, Department, City, Country (editable combo box) |
 | Custom Fields | Read-only table of custom field values (Alias, Value) — field definitions managed via Project Information |
 | Notes | Free-text notes field |
 
@@ -153,9 +154,26 @@ After a successful AD lookup and user confirmation, the fetched photo bytes are 
 
 Entries are pruned from both the in-memory store and the sidecar when the corresponding resource is deleted.  The sidecar is loaded back into `_resource_thumbnail_store` / `_resource_dept_store` when the project is opened.
 
+**Active Directory tab**
+
+The **Active Directory** tab (`_tab_active_directory`) is always present and exposes the full set of AD-sourced location attributes alongside the email address:
+
+| Field | Source (pre-fill order) | Editable | Saved via |
+| - | - | - | - |
+| AD Display Name | `_ad_data["display_name"]` | No | — |
+| Username | `_ad_data["username"]` | No | — |
+| E-Mail | `_ad_data["email"]` → `EMAIL_ADDRESS` field → `getEmailAddress()` | Yes | `setEmailAddress()` (when non-empty) |
+| Department | `_ad_data["department"]` → `TEXT2` resource field | Yes | MPXJ `TEXT2` |
+| City | `_ad_data["city"]` → `TEXT1` resource field | Yes | MPXJ `TEXT1` |
+| Country | `_ad_data["country"]` → `TEXT3` resource field | Yes | MPXJ `TEXT3` |
+
+The Country field is an **editable `QComboBox`** pre-populated with a full list of country names (`_COUNTRIES`); the user can type freely or select from the list.
+
+On `apply_to_resource()`, values from this tab are written to the MPXJ resource object: E-Mail via `setEmailAddress()` (skipped when empty), and City / Department / Country stored in TEXT1 / TEXT2 / TEXT3 resource fields via `r.set(ResourceField.TEXT1, ...)` etc.
+
 **Max Units display and storage**
 
-MPXJ’s `getMaxUnits()` returns values on two scales depending on file format: a **fraction** (e.g. `1.0` = 100%) for MSPDI/XML files, and a **percentage** (e.g. `100.0` = 100%) for MPP binary files.  The dialog normalises the raw value for display using the heuristic `raw × 100 if raw ≤ 2.0 else raw`, showing the user a familiar percentage like `100%`.  When the user saves a new value, it is always written back as a fraction (`user_value ÷ 100`) so the MPXJ round-trip is consistent regardless of source format.
+MPXJ's `getMaxUnits()` returns values on two scales depending on file format: a **fraction** (e.g. `1.0` = 100%) for MSPDI/XML files, and a **percentage** (e.g. `100.0` = 100%) for MPP binary files.  The dialog normalises the raw value for display using the heuristic `raw × 100 if raw ≤ 2.0 else raw`, showing the user a familiar percentage like `100%`.  When the user saves a new value, it is always written back as a fraction (`user_value ÷ 100`) so the MPXJ round-trip is consistent regardless of source format.
 
 
 ### Dependency Dialog

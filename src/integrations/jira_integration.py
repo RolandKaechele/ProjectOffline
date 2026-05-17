@@ -121,14 +121,14 @@ def test_connection(server: dict) -> tuple[bool, str]:
         credential_type = server.get("credential_type", "token")
         if credential_type == "pat":
             if not credential:
-                result["error"] = "Personal Access Token not available (KeePass may be locked)"
+                result["error"] = "PAT not available (KeePass may be locked)"
                 _last_connection_test = result
                 if _is_debug():
                     print(f"[DEBUG] PAT not available: credential={'<set>' if credential else '<empty>'}")
                 return False, result["error"]
         else:
             if not username or not credential:
-                result["error"] = "Credentials not available (KeePass may be locked)"
+                result["error"] = "Authentication data unavailable (KeePass may be locked)"
                 _last_connection_test = result
                 if _is_debug():
                     print(f"[DEBUG] Credentials not available: username={'<set>' if username else '<empty>'}, credential={'<set>' if credential else '<empty>'}")
@@ -223,10 +223,10 @@ def get_jira_client(server: dict) -> tuple[Optional["JIRA"], str]:  # type: igno
         credential_type = server.get("credential_type", "token")
         if credential_type == "pat":
             if not credential:
-                return None, "Personal Access Token not available (KeePass may be locked)"
+                return None, "PAT not available (KeePass may be locked)"
         else:
             if not username or not credential:
-                return None, "Credentials not available (KeePass may be locked)"
+                return None, "Authentication data unavailable (KeePass may be locked)"
         
         # Create client
         from jira import JIRA  # type: ignore
@@ -320,9 +320,68 @@ def record_filter_test(server_name: str, filter_text: str, issue_count: int, err
         
         if _is_debug():
             print(f"[DEBUG] jira_integration.record_filter_test: server={server_name}, filter={filter_text}, issues={issue_count}, error={error}")
+    except Exception:
+        pass
+
+
+def fetch_server_capabilities(server: dict, project_key: str = "") -> dict:
+    """Fetch the list of issue types and priorities available on a Jira server.
+
+    When *project_key* is provided the issue types are fetched for that specific
+    project via the createmeta endpoint (Jira DC/Server) or project issue-types
+    API, which reflects the project-level configuration rather than the global
+    server list.  Falls back to the global ``issue_types`` endpoint when no key
+    is given or when the project-specific call fails.
+
+    Returns a dict with:
+      ``issue_types`` — sorted list of issue type name strings (empty on failure)
+      ``priorities``  — sorted list of priority name strings (empty on failure)
+      ``error``       — non-empty string when the server could not be reached
+    """
+    result: dict = {"issue_types": [], "priorities": [], "error": ""}
+    try:
+        jira, err = get_jira_client(server)
+        if jira is None:
+            result["error"] = err or "Could not connect to Jira server"
+            return result
+
+        # Try to fetch project-specific issue types when a project key is given.
+        fetched_types = False
+        if project_key:
+            try:
+                meta = jira.createmeta(
+                    projectKeys=project_key,
+                    expand="projects.issuetypes",
+                )
+                projects = (meta or {}).get("projects", [])
+                if projects:
+                    result["issue_types"] = sorted(
+                        str(it.get("name", "")) for it in projects[0].get("issuetypes", [])
+                        if it.get("name")
+                    )
+                    fetched_types = True
+            except Exception:
+                pass  # fall through to global fallback below
+
+        if not fetched_types:
+            try:
+                result["issue_types"] = sorted(
+                    str(getattr(it, "name", it)) for it in jira.issue_types()
+                )
+            except Exception as exc:
+                result["error"] = str(exc)
+
+        try:
+            result["priorities"] = sorted(
+                str(getattr(p, "name", p)) for p in jira.priorities()
+            )
+        except Exception:
+            pass  # priorities endpoint is optional
+
+        return result
     except Exception as exc:
-        if _is_debug():
-            print(f"[DEBUG] jira_integration.record_filter_test failed: {exc}")
+        result["error"] = str(exc)
+        return result
 
 
 def get_config_summary() -> dict:

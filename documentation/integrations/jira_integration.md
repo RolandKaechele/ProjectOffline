@@ -303,6 +303,39 @@ else:
     issues = jira.search_issues(jql, maxResults=50)
 ```
 
+
+### `fetch_server_capabilities(server: dict, project_key: str = "") -> dict`
+
+Fetch the list of issue types and priorities available on a Jira server.  Called by `_validate_project_to_jira_settings` in `settings_dialogs.py` to pre-populate the issue-type and transition map dropdowns in the **Project → Jira** tab.
+
+**Arguments:**
+
+- `server` (dict): Server configuration object from `get_jira_servers()`
+- `project_key` (str, optional): Jira project key (e.g. `"MYPROJ"`).  When provided, issue types are fetched for that specific project via the `createmeta` endpoint (reflects project-level issue-type configuration); falls back to the global `issue_types` endpoint when omitted or when the project-specific call fails.
+
+**Returns:** A dict with three keys:
+
+| Key | Type | Description |
+| - | - | - |
+| `issue_types` | `list[str]` | Sorted list of issue type name strings; empty on failure |
+| `priorities` | `list[str]` | Sorted list of priority name strings; empty on failure |
+| `error` | `str` | Non-empty when the server could not be reached |
+
+**Failure behaviour:**  Priorities are fetched independently of issue types; a failure to retrieve priorities does not prevent issue types from being returned (`error` stays empty in that case).
+
+**Example:**
+
+```python
+from integrations import jira_integration
+
+caps = jira_integration.fetch_server_capabilities(server, project_key="PROJ")
+if caps["error"]:
+    print(f"Could not fetch capabilities: {caps['error']}")
+else:
+    print("Issue types:", caps["issue_types"])
+    print("Priorities:",  caps["priorities"])
+```
+
 ## Configuration Dialogs
 
 ### JiraSyncConfigDialog

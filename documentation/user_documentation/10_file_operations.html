@@ -111,6 +111,46 @@
     <p>Project Offline writes a backup copy every few minutes to the system temp folder.
     If the application closes unexpectedly, the backup is offered for recovery on the
     next launch.</p>
+
+    <h2>Sidecar Files</h2>
+    <p>When a project is saved as XML, Project Offline writes a set of <strong>sidecar
+    files</strong> alongside the <code>.xml</code> file to preserve data that the MPXJ
+    <code>MSPDIWriter</code> does not persist in the standard schema:</p>
+
+    <table>
+      <thead><tr><th>Sidecar file</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>&lt;project&gt;.xml.custom-props.json</code></td>
+          <td>Per-project custom properties (Jira config, Confluence config, etc.)</td>
+        </tr>
+        <tr>
+          <td><code>&lt;project&gt;.xml.cal-exc-names.json</code></td>
+          <td>Calendar exception names — MSPDI XML does not store exception names; this file
+              restores them on the next open so holiday and vacation block labels are preserved.
+              Removed automatically when no named exceptions remain.</td>
+        </tr>
+        <tr>
+          <td><code>&lt;project&gt;.splits.json</code></td>
+          <td>Task split-segment data (start/end of each non-contiguous work segment)</td>
+        </tr>
+        <tr>
+          <td><code>&lt;project&gt;.timeline.json</code></td>
+          <td>Tasks and milestones pinned to the Timeline strip</td>
+        </tr>
+        <tr>
+          <td><code>&lt;project&gt;.thumbnails.json</code></td>
+          <td>AD profile photos and department strings (base64-encoded, per resource UID)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>Keep sidecar files with the project</strong>
+      When you copy or move a project file, copy all sidecar files with it.  Without the
+      sidecars, calendar exception names, task splits, timeline items, and AD photos will
+      be lost on the next open.
+    </div>
   </div>
 </div>
 

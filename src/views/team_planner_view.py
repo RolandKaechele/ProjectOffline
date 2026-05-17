@@ -683,7 +683,8 @@ class _ResourcePane(QWidget):
     directly from the external scrollbar value — no QScrollArea internal scroll.
     """
 
-    jump_to_task_requested = pyqtSignal(int)   # emits resource row index
+    jump_to_task_requested    = pyqtSignal(int)   # emits resource row index
+    resource_double_clicked   = pyqtSignal(int)   # emits resource row index
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -694,6 +695,7 @@ class _ResourcePane(QWidget):
         self._conflicts   : list  = []   # list[bool] — True if row has a scheduling conflict
         self._tooltips    : list  = []   # list[str]  — tooltip text per row (empty = none)
         self._scroll_y    : int   = 0    # current vertical scroll offset (in content pixels)
+        self._resources   : list  = []   # parallel list of java Resource objects
         self.setFixedWidth(RESOURCE_COL_W)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.setMouseTracking(True)
@@ -710,6 +712,10 @@ class _ResourcePane(QWidget):
         self._tooltips    = [''] * len(names)
         # Widget fills the QScrollArea viewport (widgetResizable=True) — no fixed height.
         self.update()
+
+    def set_resources(self, resources: list):
+        """Store the parallel java Resource list for dialog opening on double-click."""
+        self._resources = list(resources)
 
     def set_scroll_y(self, y: int):
         """Called from the external _rows_vsb to keep names aligned to canvas rows."""
@@ -752,9 +758,18 @@ class _ResourcePane(QWidget):
         res_name = self._names[row]
         menu = QMenu(self)
         act_jump = menu.addAction(f"Scroll timeline to first task of '{res_name}'")
+        act_info = menu.addAction(f"Resource Information\u2026")
         action = menu.exec_(event.globalPos())
         if action == act_jump:
             self.jump_to_task_requested.emit(row)
+        elif action == act_info:
+            self.resource_double_clicked.emit(row)
+
+    def mouseDoubleClickEvent(self, event):
+        """Double-click on a resource row → open Resource Information dialog."""
+        row = self._y_to_row(event.y())
+        if 0 <= row < len(self._names):
+            self.resource_double_clicked.emit(row)
 
     def paintEvent(self, event):
         painter   = QPainter(self)
@@ -980,12 +995,23 @@ class TeamPlannerCanvas(QWidget):
         starts   = [s for s in starts if s]
         finishes = [_to_qdate(t.getFinish()) for t in all_tasks_with_dates]
         finishes = [f for f in finishes if f]
+        # Also consider the project-properties start date so the timeline
+        # begins at the intended project start even when the first task
+        # starts later (e.g. the project was opened today but scheduled
+        # from a past kick-off date stored in project properties).
+        try:
+            props_start = _to_qdate(project.getProjectProperties().getStartDate())
+        except Exception:
+            props_start = None
+
         if starts:
             self.project_start = min(starts)
+            if props_start and props_start.isValid() and props_start < self.project_start:
+                self.project_start = props_start
             max_f = max(finishes) if finishes else self.project_start
             self.total_days = max(self.project_start.daysTo(max_f) + 14, 30)
         else:
-            self.project_start = QDate.currentDate()
+            self.project_start = props_start if (props_start and props_start.isValid()) else QDate.currentDate()
             self.total_days = 90
 
         self._non_working = _get_non_working_dates(
@@ -2648,14 +2674,19 @@ class TeamPlannerView(QWidget):
         hdr_row.setContentsMargins(0, 0, 0, 0)
         hdr_row.setSpacing(0)
 
-        self._col_header = QLabel("Resource Name")
-        self._col_header.setAlignment(Qt.AlignCenter)
+        self._col_header = QPushButton("Resource Name \u2195")
         self._col_header.setFixedSize(RESOURCE_COL_W, HEADER_HEIGHT)
         self._col_header.setObjectName("TeamPlannerColHeader")
         self._col_header.setStyleSheet(
-            "background:#d2e4fc; color:#1a3f7a; font-weight:bold;"
-            "border-bottom:2px solid #2b579a; border-right:1px solid #90b4d4;"
+            "QPushButton { background:#d2e4fc; color:#1a3f7a; font-weight:bold;"
+            " border-bottom:2px solid #2b579a; border-right:1px solid #90b4d4;"
+            " text-align:center; padding:0; }"
+            "QPushButton:hover { background:#c4d8f8; }"
+            "QPushButton:pressed { background:#b0c8f0; }"
         )
+        self._col_header.setToolTip("Click to sort resources by name")
+        self._sort_asc = True   # current sort direction
+        self._col_header.clicked.connect(self._toggle_resource_sort)
         hdr_row.addWidget(self._col_header)
 
         self._gantt_header = GanttHeader(self)
@@ -2764,6 +2795,7 @@ class TeamPlannerView(QWidget):
 
         # ── canvas / panel signals ────────────────────────────────────
         self.canvas.layout_changed.connect(self._res_pane.set_layout)
+        self.canvas.layout_changed.connect(self._on_layout_changed_update_res_pane)
         self.canvas.conflicts_changed.connect(self._res_pane.set_conflicts)
         self.canvas.conflict_tooltips_changed.connect(self._res_pane.set_tooltips)
         self.canvas.unassigned_changed.connect(self._on_unassigned_changed)
@@ -2775,6 +2807,7 @@ class TeamPlannerView(QWidget):
         self.canvas.task_rescheduled.connect(self._on_task_rescheduled)
         self.canvas.task_reassigned.connect(self._on_task_reassigned)
         self._res_pane.jump_to_task_requested.connect(self._on_res_pane_jump_to_task)
+        self._res_pane.resource_double_clicked.connect(self._on_res_pane_resource_dbl_click)
 
     # ------------------------------------------------------------------ #
     # Scroll-sync helpers                                                 #
@@ -2818,14 +2851,49 @@ class TeamPlannerView(QWidget):
         n = len(tasks)
         self._ua_col_label.setText(f"Unassigned\nTasks\n({n})")
 
+    def _on_layout_changed_update_res_pane(self, *_args):
+        """Keep _res_pane's resource list in sync whenever the canvas layout changes."""
+        self._res_pane.set_resources(list(self.canvas._resources))
+
+    def _on_res_pane_resource_dbl_click(self, row_idx: int):
+        """Open Resource Information dialog for the double-clicked resource row."""
+        if self._project is None:
+            return
+        if not (0 <= row_idx < len(self.canvas._resources)):
+            return
+        res = self.canvas._resources[row_idx]
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+        try:
+            from dialogs import ResourceDialog  # type: ignore
+            from PyQt5.QtWidgets import QDialog  # type: ignore
+            dlg = ResourceDialog(res, self._project, self)
+            if dlg.exec_() == QDialog.Accepted:
+                dlg.apply_to_resource()
+                self.data_changed.emit()
+                # Rebuild layout without scrolling back to today
+                self.canvas._rebuild_layout()
+                self.canvas._apply_size()
+                self.canvas.update()
+        except Exception as e:
+            print(f"[TeamPlanner] resource dialog error: {e}")
+
     # ------------------------------------------------------------------ #
     # Public API                                                          #
     # ------------------------------------------------------------------ #
 
     def load_project(self, project, recompute_critical=False):
+        prev_project = self._project
         self._project = project
         self.canvas.load_project(project, recompute_critical=recompute_critical)
         self._sync_header()
+        # Scroll to project start so the beginning of the schedule is visible on initial load.
+        # Only do this when switching to a different project (not on internal refreshes).
+        if project is not None and project is not prev_project:
+            from PyQt5.QtCore import QTimer  # type: ignore
+            c = self.canvas
+            if c.project_start:
+                QTimer.singleShot(0, lambda t=c.project_start: self._scroll_to_date_exact(t))
 
     def set_zero_float_critical(self, value: bool):
         """Forward zero-float-is-critical setting to the canvas."""
@@ -2918,6 +2986,42 @@ class TeamPlannerView(QWidget):
     # ------------------------------------------------------------------ #
 
     def _scroll_to_today(self):
+        c = self.canvas
+        if not c.project_start:
+            return
+        today = QDate.currentDate()
+        if c.day_width >= HOUR_MODE_THRESHOLD:
+            eff_span = 24 if c._show_off_hours else c._clock_day_span
+            wday_idx = date_to_working_day_idx(today, c.project_start)
+            px = max(0, wday_idx * eff_span * c.day_width - 100)
+        else:
+            col = _date_to_col(c.project_start, today, c.show_sundays)
+            px  = max(0, col * c.day_width - 100)
+        self._rows_area.horizontalScrollBar().setValue(px)
+
+    def _toggle_resource_sort(self):
+        """Sort the resource rows alphabetically, toggling asc/desc on each click."""
+        c = self.canvas
+        if not c._resources:
+            return
+        # Build sorted index order
+        pairs = list(enumerate(c._res_names))
+        pairs.sort(key=lambda p: p[1].lower(), reverse=not self._sort_asc)
+        self._sort_asc = not self._sort_asc
+        arrow = "\u2191" if self._sort_asc else "\u2193"
+        self._col_header.setText(f"Resource Name {arrow}")
+        order = [p[0] for p in pairs]
+        # Reorder all parallel resource data lists in the canvas
+        c._resources  = [c._resources[i]  for i in order]
+        c._res_names  = [c._res_names[i]   for i in order]
+        old_tasks = dict(c._tasks_by_res)
+        c._tasks_by_res = {}
+        for res in c._resources:
+            uid = int(str(res.getUniqueID()))
+            c._tasks_by_res[uid] = old_tasks.get(uid, [])
+        c._rebuild_layout()
+        c._apply_size()
+        c.update()
         c = self.canvas
         if not c.project_start:
             return

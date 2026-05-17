@@ -95,8 +95,10 @@ email_configs.json
 tools/java/
 tools/plantuml*/
 tools/extensions/
-tools/requirementProcessTool_*/
+tools/git/
 tools/innosetup/
+tools/requirementProcessTool_*/
+tools/svn/
 
 # ── Python bytecode ──────────────────────────────────────────────────────────
 __pycache__/
@@ -104,6 +106,9 @@ __pycache__/
 
 # ── Pytest cache (svn:global-ignores: .pytest_cache) ────────────────────────
 .pytest_cache/
+
+# ── Coverage ─────────────────────────────────────────────────────────────────
+.coverage
 
 # ── Build / distribution ─────────────────────────────────────────────────────
 build/

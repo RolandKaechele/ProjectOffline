@@ -49,3 +49,27 @@ Returns `True` on success, `False` on error or if no project is loaded.
 ## Internal Helper: `_suppress_native_output()`
 
 A context-manager factory that redirects OS-level file descriptors 1 (stdout) and 2 (stderr) to `/dev/null` for the duration of the `with` block, then restores them.  This prevents native C++ messages from the MPXJ MPP reader from appearing in the console.
+
+
+## Internal Helper: `_patch_save_cal_exc_names(project, file_path)`
+
+Persists calendar exception names that `MSPDIWriter` silently drops.  MPXJ's XML writer never emits a `<Name>` child element for `<Exception>` nodes; this helper captures all non-empty exception names before the file is written and serialises them to a JSON sidecar:
+
+```
+<file_path>.cal-exc-names.json
+```
+
+Each entry in the JSON array is:
+
+```json
+{ "cal": "<calendar name>", "from": "YYYY-MM-DD", "to": "YYYY-MM-DD", "name": "<exception name>" }
+```
+
+The sidecar is **deleted** automatically when no named exceptions remain, preventing stale files from accumulating.
+
+
+## Internal Helper: `_patch_load_cal_exc_names(project, file_path)`
+
+Restores calendar exception names after a project file is loaded.  Reads the sidecar produced by `_patch_save_cal_exc_names`, builds a `(calendar_name, from_date, to_date) → name` lookup, then calls `ex.setName(name)` on every matching exception that is currently unnamed.  Already-named exceptions are skipped.
+
+Called unconditionally in `open_project()` after `UniversalProjectReader` finishes; the helper is a no-op when the sidecar file does not exist.

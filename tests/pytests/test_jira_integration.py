@@ -130,7 +130,7 @@ class TestJiraIntegration:
                    return_value=self._mock_settings_manager(username="", credential="")):
             success, error = jira_integration.test_connection(server)
             assert success is False
-            assert "Credentials not available" in error
+            assert "Authentication data unavailable" in error
 
     def test_connection_fails_when_jira_raises_exception(self):
         """
@@ -296,7 +296,7 @@ class TestJiraIntegration:
                    return_value=self._mock_settings_manager(credential="")):
             success, error = jira_integration.test_connection(server)
             assert success is False
-            assert "Personal Access Token not available" in error
+            assert "PAT not available" in error
 
     # ------------------------------------------------------------------
     # test_connection - Password mode
@@ -411,7 +411,7 @@ class TestJiraIntegration:
                    return_value=self._mock_settings_manager(username="", credential="")):
             client, error = jira_integration.get_jira_client(server)
             assert client is None
-            assert "Credentials not available" in error
+            assert "Authentication data unavailable" in error
 
     def test_get_jira_client_returns_none_on_exception(self):
         """
@@ -1045,3 +1045,153 @@ class TestJiraIntegration:
         result_jql, error = jira_integration.resolve_filter_to_jql(mock_jira, "66111", "filter")
         assert result_jql == ""
         assert error != ""
+
+
+# ---------------------------------------------------------------------------
+# TestFetchServerCapabilities  (new: fetch_server_capabilities)
+# ---------------------------------------------------------------------------
+
+class TestFetchServerCapabilities:
+    """fetch_server_capabilities() returns issue types and priorities from a Jira server.
+
+    \testinit
+    Mock get_jira_client to return a pre-configured mock JIRA instance.
+    The mock exposes issue_types(), priorities(), and createmeta() methods.
+
+    \testrun
+    Call fetch_server_capabilities(server) with various mock configurations
+    covering: success, connection failure, project-specific types, global
+    fallback when createmeta raises, and empty result handling.
+
+    \testexpect
+    Returns dict with keys 'issue_types', 'priorities', 'error'.
+    On success the lists are sorted and 'error' is empty.
+    On connection failure 'error' is non-empty and lists are empty.
+
+    \testcheck
+    Assert structure, sorted order, error values, and fallback behaviour.
+    """
+
+    def _server(self):
+        return {"name": "Test", "url": "https://jira.example.com"}
+
+    def _mock_jira(self, issue_type_names=("Bug", "Task"), priority_names=("High", "Low")):
+        mock = MagicMock()
+        it_list = []
+        for n in issue_type_names:
+            it = MagicMock()
+            it.name = n
+            it_list.append(it)
+        mock.issue_types.return_value = it_list
+        p_list = []
+        for n in priority_names:
+            p = MagicMock()
+            p.name = n
+            p_list.append(p)
+        mock.priorities.return_value = p_list
+        return mock
+
+    def test_returns_dict_with_required_keys(self):
+        """Return value always contains issue_types, priorities, error."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira()
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert "issue_types" in result
+        assert "priorities" in result
+        assert "error" in result
+
+    def test_returns_sorted_issue_types(self):
+        """issue_types list is sorted alphabetically."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira(issue_type_names=["Task", "Bug", "Epic"])
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["issue_types"] == sorted(result["issue_types"])
+
+    def test_returns_sorted_priorities(self):
+        """priorities list is sorted alphabetically."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira(priority_names=["Low", "Critical", "High"])
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["priorities"] == sorted(result["priorities"])
+
+    def test_error_empty_on_success(self):
+        """error key is an empty string when the request succeeds."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira()
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["error"] == ""
+
+    def test_connection_failure_returns_empty_lists(self):
+        """When get_jira_client returns None the lists are empty."""
+        from integrations import jira_integration
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(None, "PAT not available")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["issue_types"] == []
+        assert result["priorities"] == []
+
+    def test_connection_failure_sets_error(self):
+        """When get_jira_client returns None the error key is non-empty."""
+        from integrations import jira_integration
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(None, "PAT not available")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["error"] != ""
+
+    def test_uses_global_fallback_when_no_project_key(self):
+        """With no project_key the global issue_types() endpoint is used."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira(issue_type_names=["Bug", "Task"])
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        mock_jira.issue_types.assert_called()
+        assert "Bug" in result["issue_types"]
+        assert "Task" in result["issue_types"]
+
+    def test_uses_createmeta_when_project_key_given(self):
+        """When a project_key is provided createmeta is called first."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira()
+        mock_jira.createmeta.return_value = {
+            "projects": [{"issuetypes": [{"name": "Story"}, {"name": "Task"}]}]
+        }
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(
+                self._server(), project_key="PROJ"
+            )
+        mock_jira.createmeta.assert_called_once()
+        assert "Story" in result["issue_types"]
+
+    def test_falls_back_to_global_when_createmeta_raises(self):
+        """Falls back to global issue_types() when createmeta raises an exception."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira(issue_type_names=["Bug"])
+        mock_jira.createmeta.side_effect = Exception("Not supported")
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(
+                self._server(), project_key="PROJ"
+            )
+        mock_jira.issue_types.assert_called()
+        assert "Bug" in result["issue_types"]
+
+    def test_priorities_exception_does_not_break_result(self):
+        """If priorities() raises the result still contains issue_types."""
+        from integrations import jira_integration
+        mock_jira = self._mock_jira()
+        mock_jira.priorities.side_effect = Exception("endpoint unavailable")
+        with patch("integrations.jira_integration.get_jira_client",
+                   return_value=(mock_jira, "")):
+            result = jira_integration.fetch_server_capabilities(self._server())
+        assert result["issue_types"]  # non-empty
+        assert result["priorities"] == []

@@ -91,6 +91,7 @@ class ProjectFileHandler:
                 self._source_xml_path = file_path
                 self._patch_load_enterprise_cf_values(project, file_path)
                 self._patch_load_custom_properties(project, file_path)
+                self._patch_load_cal_exc_names(project, file_path)
             else:
                 self._source_xml_path = None
             self.logic.load_data(project)
@@ -317,6 +318,7 @@ class ProjectFileHandler:
                 MSPDIWriter().write(project, file_path)
                 self._patch_enterprise_cf_values(project, file_path)
                 self._patch_save_custom_properties(project, file_path)
+                self._patch_save_cal_exc_names(project, file_path)
                 return True
             return False
         except Exception as e:
@@ -777,6 +779,96 @@ class ProjectFileHandler:
 
         except Exception as e:
             print(f"[WARN] _patch_save_custom_properties: {e}")
+
+    def _patch_save_cal_exc_names(self, project, file_path):
+        """Persist calendar exception names that MSPDIWriter drops.
+
+        MPXJ's MSPDIWriter never writes a <Name> child element for calendar
+        exceptions (confirmed by inspecting the generated XML).  We save all
+        non-empty exception names to a sidecar JSON file so they survive our
+        app's XML round-trip.  The key is (calendar_name, from_date, to_date).
+
+        Sidecar: <xml_path>.cal-exc-names.json
+        """
+        try:
+            import json
+
+            entries = []
+            for cal in project.getCalendars():
+                cal_name = str(cal.getName() or "")
+                exc_list = cal.getCalendarExceptions()
+                if exc_list is None:
+                    continue
+                for ex in exc_list:
+                    name = ex.getName()
+                    if not name:
+                        continue
+                    from_str = str(ex.getFromDate() or "")[:10]
+                    to_str   = str(ex.getToDate()   or "")[:10]
+                    if not from_str:
+                        continue
+                    entries.append({
+                        "cal": cal_name,
+                        "from": from_str,
+                        "to":   to_str,
+                        "name": str(name),
+                    })
+
+            sidecar = file_path + '.cal-exc-names.json'
+            if entries:
+                with open(sidecar, 'w', encoding='utf-8') as f:
+                    json.dump(entries, f, ensure_ascii=False, indent=2)
+            else:
+                # Remove a stale sidecar if there are no named exceptions
+                if os.path.exists(sidecar):
+                    os.remove(sidecar)
+
+        except Exception as e:
+            print(f"[WARN] _patch_save_cal_exc_names: {e}")
+
+    def _patch_load_cal_exc_names(self, project, file_path):
+        """Restore calendar exception names from the sidecar JSON file.
+
+        Reads <xml_path>.cal-exc-names.json written by
+        _patch_save_cal_exc_names and re-applies the names to matching
+        calendar exceptions so the Calendars tab (and Team Planner) shows
+        correct holiday / vacation block names after XML reload.
+        """
+        try:
+            import json
+
+            sidecar = file_path + '.cal-exc-names.json'
+            if not os.path.exists(sidecar):
+                return
+
+            with open(sidecar, 'r', encoding='utf-8') as f:
+                entries = json.load(f)
+
+            if not entries:
+                return
+
+            # Build lookup: (cal_name, from_date, to_date) -> name
+            lookup: dict = {}
+            for e in entries:
+                key = (e.get("cal", ""), e.get("from", ""), e.get("to", ""))
+                lookup[key] = e.get("name", "")
+
+            for cal in project.getCalendars():
+                cal_name = str(cal.getName() or "")
+                exc_list = cal.getCalendarExceptions()
+                if exc_list is None:
+                    continue
+                for ex in exc_list:
+                    if ex.getName():
+                        continue  # already has a name
+                    from_str = str(ex.getFromDate() or "")[:10]
+                    to_str   = str(ex.getToDate()   or "")[:10]
+                    name = lookup.get((cal_name, from_str, to_str))
+                    if name:
+                        ex.setName(name)
+
+        except Exception as e:
+            print(f"[WARN] _patch_load_cal_exc_names: {e}")
 
     def _patch_load_custom_properties(self, project, file_path):
         """Restore custom properties from the sidecar JSON file.

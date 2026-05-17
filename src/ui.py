@@ -444,7 +444,6 @@ class MainWindow(QMainWindow):
         zoom_layout.addWidget(self._zoom_slider)
         zoom_layout.addWidget(btn_zoom_in)
         self._zoom_widget = zoom_widget
-        self.statusBar().addPermanentWidget(self._zoom_widget)
         self._zoom_widget.setVisible(False)  # shown only for zoom-supporting views
 
         # --- Status bar: compact CPM threshold spin + CPM summary label ---
@@ -472,8 +471,9 @@ class MainWindow(QMainWindow):
         _cpm_bar_layout.addWidget(_sep_lbl)
         _cpm_bar_layout.addWidget(self._cpm_summary_label)
         self._cpm_slack_spin.valueChanged.connect(self._on_cpm_slack_spin_changed)
-        # Insert to the left of the zoom widget in the permanent area
-        self.statusBar().insertPermanentWidget(0, _cpm_bar)
+        # Add CPM bar first so it appears to the left of the zoom widget
+        self.statusBar().addPermanentWidget(_cpm_bar)
+        self.statusBar().addPermanentWidget(self._zoom_widget)
 
         # Update slider/label when canvas zoom changes
         self._zoom_def = DAY_WIDTH_DEF
@@ -1809,7 +1809,10 @@ class MainWindow(QMainWindow):
             answer = QMessageBox.question(
                 self,
                 "KeePass Locked",
-                "The KeePass database is locked.\n\nDo you want to unlock it now?",
+                "\U0001f510  KeePass is required to connect to Jira\n\n"
+                "The configured Jira server uses KeePass for credential storage,\n"
+                "but KeePass is currently locked.\n\n"
+                "Would you like to unlock KeePass now to proceed with \u2018Sync from Jira\u2019?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.Yes,
             )
@@ -2050,7 +2053,10 @@ class MainWindow(QMainWindow):
             from PyQt5.QtWidgets import QInputDialog, QLineEdit  # type: ignore
             answer = QMessageBox.question(
                 self, "KeePass Locked",
-                "The KeePass database is locked.\n\nDo you want to unlock it now?",
+                "\U0001f510  KeePass is required to connect to Jira\n\n"
+                "The configured Jira server uses KeePass for credential storage,\n"
+                "but KeePass is currently locked.\n\n"
+                "Would you like to unlock KeePass now to proceed with \u2018Sync to Jira\u2019?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.Yes,
             )
@@ -2798,7 +2804,10 @@ class MainWindow(QMainWindow):
         """Prompt the user to unlock KeePass for VCS credential retrieval."""
         answer = QMessageBox.question(
             self, "KeePass Locked",
-            "KeePass is locked. Unlock it now to provide VCS credentials?",
+            "\U0001f510  KeePass is required for version control credentials\n\n"
+            "The configured VCS server uses KeePass for credential storage,\n"
+            "but KeePass is currently locked.\n\n"
+            "Would you like to unlock KeePass now to proceed?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes,
         )
         if answer != QMessageBox.Yes:
@@ -3071,8 +3080,9 @@ class MainWindow(QMainWindow):
         from integrations.confluence_calendar_integration import ConfluenceCalendarSync  # type: ignore
         sync = ConfluenceCalendarSync()
         _t0 = _time.monotonic()
+        sync_result_msg = None
         try:
-            run_indeterminate(
+            sync_result_msg = run_indeterminate(
                 self, "Syncing Confluence Calendars\u2026",
                 sync.run,
                 self.logic.get_data(), self,
@@ -3090,6 +3100,10 @@ class MainWindow(QMainWindow):
             self.file_handler.sanitize_resource_uids(project)
             self._refresh_all_views()
             self._mark_dirty()
+        # Show the sync result AFTER the progress dialog is fully closed and
+        # all views have been refreshed — prevents the dialog layering issue.
+        if sync_result_msg:
+            QMessageBox.information(self, "Sync Complete", sync_result_msg)
 
     def toggle_resource_units(self, checked: bool):
         self.gantt_view.set_show_resource_units(checked)
@@ -3246,13 +3260,14 @@ class MainWindow(QMainWindow):
                 props.setCurrencySymbol(symbol)
             if code:
                 props.setCurrencyCode(code)
-            props.setCurrencyDigits(digits)
             try:
                 import jpype  # type: ignore
+                _Integer = jpype.JClass("java.lang.Integer")
+                props.setCurrencyDigits(_Integer(digits))
                 CSP = jpype.JClass("org.mpxj.CurrencySymbolPosition")
                 props.setSymbolPosition(CSP.valueOf(pos_name))
             except Exception:
-                pass  # jpype not available or position not settable
+                props.setCurrencyDigits(digits)  # fallback if jpype boxing unavailable
         except Exception as e:
             print(f"[WARN] _apply_system_currency_to_project: {e}")
 

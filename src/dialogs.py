@@ -1292,18 +1292,37 @@ class ResourceDialog(_BaseDialog):
 
     _RES_TYPES = ["WORK", "MATERIAL", "COST"]
 
+    # Common country names for the AD tab country dropdown
+    _COUNTRIES = [
+        "", "Afghanistan", "Albania", "Algeria", "Argentina", "Australia", "Austria",
+        "Bangladesh", "Belarus", "Belgium", "Bosnia and Herzegovina", "Brazil", "Bulgaria",
+        "Canada", "Chile", "China", "Colombia", "Croatia", "Czech Republic",
+        "Denmark", "Egypt", "Estonia", "Ethiopia", "Finland", "France",
+        "Germany", "Ghana", "Greece", "Hungary", "India", "Indonesia", "Iran",
+        "Iraq", "Ireland", "Israel", "Italy", "Japan", "Jordan", "Kenya",
+        "Latvia", "Lebanon", "Lithuania", "Luxembourg", "Malaysia", "Mexico",
+        "Morocco", "Netherlands", "New Zealand", "Nigeria", "Norway", "Pakistan",
+        "Peru", "Philippines", "Poland", "Portugal", "Romania", "Russia",
+        "Saudi Arabia", "Serbia", "Singapore", "Slovakia", "Slovenia",
+        "South Africa", "South Korea", "Spain", "Sri Lanka", "Sweden",
+        "Switzerland", "Taiwan", "Thailand", "Tunisia", "Turkey", "Ukraine",
+        "United Arab Emirates", "United Kingdom", "United States", "Vietnam",
+    ]
+
     def __init__(self, resource, project=None, parent=None):
         super().__init__("Resource Information", parent)
         self._res = resource
         self._project = project
         # list of (row_index, java_FieldType) for the Custom Fields tab
         self._custom_field_types = []
-        self.setMinimumHeight(340)
+        self.setMinimumHeight(420)
+        self.setMinimumWidth(520)
         name = str(resource.getName()) if resource.getName() is not None else ""
         self._root.addWidget(_make_header("Resource Information", name))
 
         tabs = QTabWidget()
         tabs.addTab(self._tab_general(), "General")
+        tabs.addTab(self._tab_active_directory(), "Active Directory")
         tabs.addTab(self._tab_custom_fields(), "Custom Fields")
         tabs.addTab(self._tab_notes(), "Notes")
 
@@ -1419,6 +1438,117 @@ class ResourceDialog(_BaseDialog):
         self._update_avatar()
 
         return w
+
+    def _tab_active_directory(self):
+        """Active Directory tab — shows and allows editing of AD-sourced attributes."""
+        from PyQt5.QtWidgets import QScrollArea, QFrame  # type: ignore
+        r = self._res
+
+        # Load AD data: first try in-memory _ad_data attribute, then MPXJ TEXT fields
+        ad = {}
+        try:
+            ad = dict(getattr(r, "_ad_data", {}) or {})
+        except Exception:
+            pass
+
+        # Helper: read MPXJ resource text field
+        def _get_text(field_name: str, default: str = "") -> str:
+            try:
+                import jpype  # type: ignore
+                RF = jpype.JClass("org.mpxj.ResourceField")
+                fld = getattr(RF, field_name, None)
+                if fld is not None:
+                    val = r.get(fld)
+                    return str(val) if val is not None else default
+            except Exception:
+                pass
+            return default
+
+        # Prefer _ad_data; fall back to MPXJ email / TEXT fields
+        email_val   = ad.get("email", "")       or _get_text("EMAIL_ADDRESS", "")
+        city_val    = ad.get("city", "")        or _get_text("TEXT1", "")
+        dept_val    = ad.get("department", "")  or _get_text("TEXT2", "")
+        country_val = ad.get("country", "")     or _get_text("TEXT3", "")
+        username_val = ad.get("username", "")
+        dispname_val = ad.get("display_name", "")
+        if not email_val:
+            try:
+                ev = r.getEmailAddress()
+                email_val = str(ev) if ev is not None else ""
+            except Exception:
+                pass
+
+        outer = QWidget()
+        outer_v = QVBoxLayout(outer)
+        outer_v.setContentsMargins(0, 0, 0, 0)
+        outer_v.setSpacing(0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+
+        inner = QWidget()
+        inner.setStyleSheet("background: white;")
+        f = QFormLayout(inner)
+        f.setContentsMargins(12, 12, 12, 12)
+        f.setSpacing(10)
+
+        # Display Name (read-only — comes from AD)
+        self._ad_display_name = QLineEdit(dispname_val)
+        self._ad_display_name.setReadOnly(True)
+        self._ad_display_name.setStyleSheet("background:#f5f5f5; color:#555;")
+        self._ad_display_name.setPlaceholderText("(not imported from AD)")
+        f.addRow("AD Display Name:", self._ad_display_name)
+
+        # Username (read-only — SAM account name)
+        self._ad_username = QLineEdit(username_val)
+        self._ad_username.setReadOnly(True)
+        self._ad_username.setStyleSheet("background:#f5f5f5; color:#555;")
+        self._ad_username.setPlaceholderText("(not imported from AD)")
+        f.addRow("Username:", self._ad_username)
+
+        # E-Mail (editable — saved to MPXJ email field)
+        self._ad_email = QLineEdit(email_val)
+        self._ad_email.setPlaceholderText("e.g. max.mustermann@company.com")
+        f.addRow("E-Mail:", self._ad_email)
+
+        # Department (editable)
+        self._ad_dept = QLineEdit(dept_val)
+        self._ad_dept.setPlaceholderText("e.g. Engineering")
+        f.addRow("Department:", self._ad_dept)
+
+        # City (editable)
+        self._ad_city = QLineEdit(city_val)
+        self._ad_city.setPlaceholderText("e.g. Stuttgart")
+        f.addRow("City:", self._ad_city)
+
+        # Country (editable combobox with common countries)
+        self._ad_country = QComboBox()
+        self._ad_country.setEditable(True)
+        self._ad_country.addItems(self._COUNTRIES)
+        if country_val:
+            idx = self._ad_country.findText(country_val)
+            if idx >= 0:
+                self._ad_country.setCurrentIndex(idx)
+            else:
+                self._ad_country.setCurrentText(country_val)
+        else:
+            self._ad_country.setCurrentIndex(0)
+        self._ad_country.lineEdit().setPlaceholderText("e.g. Germany")
+        f.addRow("Country:", self._ad_country)
+
+        # Hint about data source
+        hint = QLabel(
+            "Fields imported from Active Directory. E-Mail, Department, City, and Country "
+            "are editable and saved with the project."
+        )
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: #808080; font-size: 10px;")
+        f.addRow(hint)
+
+        scroll.setWidget(inner)
+        outer_v.addWidget(scroll)
+        return outer
 
     def _do_ad_lookup(self):
         """Search AD by the resource's current display name and pre-fill email/department."""
@@ -1581,7 +1711,18 @@ class ResourceDialog(_BaseDialog):
 
     def _tab_custom_fields(self):
         """Show resource custom fields (defined in Project Information). Value column is editable."""
+        from PyQt5.QtWidgets import QScrollArea, QFrame  # type: ignore
+        outer = QWidget()
+        outer_v = QVBoxLayout(outer)
+        outer_v.setContentsMargins(0, 0, 0, 0)
+        outer_v.setSpacing(0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+
         w = QWidget()
+        w.setStyleSheet("background: white;")
         vbox = QVBoxLayout(w)
         vbox.setContentsMargins(12, 12, 12, 12)
         vbox.setSpacing(6)
@@ -1639,7 +1780,10 @@ class ResourceDialog(_BaseDialog):
         if tbl.rowCount() == 0:
             vbox.addWidget(QLabel("No custom fields defined. Add them in Project Information."))
         vbox.addWidget(tbl)
-        return w
+
+        scroll.setWidget(w)
+        outer_v.addWidget(scroll)
+        return outer
 
     def apply_to_resource(self):
         r = self._res
@@ -1761,6 +1905,34 @@ class ResourceDialog(_BaseDialog):
                 _set_cf_value(self._res, ft, val_text)
         except Exception as e:
             print(f"[WARN] ResourceDialog.apply custom fields: {e}")
+
+        # Save Active Directory tab fields
+        try:
+            email = self._ad_email.text().strip()
+            if email:
+                r.setEmailAddress(email)
+            # Persist city, department, country to MPXJ TEXT fields (TEXT1/2/3)
+            import jpype  # type: ignore
+            RF = jpype.JClass("org.mpxj.ResourceField")
+            city_val    = self._ad_city.text().strip()
+            dept_val    = self._ad_dept.text().strip()
+            country_val = self._ad_country.currentText().strip()
+            for field_name, value in [("TEXT1", city_val), ("TEXT2", dept_val), ("TEXT3", country_val)]:
+                try:
+                    fld = getattr(RF, field_name, None)
+                    if fld is not None:
+                        r.set(fld, value if value else None)
+                except Exception:
+                    pass
+            # Update in-memory _ad_data if present
+            ad = getattr(r, "_ad_data", None)
+            if ad is not None:
+                ad["email"]      = email
+                ad["city"]       = city_val
+                ad["department"] = dept_val
+                ad["country"]    = country_val
+        except Exception as e:
+            print(f"[WARN] ResourceDialog.apply AD fields: {e}")
 
 
 # ------------------------------------------------------------------ #
@@ -3924,6 +4096,7 @@ class ADGroupSearchDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add Resources from AD Group")
+        self.setModal(True)
         self.setStyleSheet(_DIALOG_STYLE)
         self.setMinimumWidth(700)
         self.setMinimumHeight(520)

@@ -212,8 +212,8 @@
 <main>
 
 <div class="stats">
-  <div class="stat"><div class="stat-n">35</div><div class="stat-l">Total Tests</div></div>
-  <div class="stat"><div class="stat-n">35</div><div class="stat-l">Passed</div></div>
+  <div class="stat"><div class="stat-n">44</div><div class="stat-l">Total Tests</div></div>
+  <div class="stat"><div class="stat-n">44</div><div class="stat-l">Passed</div></div>
   <div class="stat"><div class="stat-n">0</div><div class="stat-l">Skipped</div></div>
   <div class="stat"><div class="stat-n">0</div><div class="stat-l">Failed</div></div>
   <div class="stat"><div class="stat-n">1</div><div class="stat-l">Modules</div></div>
@@ -312,9 +312,22 @@
     </div>
   </div>
 
-</div>
+  <div class="chapter">
+    <div class="chapter-header" onclick="toggle(this)"><span class="arrow">&#9660;</span><h3>TestVcsDebugLog &mdash; _debug_log_append() and command_log in get_config_summary()</h3></div>
+    <div class="chapter-body">
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-36</span><span class="test-name">_debug_log_append() adds one entry per call</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear <code>_debug_log</code> buffer.</div><div class="block"><div class="block-label">Run</div><code>_debug_log_append(&quot;hello world&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Buffer length == 1.</div><div class="block"><div class="block-label">Check</div><code>assert len(vci._debug_log) == 1</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-37</span><span class="test-name">Entry contains the original message text</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div><code>_debug_log_append(&quot;git: status (cwd=/repo)&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Entry string contains the message.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;git: status (cwd=/repo)&quot; in vci._debug_log[0]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-38</span><span class="test-name">Entry is tagged with [version_control] prefix</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div><code>_debug_log_append(&quot;test msg&quot;)</code></div><div class="block"><div class="block-label">Expect</div>Entry contains <code>[version_control]</code>.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;[version_control]&quot; in vci._debug_log[0]</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-39</span><span class="test-name">Three appends produce buffer of length 3</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div>Call <code>_debug_log_append</code> three times.</div><div class="block"><div class="block-label">Expect</div>Buffer length == 3.</div><div class="block"><div class="block-label">Check</div><code>assert len(vci._debug_log) == 3</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-40</span><span class="test-name">Buffer capped at _DEBUG_LOG_MAX</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div>Append _DEBUG_LOG_MAX + 20 entries.</div><div class="block"><div class="block-label">Expect</div>Buffer length &le; _DEBUG_LOG_MAX.</div><div class="block"><div class="block-label">Check</div><code>assert len(vci._debug_log) &lt;= vci._DEBUG_LOG_MAX</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-41</span><span class="test-name">Oldest entries dropped when over max</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div>Append _DEBUG_LOG_MAX + 5 messages starting with &ldquo;msg 0&rdquo;.</div><div class="block"><div class="block-label">Expect</div>First entry not in buffer.</div><div class="block"><div class="block-label">Check</div>Assert &ldquo;msg 0&rdquo; absent from <code>_debug_log</code>.</div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-42</span><span class="test-name">get_config_summary() always includes command_log key</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Clear buffer.</div><div class="block"><div class="block-label">Run</div><code>get_config_summary()</code></div><div class="block"><div class="block-label">Expect</div>Key <code>command_log</code> present in result dict.</div><div class="block"><div class="block-label">Check</div><code>assert &quot;command_log&quot; in summary</code></div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-43</span><span class="test-name">command_log reflects current _debug_log</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Append a sentinel message.</div><div class="block"><div class="block-label">Run</div><code>get_config_summary()[&quot;command_log&quot;]</code></div><div class="block"><div class="block-label">Expect</div>Sentinel appears in the returned list.</div><div class="block"><div class="block-label">Check</div>Assert sentinel text in any entry of <code>command_log</code>.</div></div></div>
+      <div class="test-case"><div class="test-case-header"><span class="test-id">VC-44</span><span class="test-name">Returned command_log is a copy (mutation-safe)</span><span class="status-badge">PASS</span></div><div class="four-blocks"><div class="block"><div class="block-label">Init</div>Append one entry.</div><div class="block"><div class="block-label">Run</div>Clear the returned list.</div><div class="block"><div class="block-label">Expect</div><code>_debug_log</code> unchanged.</div><div class="block"><div class="block-label">Check</div><code>assert len(vci._debug_log) &gt;= 1</code></div></div></div>
+    </div>
+  </div>
 
-</main>
+</div>
 
 </div><!-- /.page-body -->
 <script>

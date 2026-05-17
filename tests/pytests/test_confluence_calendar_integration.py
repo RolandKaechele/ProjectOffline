@@ -1150,11 +1150,9 @@ class TestConfluenceCalendarSyncRun:
              patch('integrations.confluence_calendar_integration._fetch_subcalendars', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._filter_relevant', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._fetch_events', return_value=[{"start": "2025-12-25", "end": "2025-12-25"}]), \
-             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(1, 0, 0, 0, 0)), \
-             patch('PyQt5.QtWidgets.QMessageBox') as qmb:
-            self._sync().run(project, parent_widget=None)
-            qmb.information.assert_called_once()
-            summary_msg = qmb.information.call_args[0][2]
+             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(1, 0, 0, 0, 0)):
+            result = self._sync().run(project, parent_widget=None)
+            summary_msg = result
             assert "Alice" in summary_msg
             assert "1" in summary_msg
 
@@ -1170,11 +1168,9 @@ class TestConfluenceCalendarSyncRun:
              patch('integrations.confluence_calendar_integration._fetch_subcalendars', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._filter_relevant', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._fetch_events', side_effect=ConnectionError("network error")), \
-             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(0, 0, 0, 0, 0)), \
-             patch('PyQt5.QtWidgets.QMessageBox') as qmb:
-            self._sync().run(project, parent_widget=None)
-            qmb.information.assert_called_once()
-            summary_msg = qmb.information.call_args[0][2]
+             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(0, 0, 0, 0, 0)):
+            result = self._sync().run(project, parent_widget=None)
+            summary_msg = result
             assert "Holidays" in summary_msg
 
     def test_fetch_subcalendars_exception_shows_critical(self):
@@ -1251,10 +1247,9 @@ class TestConfluenceCalendarSyncRun:
              patch('integrations.confluence_calendar_integration._fetch_subcalendars', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._filter_relevant', return_value=[cal_entry]), \
              patch('integrations.confluence_calendar_integration._fetch_events', return_value=[]), \
-             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(0, 0, 0, 3, 0)), \
-             patch('PyQt5.QtWidgets.QMessageBox') as qmb:
-            self._sync().run(project, parent_widget=None)
-        summary_msg = qmb.information.call_args[0][2]
+             patch('integrations.confluence_calendar_integration._apply_to_project', return_value=(0, 0, 0, 3, 0)):
+            result = self._sync().run(project, parent_widget=None)
+        summary_msg = result
         assert "3" in summary_msg
         assert "expired" in summary_msg.lower()
 

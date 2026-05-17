@@ -123,8 +123,37 @@ class TestRunner:
         self.dry_run = dry_run
         self.results: list[TestResult] = []
 
+    # ── ANSI colour helpers ────────────────────────────────────────────────
+    _C_RESET  = "\033[0m"
+    _C_BOLD   = "\033[1m"
+    _C_GREEN  = "\033[32m"
+    _C_RED    = "\033[31m"
+    _C_YELLOW = "\033[33m"
+    _C_CYAN   = "\033[36m"
+    _C_GREY   = "\033[90m"
+
+    # Label and colour per status
+    _STATUS_LABEL = {
+        _STATUS_PASS:  (" OK  ", "\033[32m"),   # green
+        _STATUS_FAIL:  ("FAIL ", "\033[31m"),   # red
+        _STATUS_ERROR: ("ERR  ", "\033[31m"),   # red
+        _STATUS_SKIP:  ("SKIP ", "\033[33m"),   # yellow
+    }
+    _last_category: str = ""
+
+    def _print_header(self, category: str):
+        """Print a category separator line the first time a category appears."""
+        if category != self._last_category:
+            self.__class__._last_category = category
+            print(f"\n{self._C_BOLD}{self._C_CYAN}── {category} ──{self._C_RESET}")
+
     def run(self, category: str, name: str, fn: Callable, *args, **kwargs) -> TestResult:
-        """Execute fn(*args, **kwargs) and record a TestResult."""
+        """Execute fn(*args, **kwargs), print live progress, and record a TestResult."""
+        self._print_header(category)
+        # Print "  ..." while the test is running (overwritten on the same line)
+        short = name[:72]
+        print(f"  {self._C_GREY}...{self._C_RESET} {short}", end="\r", flush=True)
+
         stdout_buf = io.StringIO()
         stderr_buf = io.StringIO()
         t0 = time.perf_counter()
@@ -156,9 +185,27 @@ class TestRunner:
             details=details,
         )
         self.results.append(result)
+
+        # Overwrite the "..." line with the final result
+        lbl, col = self._STATUS_LABEL.get(status, (" ??? ", ""))
+        dur_str = f"{self._C_GREY}{elapsed:6.0f} ms{self._C_RESET}"
+        status_str = f"{col}{self._C_BOLD}[{lbl}]{self._C_RESET}"
+        # Pad to clear the previous "..." line (max 80 chars)
+        line = f"  {status_str} {short}"
+        print(f"{line:<82} {dur_str}")
+        if message and status != _STATUS_PASS:
+            indent = "         "
+            for part in message.splitlines()[:3]:  # max 3 lines of detail
+                print(f"{indent}{self._C_GREY}{part}{self._C_RESET}")
+
         return result
 
     def skip(self, category: str, name: str, reason: str) -> TestResult:
+        self._print_header(category)
+        lbl, col = self._STATUS_LABEL[_STATUS_SKIP]
+        short = name[:72]
+        print(f"  {col}{self._C_BOLD}[{lbl}]{self._C_RESET} {short:<72}"
+              f"  {self._C_GREY}{reason}{self._C_RESET}")
         result = TestResult(category=category, name=name, status=_STATUS_SKIP,
                              message=reason)
         self.results.append(result)
@@ -566,6 +613,35 @@ def run_category_G(runner: TestRunner, server: dict, jira_client):
         _assert(len(types_list) > 0, "issue_types() returned empty list")
     runner.run(cat, "G5: jira.issue_types() – returns non-empty list", _G5)
 
+    def _G7():
+        caps = jira_integration.fetch_server_capabilities(server)
+        _assert(isinstance(caps, dict), "fetch_server_capabilities() returns dict")
+        _assert("issue_types" in caps, "result has 'issue_types' key")
+        _assert("priorities" in caps, "result has 'priorities' key")
+        _assert("error" in caps, "result has 'error' key")
+        _assert(isinstance(caps["issue_types"], list), "issue_types is a list")
+        _assert(len(caps["issue_types"]) > 0, "issue_types is non-empty")
+        _assert(caps["error"] == "", f"unexpected error: {caps['error']}")
+        # Values must be strings (issue type names)
+        for it in caps["issue_types"]:
+            _assert(isinstance(it, str), f"issue type entry is not str: {it!r}")
+    runner.run(cat, "G7: fetch_server_capabilities() – returns issue_types and priorities", _G7)
+
+    def _G8():
+        # Validate fetch_server_capabilities with an unreachable server
+        bad = dict(server)
+        bad["url"] = "https://no-such-server.invalid"
+        bad["name"] = "bad-url-caps-test"
+        _inject_sm(bad)
+        try:
+            caps = jira_integration.fetch_server_capabilities(bad)
+            _assert(isinstance(caps, dict), "returns dict even on failure")
+            _assert(caps["error"] != "", "error field must be set on failure")
+            _assert(caps["issue_types"] == [], "issue_types empty on failure")
+        finally:
+            _inject_sm(server)
+    runner.run(cat, "G8: fetch_server_capabilities() – error on unreachable server", _G8)
+
     def _G6():
         projects = jira_client.projects()
         _assert(projects is not None, "projects() returned None")
@@ -579,7 +655,8 @@ def run_category_G(runner: TestRunner, server: dict, jira_client):
 # ---------------------------------------------------------------------------
 
 def run_category_H(runner: TestRunner, server: dict, jira_client, project_key: str,
-                   filter_value: str = "", filter_type: str = "jql"):
+                   filter_value: str = "", filter_type: str = "jql",
+                   capabilities: dict = None):
     """JQL / Saved-filter tests.  Uses the filter entered in the dialog when provided."""
     cat = "H – JQL Filter Tests"
     # Effective JQL for most sub-tests: if user supplied a JQL filter use it,
@@ -642,7 +719,16 @@ def run_category_H(runner: TestRunner, server: dict, jira_client, project_key: s
 
     # H10: Priority filter
     def _H10():
-        jql = f"project = {project_key} AND priority in (High, Highest) ORDER BY created DESC"
+        caps = capabilities or {}
+        avail_priorities = caps.get("priorities", [])
+        # Build the priority list using only values known to exist on the server
+        wanted = [p for p in ("High", "Highest") if not avail_priorities or p in avail_priorities]
+        if not wanted:
+            raise _TestSkip(
+                f"Neither 'High' nor 'Highest' priority available on this server "
+                f"(available: {avail_priorities})"
+            )
+        jql = f"project = {project_key} AND priority in ({', '.join(wanted)}) ORDER BY created DESC"
         issues = jira_client.search_issues(jql, maxResults=5)
         _assert(issues is not None, "priority JQL returned None")
     runner.run(cat, "H10: JQL with priority filter", _H10)
@@ -739,7 +825,8 @@ def run_category_I(runner: TestRunner, jira_client,
 _created_issue_keys: list[str] = []
 
 
-def run_category_J(runner: TestRunner, jira_client, project_key: str, dry_run: bool):
+def run_category_J(runner: TestRunner, jira_client, project_key: str, dry_run: bool,
+                   capabilities: dict = None):
     cat = "J – Issue CRUD"
 
     if dry_run:
@@ -752,11 +839,22 @@ def run_category_J(runner: TestRunner, jira_client, project_key: str, dry_run: b
 
     def _J1():
         nonlocal created_story_key
-        issue = jira_client.create_issue(fields={
-            "project": {"key": project_key},
-            "summary": f"[TEST AUTO] Story created by test_jira_actions.py – {_ts()}",
-            "issuetype": {"name": "Story"},
-        })
+        avail_types = (capabilities or {}).get("issue_types", [])
+        if avail_types and "Story" not in avail_types:
+            raise _TestSkip(
+                f"'Story' issue type not available on this server (available: {avail_types})"
+            )
+        try:
+            issue = jira_client.create_issue(fields={
+                "project": {"key": project_key},
+                "summary": f"[TEST AUTO] Story created by test_jira_actions.py – {_ts()}",
+                "issuetype": {"name": "Story"},
+            })
+        except Exception as _exc:
+            _msg = str(_exc)
+            if "invalid" in _msg.lower() and ("issue type" in _msg.lower() or "400" in _msg):
+                raise _TestSkip(f"'Story' issue type rejected by project {project_key}: invalid")
+            raise
         _assert(issue is not None, "create_issue returned None")
         _assert(hasattr(issue, "key"), "issue has .key attribute")
         created_story_key = issue.key
@@ -852,7 +950,8 @@ def run_category_J(runner: TestRunner, jira_client, project_key: str, dry_run: b
 # ── CATEGORY K: Epic / Hierarchy Tests (skipped in dry-run) ─────────────────
 # ---------------------------------------------------------------------------
 
-def run_category_K(runner: TestRunner, jira_client, project_key: str, dry_run: bool):
+def run_category_K(runner: TestRunner, jira_client, project_key: str, dry_run: bool,
+                   capabilities: dict = None):
     cat = "K – Epic Hierarchy"
 
     if dry_run:
@@ -864,6 +963,11 @@ def run_category_K(runner: TestRunner, jira_client, project_key: str, dry_run: b
 
     def _K1():
         nonlocal epic_key
+        avail_types = (capabilities or {}).get("issue_types", [])
+        if avail_types and "Epic" not in avail_types:
+            raise _TestSkip(
+                f"'Epic' issue type not available on this server (available: {avail_types})"
+            )
         # Jira Cloud uses "Epic Name" (customfield_10011) for epic name
         fields = {
             "project": {"key": project_key},
@@ -879,10 +983,18 @@ def run_category_K(runner: TestRunner, jira_client, project_key: str, dry_run: b
                 epic_key = issue.key
                 _created_issue_keys.append(issue.key)
                 return
-            except Exception:
-                pass
+            except Exception as _exc:
+                _msg = str(_exc)
+                if "invalid" in _msg.lower() and ("issue type" in _msg.lower() or "400" in _msg):
+                    raise _TestSkip(f"'Epic' issue type rejected by project {project_key}: invalid")
         # Fallback without epic name field
-        issue = jira_client.create_issue(fields=fields)
+        try:
+            issue = jira_client.create_issue(fields=fields)
+        except Exception as _exc:
+            _msg = str(_exc)
+            if "invalid" in _msg.lower() and ("issue type" in _msg.lower() or "400" in _msg):
+                raise _TestSkip(f"'Epic' issue type rejected by project {project_key}: invalid")
+            raise
         epic_key = issue.key
         _created_issue_keys.append(issue.key)
     runner.run(cat, "K1: Create Epic issue", _K1)
@@ -890,6 +1002,11 @@ def run_category_K(runner: TestRunner, jira_client, project_key: str, dry_run: b
     def _K2():
         if not epic_key:
             raise _TestSkip("K1 did not create Epic (skipped)")
+        avail_types = (capabilities or {}).get("issue_types", [])
+        if avail_types and "Story" not in avail_types:
+            raise _TestSkip(
+                f"'Story' issue type not available on this server (available: {avail_types})"
+            )
         # Create child story under epic
         fields = {
             "project": {"key": project_key},
@@ -2038,7 +2155,7 @@ def generate_html_report(
 
 def _get_jira_version() -> str:
     try:
-        import jira # type: ignore
+        import jira
         return getattr(jira, "__version__", "installed")
     except ImportError:
         return "not installed"
@@ -2050,8 +2167,8 @@ def _get_jira_version() -> str:
 
 def _show_warning_dialog(app) -> bool:
     """Show a safety warning. Returns True if the user accepts."""
-    from PyQt5.QtWidgets import QMessageBox # type: ignore
-    from PyQt5.QtCore import Qt # type: ignore
+    from PyQt5.QtWidgets import QMessageBox
+    from PyQt5.QtCore import Qt
 
     msg = QMessageBox()
     msg.setWindowTitle("⚠ Safety Warning")
@@ -2075,13 +2192,13 @@ def _show_warning_dialog(app) -> bool:
 
 def _run_credentials_dialog() -> Optional[dict]:
     """Show the credentials dialog and return the server config or None on cancel."""
-    from PyQt5.QtWidgets import ( # type: ignore
+    from PyQt5.QtWidgets import (
         QApplication, QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
         QLabel, QLineEdit, QComboBox, QPushButton, QGroupBox, QFrame,
         QSpacerItem, QSizePolicy, QMessageBox,
-    ) 
-    from PyQt5.QtCore import Qt # type: ignore
-    from PyQt5.QtGui import QFont, QPalette, QColor # type: ignore
+    )
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtGui import QFont, QPalette, QColor
 
     app = QApplication.instance() or QApplication(sys.argv)
 
@@ -2311,6 +2428,16 @@ def _build_parser() -> optparse.OptionParser:
 
 
 def main():
+    # Enable ANSI escape codes on Windows 10+ (no-op on Linux/macOS)
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.kernel32.SetConsoleMode(
+                ctypes.windll.kernel32.GetStdHandle(-11), 7
+            )
+        except Exception:
+            pass
+
     parser = _build_parser()
     opts, _ = parser.parse_args()
 
@@ -2356,7 +2483,7 @@ def main():
             jira_client = JIRA(server=url, basic_auth=(uname, cred))
         print("  Connected OK.")
     except Exception as exc:
-        from PyQt5.QtWidgets import QApplication, QMessageBox # type: ignore
+        from PyQt5.QtWidgets import QApplication, QMessageBox
         app = QApplication.instance() or QApplication(sys.argv)
         QMessageBox.critical(
             None,
@@ -2378,10 +2505,21 @@ def main():
     run_category_E(runner)
     run_category_F(runner, server)
     run_category_G(runner, server, jira_client)
-    run_category_H(runner, server, jira_client, project_key, filter_value, filter_type)
+
+    # Fetch server capabilities once; used by H, J, K to skip unsupported features.
+    # Pass project_key so project-specific issue types are fetched (not global server types).
+    print("  Fetching server capabilities (issue types, priorities)...")
+    caps = jira_integration.fetch_server_capabilities(server, project_key)
+    if caps.get("error"):
+        print(f"  Warning: could not fetch capabilities: {caps['error']}")
+    else:
+        print(f"  Issue types: {caps.get('issue_types', [])}")
+        print(f"  Priorities:  {caps.get('priorities', [])}")
+
+    run_category_H(runner, server, jira_client, project_key, filter_value, filter_type, caps)
     run_category_I(runner, jira_client, filter_value, filter_type)
-    run_category_J(runner, jira_client, project_key, opts.dry_run)
-    run_category_K(runner, jira_client, project_key, opts.dry_run)
+    run_category_J(runner, jira_client, project_key, opts.dry_run, caps)
+    run_category_K(runner, jira_client, project_key, opts.dry_run, caps)
     run_category_L(runner, jira_client, project_key)
     run_category_M(runner, server, jira_client, project_key)
     run_category_N(runner, server)

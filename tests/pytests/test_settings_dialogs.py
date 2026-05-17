@@ -753,6 +753,7 @@ class TestJiraSyncConfigDialog:
 
         dialog._project2jira_fields["jira_status"]["checkbox"].setChecked(True)
         dialog._project2jira_fields["jira_status"]["edit"].setCurrentText("status")
+        dialog._project2jira_tables["issue_type_map"].setRowCount(0)
         dialog._project2jira_tables["issue_type_map"].insertRow(0)
         dialog._project2jira_tables["issue_type_map"].setItem(0, 0, QTableWidgetItem("Task"))
         dialog._project2jira_tables["issue_type_map"].setItem(0, 1, QTableWidgetItem("Task"))
@@ -792,10 +793,12 @@ class TestJiraSyncConfigDialog:
         dialog = JiraSyncConfigDialog(mock_settings_manager, mock_project)
 
         dialog._create_update_combo.setCurrentIndex(0)  # create_only
+        dialog._project2jira_fields["jira_project_name"]["checkbox"].setChecked(False)
         dialog._project2jira_fields["jira_description"]["checkbox"].setChecked(True)
         dialog._project2jira_fields["jira_description"]["edit"].setCurrentText("description")
 
         issue_table = dialog._project2jira_tables["issue_type_map"]
+        issue_table.setRowCount(0)
         issue_table.insertRow(0)
         issue_table.setItem(0, 0, QTableWidgetItem("Task"))
         issue_table.setItem(0, 1, QTableWidgetItem("Task"))
@@ -825,6 +828,7 @@ class TestJiraSyncConfigDialog:
         dialog._project2jira_fields["jira_project_name"]["edit"].setCurrentText("project")
 
         issue_table = dialog._project2jira_tables["issue_type_map"]
+        issue_table.setRowCount(0)
         issue_table.insertRow(0)
         issue_table.setItem(0, 0, QTableWidgetItem("Task"))
         issue_table.setItem(0, 1, QTableWidgetItem("Task"))

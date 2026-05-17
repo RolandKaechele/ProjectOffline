@@ -469,10 +469,15 @@ def _apply_to_project(
             if (start, end) in _existing_exc:
                 continue
             try:
-                default_cal.addCalendarException(
+                exc_obj = default_cal.addCalendarException(
                     LocalDate.of(start.year, start.month, start.day),
                     LocalDate.of(end.year,   end.month,   end.day),
                 )
+                ev_title = str(
+                    ev.get("title") or ev.get("summary") or ""
+                ).strip()
+                if ev_title:
+                    exc_obj.setName(ev_title)
                 _existing_exc.add((start, end))
                 n_holidays += 1
             except Exception:
@@ -676,10 +681,14 @@ def _apply_to_project(
             if (start, end) in _vac_existing:
                 continue
             try:
-                cal.addCalendarException(
+                vac_exc = cal.addCalendarException(
                     LocalDate.of(start.year, start.month, start.day),
                     LocalDate.of(end.year,   end.month,   end.day),
                 )
+                vac_title = str(
+                    ev.get("title") or ev.get("summary") or "Vacation"
+                ).strip() or "Vacation"
+                vac_exc.setName(vac_title)
                 _vac_existing.add((start, end))
                 n_vacations += 1
                 # TODO DEBUG – remove before release
@@ -1003,4 +1012,7 @@ class ConfluenceCalendarSync:
             lines.append("\nCalendars with fetch errors:")
             lines.extend(errors)
 
-        QMessageBox.information(parent_widget, "Sync Complete", "\n".join(lines))
+        # Return the result message instead of showing it — the caller
+        # (ui.sync_confluence_calendars) will display it after the progress
+        # dialog has been fully closed.
+        return "\n".join(lines)

@@ -1073,3 +1073,95 @@ class TestTaskDialogScheduleTab:
         labels = sched_widget.findChildren(QLabel)
         texts = " ".join(lbl.text() for lbl in labels)
         assert "CRITICAL" in texts
+
+
+# ---------------------------------------------------------------------------
+# ResourceDialog — Active Directory tab (new)
+# ---------------------------------------------------------------------------
+
+class TestResourceDialogADTab:
+    """Tests for the Active Directory tab added to ResourceDialog.
+
+    The tab exposes read-only display name / username fields and editable
+    email, department, city and country fields.  apply_to_resource() saves
+    email to setEmailAddress() and custom TEXT1/2/3 fields.
+
+    \testinit
+    Build a ResourceDialog using a mock resource whose AD and custom-field
+    attributes are pre-configured.
+
+    \testrun
+    Inspect the tab widget, pre-filled field values, and the behaviour of
+    apply_to_resource() after editing the fields.
+
+    \testexpect
+    - 'Active Directory' tab is present.
+    - Email / department / city / country edit fields exist.
+    - apply_to_resource() calls setEmailAddress() with the correct value.
+
+    \testcheck
+    Assert tab presence, widget existence, and mock call arguments.
+    """
+
+    def _make_resource(self, email="", dept="", city="", country=""):
+        res = MagicMock()
+        res.getID.return_value = 2
+        res.getUniqueID.return_value = 2
+        res.getName.return_value = "Alice"
+        type_mock = MagicMock()
+        type_mock.__str__ = MagicMock(return_value="Work")
+        res.getType.return_value = type_mock
+        res.getMaxUnits.return_value = 1.0
+        std = MagicMock(); std.__str__ = MagicMock(return_value="$0.00/h")
+        ovt = MagicMock(); ovt.__str__ = MagicMock(return_value="$0.00/h")
+        res.getStandardRate.return_value = std
+        res.getOvertimeRate.return_value = ovt
+        res.getEmailAddress.return_value = email
+        res.getDepartment.return_value = dept
+        # TEXT1/2/3 for city/country
+        res.getText.return_value = None
+        res.get.return_value = None   # prevent MagicMock being stringified into QLineEdit
+        return res
+
+    def _make_dialog(self, qapp, res):
+        from dialogs import ResourceDialog
+        from conftest import make_mock_project
+        project = make_mock_project(resources=[res])
+        project.getCustomFields.return_value = []
+        return ResourceDialog(res, project)
+
+    def test_active_directory_tab_present(self, qapp):
+        """ResourceDialog has an 'Active Directory' tab."""
+        from PyQt5.QtWidgets import QTabWidget
+        res = self._make_resource()
+        dlg = self._make_dialog(qapp, res)
+        tabs = dlg.findChildren(QTabWidget)[0]
+        tab_labels = [tabs.tabText(i) for i in range(tabs.count())]
+        assert any("Active Directory" in lbl or "AD" in lbl for lbl in tab_labels)
+
+    def test_ad_tab_has_email_field(self, qapp):
+        """ResourceDialog AD tab exposes the _e_email attribute."""
+        res = self._make_resource()
+        dlg = self._make_dialog(qapp, res)
+        assert hasattr(dlg, "_e_email")
+
+    def test_ad_tab_email_prefilled(self, qapp):
+        """_e_email is pre-filled from resource.getEmailAddress()."""
+        res = self._make_resource(email="alice@example.com")
+        dlg = self._make_dialog(qapp, res)
+        assert dlg._e_email.text() == "alice@example.com"
+
+    def test_ad_tab_dept_prefilled(self, qapp):
+        """_e_dept is pre-filled from resource.getDepartment()."""
+        res = self._make_resource(dept="Engineering")
+        dlg = self._make_dialog(qapp, res)
+        assert dlg._e_dept.text() == "Engineering"
+
+    def test_apply_to_resource_saves_email(self, qapp):
+        """apply_to_resource() calls setEmailAddress() with the current AD email field value."""
+        res = self._make_resource()
+        dlg = self._make_dialog(qapp, res)
+        dlg._ad_email.setText("alice@new.com")
+        with patch.dict('sys.modules', {'java.lang': MagicMock()}):
+            dlg.apply_to_resource()
+        res.setEmailAddress.assert_any_call("alice@new.com")

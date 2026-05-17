@@ -70,10 +70,22 @@ _repo_info: dict = {}          # {"type": "git"|"svn", "root": str, "branch": st
 _project_file_path: str = ""   # current open project file path
 _last_commit_result: Optional[dict] = None
 _last_status_result: Optional[dict] = None
+_debug_log: list = []          # rolling buffer of debug messages for app_debug.py
+_DEBUG_LOG_MAX = 100
 
 # Debounce for auto-commit
 _auto_commit_timer: Optional[threading.Timer] = None
 _DEBOUNCE_SECONDS = 3
+
+
+def _debug_log_append(msg: str) -> None:
+    """Append a timestamped debug message to the rolling log buffer."""
+    import datetime as _dt
+    global _debug_log
+    entry = f"{_dt.datetime.now().strftime('%H:%M:%S.%f')[:-3]} [version_control] {msg}"
+    _debug_log.append(entry)
+    if len(_debug_log) > _DEBUG_LOG_MAX:
+        _debug_log = _debug_log[-_DEBUG_LOG_MAX:]
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +249,7 @@ def _run_git(args: list[str], cwd: str, timeout: int = 30,
                 env["GIT_ASKPASS_PASSWORD"] = password
             else:
                 if _is_debug():
-                    print(f"[version_control] git-askpass script not found: {askpass}")
+                    _debug_log_append(f"git-askpass script not found: {askpass}")
 
     if _is_debug():
         # Log the command, but mask any credential flags
@@ -245,7 +257,7 @@ def _run_git(args: list[str], cwd: str, timeout: int = 30,
             env.get("GIT_ASKPASS_PASSWORD", "__NEVER__"),
             env.get("GIT_ASKPASS_USERNAME", "__NEVER__"),
         ))
-        print(f"[version_control] git: {safe_cmd}  (cwd={cwd})")
+        _debug_log_append(f"git: {safe_cmd}  (cwd={cwd})")
 
     try:
         result = subprocess.run(
@@ -292,7 +304,7 @@ def _run_svn(args: list[str], cwd: str, timeout: int = 30,
                 skip_next = True
             else:
                 safe_parts.append(part)
-        print(f"[version_control] svn: {' '.join(safe_parts)}  (cwd={cwd})")
+        _debug_log_append(f"svn: {' '.join(safe_parts)}  (cwd={cwd})")
 
     try:
         result = subprocess.run(
@@ -367,7 +379,7 @@ def init(project_file_path: str) -> None:
     _project_file_path = project_file_path or ""
     _repo_info = detect_repo(_project_file_path) if _project_file_path else {}
     if _is_debug():
-        print(f"[version_control] init: repo_info={_repo_info}")
+        _debug_log_append(f"init: repo_info={_repo_info}")
 
 
 def reset() -> None:
@@ -882,10 +894,10 @@ def schedule_auto_commit(project_file_path: str, project_name: str) -> None:
         global _auto_commit_timer
         _auto_commit_timer = None
         if _is_debug():
-            print(f"[version_control] auto-commit triggered: {message!r}")
+            _debug_log_append(f"auto-commit triggered: {message!r}")
         ok, output = commit(message, scope=scope, file_path=project_file_path)
         if _is_debug():
-            print(f"[version_control] auto-commit result: ok={ok}, output={output[:200]!r}")
+            _debug_log_append(f"auto-commit result: ok={ok}, output={output[:200]!r}")
 
     _auto_commit_timer = threading.Timer(_DEBOUNCE_SECONDS, _do_commit)
     _auto_commit_timer.daemon = True
@@ -906,10 +918,10 @@ def _create_safety_snapshot(file_path: str) -> None:
     try:
         shutil.copy2(file_path, snapshot_path)
         if _is_debug():
-            print(f"[version_control] safety snapshot: {snapshot_path}")
+            _debug_log_append(f"safety snapshot: {snapshot_path}")
     except Exception as exc:
         if _is_debug():
-            print(f"[version_control] safety snapshot failed: {exc}")
+            _debug_log_append(f"safety snapshot failed: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -972,6 +984,7 @@ def get_config_summary() -> dict:
             if k not in ("message",)  # message may contain project name
         } if _last_commit_result else None,
         "last_status": _last_status_result,
+        "command_log": list(_debug_log),
     }
 
 

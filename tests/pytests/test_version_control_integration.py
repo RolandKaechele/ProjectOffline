@@ -531,3 +531,107 @@ class TestVcsWorkerSvnAdd:
             worker.run()
 
         mock_add.assert_called_once_with(file_path="/repo/project.xml")
+
+
+# ---------------------------------------------------------------------------
+# TestVcsDebugLog  (new: _debug_log_append + command_log in get_config_summary)
+# ---------------------------------------------------------------------------
+
+class TestVcsDebugLog:
+    """_debug_log_append() maintains a rolling in-memory log; get_config_summary()
+    exposes it as 'command_log'.
+
+    \testinit
+    Clear _debug_log before each test so tests are isolated.
+
+    \testrun
+    Call _debug_log_append() with known messages, then inspect _debug_log and
+    get_config_summary()['command_log'].
+
+    \testexpect
+    Each appended message appears as a timestamped entry.  The rolling buffer
+    never exceeds _DEBUG_LOG_MAX entries.  get_config_summary() returns a copy
+    of the current buffer under the key 'command_log'.
+
+    \testcheck
+    Assert buffer length, entry content, and get_config_summary() return value.
+    """
+
+    def setup_method(self, method):
+        import integrations.version_control_integration as vci
+        vci._debug_log = []
+
+    def teardown_method(self, method):
+        import integrations.version_control_integration as vci
+        vci._debug_log = []
+        vci._repo_info = {}
+
+    def test_append_adds_entry(self):
+        """_debug_log_append() adds one entry per call."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append
+        _debug_log_append("hello world")
+        assert len(vci._debug_log) == 1
+
+    def test_entry_contains_message(self):
+        """The appended entry contains the original message text."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append
+        _debug_log_append("git: status (cwd=/repo)")
+        assert "git: status (cwd=/repo)" in vci._debug_log[0]
+
+    def test_entry_contains_version_control_prefix(self):
+        """The entry is tagged with '[version_control]' for log triage."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append
+        _debug_log_append("test msg")
+        assert "[version_control]" in vci._debug_log[0]
+
+    def test_multiple_appends_grow_buffer(self):
+        """Appending three messages produces a buffer of length 3."""
+        from integrations.version_control_integration import _debug_log_append
+        import integrations.version_control_integration as vci
+        _debug_log_append("a")
+        _debug_log_append("b")
+        _debug_log_append("c")
+        assert len(vci._debug_log) == 3
+
+    def test_buffer_capped_at_max(self):
+        """Buffer never exceeds _DEBUG_LOG_MAX entries."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append
+        for i in range(vci._DEBUG_LOG_MAX + 20):
+            _debug_log_append(f"msg {i}")
+        assert len(vci._debug_log) <= vci._DEBUG_LOG_MAX
+
+    def test_oldest_entries_dropped_when_over_max(self):
+        """After exceeding the cap the oldest entries are removed."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append
+        for i in range(vci._DEBUG_LOG_MAX + 5):
+            _debug_log_append(f"msg {i}")
+        # The very first messages should have been dropped
+        assert not any("msg 0 " in e or e.endswith("msg 0") for e in vci._debug_log)
+
+    def test_get_config_summary_includes_command_log_key(self):
+        """get_config_summary() always includes the 'command_log' key."""
+        from integrations.version_control_integration import get_config_summary
+        summary = get_config_summary()
+        assert "command_log" in summary
+
+    def test_get_config_summary_command_log_reflects_debug_log(self):
+        """get_config_summary()['command_log'] matches the current _debug_log."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append, get_config_summary
+        _debug_log_append("sentinel-entry-xyz")
+        summary = get_config_summary()
+        assert any("sentinel-entry-xyz" in e for e in summary["command_log"])
+
+    def test_get_config_summary_command_log_is_copy(self):
+        """Mutating the returned list does not affect _debug_log."""
+        import integrations.version_control_integration as vci
+        from integrations.version_control_integration import _debug_log_append, get_config_summary
+        _debug_log_append("original")
+        log_copy = get_config_summary()["command_log"]
+        log_copy.clear()
+        assert len(vci._debug_log) >= 1

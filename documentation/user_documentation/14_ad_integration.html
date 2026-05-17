@@ -119,6 +119,70 @@
       strategy automatically.
     </div>
 
+    <!-- -- Active Directory tab -- -->
+    <h2 id="ad-tab">Active Directory Tab in Resource Information Dialog</h2>
+    <p>Every <strong>Resource Information dialog</strong> contains a dedicated
+    <strong>Active Directory</strong> tab that gives you direct access to the full set of
+    AD-sourced location attributes alongside the email address, without having to go
+    through the <em>Look up in AD&hellip;</em> flow on the General tab.</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Editable</th><th>Source (pre-fill order)</th><th>Saved to</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>AD Display Name</strong></td>
+          <td>No (read-only)</td>
+          <td>AD <code>DisplayName</code> attribute from last lookup</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>Username</strong></td>
+          <td>No (read-only)</td>
+          <td>AD <code>SamAccountName</code> from last lookup</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><strong>E-Mail</strong></td>
+          <td>Yes</td>
+          <td>AD email &rarr; MPXJ email address field</td>
+          <td>MPXJ <code>setEmailAddress()</code></td>
+        </tr>
+        <tr>
+          <td><strong>Department</strong></td>
+          <td>Yes</td>
+          <td>AD department &rarr; MPXJ TEXT2 resource field</td>
+          <td>MPXJ TEXT2</td>
+        </tr>
+        <tr>
+          <td><strong>City</strong></td>
+          <td>Yes</td>
+          <td>AD city (<code>l</code> attribute) &rarr; MPXJ TEXT1 resource field</td>
+          <td>MPXJ TEXT1</td>
+        </tr>
+        <tr>
+          <td><strong>Country</strong></td>
+          <td>Yes (dropdown + free text)</td>
+          <td>AD country (<code>co</code> attribute) &rarr; MPXJ TEXT3 resource field</td>
+          <td>MPXJ TEXT3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <strong>Persistent across XML round-trips</strong>
+      City, Department, and Country are stored in the MPXJ <code>TEXT1</code>,
+      <code>TEXT2</code>, and <code>TEXT3</code> resource fields and are therefore
+      included in the project&rsquo;s XML file — they survive save/reload cycles
+      without an AD connection.
+    </div>
+
+    <div class="callout tip">
+      <strong>Country selector</strong>
+      The Country field is an <em>editable</em> combo box pre-populated with a full
+      list of country names.  You can type a custom value if your country is not in
+      the list, or simply select one from the dropdown.
+    </div>
+
     <!-- -- Add resource from AD -- -->
     <h2>Add a New Resource Directly from AD</h2>
     <p>Instead of creating a resource manually and syncing it afterwards, you can add a

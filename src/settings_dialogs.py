@@ -268,15 +268,39 @@ _P2J_JIRA_FIELD_SUGGESTIONS = [
     "security", "votes", "progress", "customfield_10010", "customfield_10014",
 ]
 
+# Dropdown options for Project -> Jira mapping tables
+_P2J_TASK_TYPE_LEFT_OPTIONS = [
+    "Task", "Milestone", "Summary", "Deliverable", "Phase",
+    "Sub-task", "Work Package",
+]
+_P2J_TASK_TYPE_RIGHT_OPTIONS = [
+    "Story", "Task", "Epic", "Bug", "Sub-task", "Feature",
+    "Initiative", "Improvement", "New Feature",
+]
+_P2J_TRANSITION_LEFT_OPTIONS = [
+    "Not Started", "In Progress", "Completed", "Cancelled", "Waiting", "On Hold",
+]
+_P2J_TRANSITION_RIGHT_OPTIONS = [
+    "To Do", "In Progress", "Done", "Closed", "Resolved",
+    "Won\u2019t Fix", "Cancelled", "Backlog", "Review",
+]
+
 _PROJECT2JIRA_DEFAULTS = {
     "export_scope": "changed_since_last_sync",
     "create_update_mode": "create_update",
     "conflict_policy": "manual_review",
     "dry_run": True,
     "unlinked_task_behavior": "skip",   # create | skip | prompt
-    "fields": {},
-    "issue_type_map": {},
+    "fields": {
+        "jira_project_name": {"enabled": True, "jira_field": "project"},
+    },
+    "issue_type_map": {
+        "Task": "Task",
+        "Sub-task": "Sub-task",
+    },
     "transition_map": {},
+    # Transition names are server-specific; leave empty so users configure
+    # the actual transition id/name from their Jira project.
     "hierarchy_export": {
         "enabled": False,
         "epic_type": "Epic",
@@ -1917,8 +1941,12 @@ class JiraSyncConfigDialog(QDialog):
         }
         return row
 
-    def _build_project_to_jira_table(self, title: str, help_text: str, key: str, column_labels: tuple[str, str]) -> QGroupBox:
-        """Build a simple editable two-column mapping table."""
+    def _build_project_to_jira_table(self, title: str, help_text: str, key: str, column_labels: tuple[str, str],
+                                      left_options: list | None = None, right_options: list | None = None) -> QGroupBox:
+        """Build a simple editable two-column mapping table.
+        When *left_options* / *right_options* are provided the respective column
+        uses an editable QComboBox instead of a plain text cell.
+        """
         grp = QGroupBox(title)
         vbox = QVBoxLayout(grp)
         vbox.setSpacing(8)
@@ -1938,6 +1966,11 @@ class JiraSyncConfigDialog(QDialog):
         table.horizontalHeader().setStretchLastSection(True)
         table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        # Store options as dynamic properties so _dict_to_table can recreate combos
+        if left_options is not None:
+            table.setProperty("left_options", left_options)
+        if right_options is not None:
+            table.setProperty("right_options", right_options)
         vbox.addWidget(table)
 
         btn_row = QWidget()
@@ -1950,11 +1983,30 @@ class JiraSyncConfigDialog(QDialog):
         btn_layout.addWidget(del_btn)
         vbox.addWidget(btn_row)
 
+        def _make_combo(options: list, value: str = "") -> QComboBox:
+            cb = QComboBox()
+            cb.setEditable(True)
+            cb.addItems(options)
+            if value in options:
+                cb.setCurrentText(value)
+            elif value:
+                cb.setCurrentText(value)
+            else:
+                cb.setCurrentIndex(-1)
+                cb.clearEditText()
+            return cb
+
         def _add_row(left: str = "", right: str = ""):
             row = table.rowCount()
             table.insertRow(row)
-            table.setItem(row, 0, QTableWidgetItem(left))
-            table.setItem(row, 1, QTableWidgetItem(right))
+            if left_options is not None:
+                table.setCellWidget(row, 0, _make_combo(left_options, left))
+            else:
+                table.setItem(row, 0, QTableWidgetItem(left))
+            if right_options is not None:
+                table.setCellWidget(row, 1, _make_combo(right_options, right))
+            else:
+                table.setItem(row, 1, QTableWidgetItem(right))
 
         def _remove_selected_row():
             row = table.currentRow()
@@ -2057,14 +2109,28 @@ class JiraSyncConfigDialog(QDialog):
             "Map your project task types to Jira issue types. This mapping is validated against the selected Jira server when possible.",
             "issue_type_map",
             ("Project task type", "Jira issue type"),
+            left_options=_P2J_TASK_TYPE_LEFT_OPTIONS,
+            right_options=_P2J_TASK_TYPE_RIGHT_OPTIONS,
         )
         tab_layout.addWidget(self._task_type_map_group)
+
+        # Warning label shown when mapped issue types are not available on the server.
+        self._issue_type_warning_label = QLabel()
+        self._issue_type_warning_label.setWordWrap(True)
+        self._issue_type_warning_label.setStyleSheet(
+            "color: #8a6d3b; background: #fcf8e3; border: 1px solid #faebcc; "
+            "border-radius: 3px; padding: 6px; font-size: 11px;"
+        )
+        self._issue_type_warning_label.setVisible(False)
+        tab_layout.addWidget(self._issue_type_warning_label)
 
         self._transition_map_group = self._build_project_to_jira_table(
             "Task status -> Jira transition",
             "Map project task statuses to Jira transition id or name. If a linked Jira issue is available, the dialog validates the transition choices against Jira.",
             "transition_map",
             ("Project task status", "Jira transition (id or name)"),
+            left_options=_P2J_TRANSITION_LEFT_OPTIONS,
+            right_options=_P2J_TRANSITION_RIGHT_OPTIONS,
         )
         tab_layout.addWidget(self._transition_map_group)
 
@@ -2150,22 +2216,53 @@ class JiraSyncConfigDialog(QDialog):
         """Convert a two-column mapping table to a dict."""
         result = {}
         for row in range(table.rowCount()):
+            left_widget = table.cellWidget(row, 0)
+            right_widget = table.cellWidget(row, 1)
             left_item = table.item(row, 0)
             right_item = table.item(row, 1)
-            left = left_item.text().strip() if left_item else ""
-            right = right_item.text().strip() if right_item else ""
+            if left_widget is not None and hasattr(left_widget, "currentText"):
+                left = left_widget.currentText().strip()
+            else:
+                left = left_item.text().strip() if left_item else ""
+            if right_widget is not None and hasattr(right_widget, "currentText"):
+                right = right_widget.currentText().strip()
+            else:
+                right = right_item.text().strip() if right_item else ""
             if left:
                 result[left] = right
         return result
 
     def _dict_to_table(self, table: QTableWidget, data: dict):
-        """Populate a two-column mapping table from a dict."""
+        """Populate a two-column mapping table from a dict.
+        If the table has QComboBox cell widgets (set by _build_project_to_jira_table),
+        the first row's cell widget is used as a template to detect the options.
+        """
+        # Detect whether this table uses combo boxes by checking row 0 widgets
+        # (we check after clearing, so we use the _add_row closure's behaviour)
+        # Strategy: store left/right options on the table itself via dynamic property
+        left_opts = table.property("left_options")
+        right_opts = table.property("right_options")
+
         table.setRowCount(0)
         for key, value in data.items():
             row = table.rowCount()
             table.insertRow(row)
-            table.setItem(row, 0, QTableWidgetItem(str(key)))
-            table.setItem(row, 1, QTableWidgetItem(str(value)))
+            if left_opts is not None:
+                cb_l = QComboBox()
+                cb_l.setEditable(True)
+                cb_l.addItems(left_opts)
+                cb_l.setCurrentText(str(key))
+                table.setCellWidget(row, 0, cb_l)
+            else:
+                table.setItem(row, 0, QTableWidgetItem(str(key)))
+            if right_opts is not None:
+                cb_r = QComboBox()
+                cb_r.setEditable(True)
+                cb_r.addItems(right_opts)
+                cb_r.setCurrentText(str(value))
+                table.setCellWidget(row, 1, cb_r)
+            else:
+                table.setItem(row, 1, QTableWidgetItem(str(value)))
 
     def _load_project_to_jira_settings(self):
         """Load export settings from the project custom properties."""
@@ -2183,6 +2280,12 @@ class JiraSyncConfigDialog(QDialog):
                 except Exception:
                     config = {}
             config = {**_PROJECT2JIRA_DEFAULTS, **config}
+            # Deep-merge fields so default pre-enabled fields apply when not yet saved.
+            # Maps (issue_type_map, transition_map) are NOT deep-merged: the shallow
+            # merge above already applies defaults when no saved map exists, and
+            # preserves the user's saved map (as a whole) when one does exist.
+            merged_fields = {**(_PROJECT2JIRA_DEFAULTS.get("fields") or {}), **(config.get("fields") or {})}
+            config["fields"] = merged_fields
 
             scope_map = {
                 "selected_tasks": 0,
@@ -2472,11 +2575,129 @@ class JiraSyncConfigDialog(QDialog):
 
             ok, error = jira_integration.test_connection(server)
             if ok:
-                QMessageBox.information(self, "Jira Connection", f"Connection test succeeded for '{server.get('name', '(unnamed)')}'.")
+                QMessageBox.information(self, "Jira Connection", f"Connection test succeeded for '{server.get('name', '(unnamed)')}' .")
+                self._refresh_issue_type_warning(server, jira_integration)
             else:
                 QMessageBox.critical(self, "Jira Connection", f"Connection test failed:\n\n{error}")
         except Exception as exc:
             QMessageBox.critical(self, "Jira Connection", f"Connection test failed:\n\n{exc}")
+
+    def _refresh_issue_type_warning(self, server: dict, jira_integration) -> None:
+        """Fetch available issue types from the server and warn about invalid mappings.
+
+        Called after a successful Test Connection.  Updates
+        ``self._issue_type_warning_label`` in the Project -> Jira tab.
+        Also restricts the issue-type combo dropdowns in the mapping table and
+        hierarchy section to only offer types that actually exist on the server.
+        """
+        if not hasattr(self, "_issue_type_warning_label"):
+            return
+
+        # Discover which project(s) the configured filter targets by executing it
+        # against the server and collecting the project keys from the results.
+        project_key = ""
+        filter_value = self._filter_edit.text().strip() if hasattr(self, "_filter_edit") else ""
+        filter_type = (
+            "filter"
+            if hasattr(self, "_radio_filter_id") and self._radio_filter_id.isChecked()
+            else "jql"
+        )
+        if filter_value:
+            try:
+                jira_client, _err = jira_integration.get_jira_client(server)
+                if jira_client is not None:
+                    # Resolve saved filter -> JQL first if needed
+                    jql = filter_value
+                    if filter_type == "filter":
+                        jql, _ = jira_integration.resolve_filter_to_jql(
+                            jira_client, filter_value, "filter"
+                        )
+                    if jql:
+                        issues = list(jira_client.search_issues(
+                            jql, maxResults=5, fields="project"
+                        ))
+                        found_keys = sorted({
+                            str(getattr(getattr(i.fields, "project", None), "key", "") or "")
+                            for i in issues
+                        } - {""})
+                        if found_keys:
+                            project_key = found_keys[0]
+            except Exception:
+                pass
+
+        caps = jira_integration.fetch_server_capabilities(server, project_key)
+        available = set(caps.get("issue_types") or [])
+        if caps.get("error") and not available:
+            self._issue_type_warning_label.setVisible(False)
+            return
+
+        available_list = sorted(available)
+
+        if available_list:
+            # Restrict the right-column (Jira issue type) combos in the mapping
+            # table to only show types that exist on the server.
+            table = self._project2jira_tables.get("issue_type_map")
+            if table is not None:
+                table.setProperty("right_options", available_list)
+                for row in range(table.rowCount()):
+                    combo = table.cellWidget(row, 1)
+                    if isinstance(combo, QComboBox):
+                        current = combo.currentText()
+                        combo.clear()
+                        combo.addItems(available_list)
+                        if current:
+                            combo.setCurrentText(current)
+
+            # Restrict hierarchy type combos the same way.
+            for attr in ("_p2j_epic_type_edit", "_p2j_story_type_edit", "_p2j_subtask_type_edit"):
+                combo = getattr(self, attr, None)
+                if combo is not None:
+                    current = combo.currentText()
+                    combo.clear()
+                    combo.addItems(available_list)
+                    if current:
+                        combo.setCurrentText(current)
+
+        # Collect all Jira issue types configured in the mapping table
+        issue_type_map = self._table_to_dict(self._project2jira_tables["issue_type_map"])
+        mapped_types = {v.strip() for v in issue_type_map.values() if v.strip()}
+
+        # Also include hierarchy types when hierarchy export is enabled
+        hier_unsupported: list[str] = []
+        if hasattr(self, "_p2j_hierarchy_enabled_cb") and self._p2j_hierarchy_enabled_cb.isChecked():
+            for attr, label in [
+                ("_p2j_epic_type_edit",    "Epic type"),
+                ("_p2j_story_type_edit",   "Story type"),
+                ("_p2j_subtask_type_edit", "Sub-task type"),
+            ]:
+                combo = getattr(self, attr, None)
+                if combo is not None:
+                    val = combo.currentText().strip()
+                    if val:
+                        mapped_types.add(val)
+                        if available and val not in available:
+                            hier_unsupported.append(f"{label} '{val}'")
+
+        unsupported = sorted(mapped_types - available) if available else []
+        if unsupported:
+            types_str = ", ".join(f"'{t}'" for t in unsupported)
+            available_str = ", ".join(sorted(available)) if available else "(none)"
+            msg = (
+                f"\u26a0\ufe0f  Issue type(s) not available on this server: {types_str}.\n"
+                f"Available types: {available_str}.\n"
+                "Update the task type mappings to use a supported type, "
+                "or create mode will fail for those task types."
+            )
+            if hier_unsupported:
+                msg += (
+                    "\nHierarchy export uses unsupported types: "
+                    + ", ".join(hier_unsupported)
+                    + ". Disable hierarchy export or change to a supported type."
+                )
+            self._issue_type_warning_label.setText(msg)
+            self._issue_type_warning_label.setVisible(True)
+        else:
+            self._issue_type_warning_label.setVisible(False)
 
     def _test_filter(self):
         """Test the JQL filter by fetching issues from the selected Jira server."""
@@ -2519,7 +2740,10 @@ class JiraSyncConfigDialog(QDialog):
                 answer = QMessageBox.question(
                     self,
                     "KeePass Locked",
-                    "The KeePass database is locked.\n\nDo you want to unlock it now?",
+                    "\U0001f510  KeePass is required to connect to Jira\n\n"
+                    "The configured Jira server uses KeePass for credential storage,\n"
+                    "but KeePass is currently locked.\n\n"
+                    "Would you like to unlock KeePass now to proceed with \u2018Test Filter\u2019?",
                     QMessageBox.Yes | QMessageBox.No,
                     QMessageBox.Yes,
                 )
@@ -2545,15 +2769,25 @@ class JiraSyncConfigDialog(QDialog):
                         )
                         return
 
-            # Show wait cursor
-            from PyQt5.QtWidgets import QApplication # type: ignore
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            # Show a modal progress dialog while running the test
+            from PyQt5.QtWidgets import QProgressDialog  # type: ignore
+            progress = QProgressDialog(
+                f"Testing filter against Jira server\u2026",
+                None, 0, 0, self,
+            )
+            progress.setWindowTitle("Testing Filter")
+            progress.setWindowModality(Qt.ApplicationModal)
+            progress.setMinimumWidth(360)
+            progress.setCancelButton(None)
+            progress.show()
+            from PyQt5.QtWidgets import QApplication  # type: ignore
+            QApplication.processEvents()
 
             try:
                 jira, error = jira_integration.get_jira_client(current_server)
 
                 if jira is None:
-                    QApplication.restoreOverrideCursor()
+                    progress.close()
                     # Record failed filter test
                     server_name = current_server.get("name", "(unnamed)")
                     jira_integration.record_filter_test(server_name, filter_text, 0, error)
@@ -2569,7 +2803,7 @@ class JiraSyncConfigDialog(QDialog):
                     jira, filter_text, filter_type
                 )
                 if resolve_error:
-                    QApplication.restoreOverrideCursor()
+                    progress.close()
                     server_name = current_server.get("name", "(unnamed)")
                     jira_integration.record_filter_test(server_name, filter_text, 0, resolve_error)
                     QMessageBox.critical(
@@ -2582,7 +2816,7 @@ class JiraSyncConfigDialog(QDialog):
                 # Search for issues with the resolved JQL (limit to 50 results for testing)
                 issues = jira.search_issues(jql, maxResults=50)
                 
-                QApplication.restoreOverrideCursor()
+                progress.close()
                 
                 # Record successful filter test
                 server_name = current_server.get("name", "(unnamed)")

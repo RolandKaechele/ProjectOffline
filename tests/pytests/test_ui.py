@@ -819,23 +819,31 @@ class TestApplySystemCurrencyToProject:
 
     def test_apply_system_currency_sets_digits(self, main_window):
         """Fractional digit count from localeconv is written to project properties."""
+        import sys as _sys
         mock_project = MagicMock()
         mock_props = MagicMock()
         mock_project.getProjectProperties.return_value = mock_props
+        _mock_jpype = MagicMock()
+        _mock_jpype.JClass.side_effect = lambda n: int if 'Integer' in n else MagicMock()
         with patch('locale.setlocale'), \
              patch('locale.localeconv', return_value=self._conv(frac=2)), \
-             patch('locale.getlocale', return_value=('de_DE', 'cp1252')):
+             patch('locale.getlocale', return_value=('de_DE', 'cp1252')), \
+             patch.dict(_sys.modules, {'jpype': _mock_jpype}):
             main_window._apply_system_currency_to_project(mock_project)
         mock_props.setCurrencyDigits.assert_called_once_with(2)
 
     def test_apply_system_currency_negative_digits_defaults_to_2(self, main_window):
         """frac_digits == -1 (locale sentinel for 'unknown') must be treated as 2."""
+        import sys as _sys
         mock_project = MagicMock()
         mock_props = MagicMock()
         mock_project.getProjectProperties.return_value = mock_props
+        _mock_jpype = MagicMock()
+        _mock_jpype.JClass.side_effect = lambda n: int if 'Integer' in n else MagicMock()
         with patch('locale.setlocale'), \
              patch('locale.localeconv', return_value=self._conv(frac=-1)), \
-             patch('locale.getlocale', return_value=('de_DE', 'cp1252')):
+             patch('locale.getlocale', return_value=('de_DE', 'cp1252')), \
+             patch.dict(_sys.modules, {'jpype': _mock_jpype}):
             main_window._apply_system_currency_to_project(mock_project)
         mock_props.setCurrencyDigits.assert_called_once_with(2)
 

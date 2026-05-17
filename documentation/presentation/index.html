@@ -1935,6 +1935,20 @@
       <p class="caption">Resource Information dialog &mdash; E-Mail and Department pre-filled from AD via &ldquo;Look up in AD&hellip;&rdquo;</p>
     </div>
 
+    <div class="screenshot-block" style="max-width:660px;margin-bottom:28px">
+      <h3>Active Directory tab &mdash; Resource Information dialog</h3>
+      <p class="desc">
+        Every Resource Information dialog now includes a dedicated <strong>Active
+        Directory</strong> tab.  It exposes the full set of AD location attributes —
+        Display Name and Username (read-only) plus editable fields for E-Mail,
+        Department, City, and Country (an editable combo box pre-populated with country
+        names).  All fields are pre-filled from the resource&rsquo;s last AD lookup or
+        from the MPXJ TEXT1 / TEXT2 / TEXT3 resource fields, so the data survives
+        XML round-trips even without an AD connection.  On OK the values are written
+        back to <code>setEmailAddress()</code> and the TEXT1&ndash;TEXT3 fields.
+      </p>
+    </div>
+
     <div class="callout tip">
       <span class="callout-icon">🐛</span>
       <div>

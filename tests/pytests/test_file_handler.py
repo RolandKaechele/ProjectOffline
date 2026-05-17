@@ -435,3 +435,183 @@ class TestLoadCustomProperties:
         handler._patch_load_custom_properties(mock_project, str(tmp_path / "proj.xml"))
 
         mock_project.getProjectProperties.return_value.setCustomProperties.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# TestPatchCalExcNames  (new: _patch_save_cal_exc_names / _patch_load_cal_exc_names)
+# ---------------------------------------------------------------------------
+
+class TestPatchCalExcNames:
+    """_patch_save_cal_exc_names writes a .cal-exc-names.json sidecar; the
+    companion _patch_load_cal_exc_names reads it back and calls setName() on
+    matching calendar exceptions.
+
+    \testinit
+    Build a mock MPXJ project with calendars and calendar exceptions that have
+    names.  Use a pytest tmp_path fixture for the on-disk sidecar file.
+
+    \testrun
+    Call _patch_save_cal_exc_names, inspect the resulting JSON, then call
+    _patch_load_cal_exc_names on a project whose exceptions lack names and
+    verify that setName() is invoked correctly.
+
+    \testexpect
+    Save: the sidecar file contains entries keyed by (cal, from, to).
+    Load: setName() is called for each matching exception; exceptions that
+          already have a name are skipped; missing sidecar is a no-op.
+
+    \testcheck
+    Assert sidecar file content and mock call counts.
+    """
+
+    def _make_exception(self, name="", from_date="2025-01-01", to_date="2025-01-01"):
+        ex = MagicMock()
+        ex.getName.return_value = name or None
+        ex.getFromDate.return_value = from_date
+        ex.getToDate.return_value = to_date
+        return ex
+
+    def _make_calendar(self, cal_name, exceptions):
+        cal = MagicMock()
+        cal.getName.return_value = cal_name
+        cal.getCalendarExceptions.return_value = exceptions
+        return cal
+
+    def test_save_creates_sidecar_file(self, tmp_path):
+        """_patch_save_cal_exc_names creates a .cal-exc-names.json sidecar."""
+        handler, _ = _handler()
+        ex = self._make_exception(name="Christmas", from_date="2025-12-25", to_date="2025-12-25")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        xml_path = str(tmp_path / "proj.xml")
+        handler._patch_save_cal_exc_names(mock_project, xml_path)
+
+        sidecar = xml_path + ".cal-exc-names.json"
+        assert os.path.exists(sidecar)
+
+    def test_save_sidecar_contains_entry(self, tmp_path):
+        """The sidecar JSON contains one entry for the named exception."""
+        import json
+        handler, _ = _handler()
+        ex = self._make_exception(name="New Year", from_date="2025-01-01", to_date="2025-01-01")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        xml_path = str(tmp_path / "proj.xml")
+        handler._patch_save_cal_exc_names(mock_project, xml_path)
+
+        with open(xml_path + ".cal-exc-names.json", encoding="utf-8") as f:
+            data = json.load(f)
+
+        assert len(data) == 1
+        assert data[0]["cal"] == "Standard"
+        assert data[0]["from"] == "2025-01-01"
+        assert data[0]["name"] == "New Year"
+
+    def test_save_skips_exceptions_without_names(self, tmp_path):
+        """Exceptions with no name (None/empty) are omitted from the sidecar."""
+        import json
+        handler, _ = _handler()
+        ex_no_name = self._make_exception(name="", from_date="2025-06-01", to_date="2025-06-01")
+        ex_named   = self._make_exception(name="Holiday", from_date="2025-07-04", to_date="2025-07-04")
+        cal = self._make_calendar("Standard", [ex_no_name, ex_named])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        xml_path = str(tmp_path / "proj.xml")
+        handler._patch_save_cal_exc_names(mock_project, xml_path)
+
+        with open(xml_path + ".cal-exc-names.json", encoding="utf-8") as f:
+            data = json.load(f)
+
+        assert len(data) == 1
+        assert data[0]["name"] == "Holiday"
+
+    def test_save_removes_stale_sidecar_when_no_entries(self, tmp_path):
+        """If no named exceptions exist the sidecar file is removed if present."""
+        handler, _ = _handler()
+        ex = self._make_exception(name="", from_date="2025-01-01", to_date="2025-01-01")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        xml_path = str(tmp_path / "proj.xml")
+        sidecar = xml_path + ".cal-exc-names.json"
+        # Create a stale sidecar
+        with open(sidecar, "w") as f:
+            f.write("[]")
+
+        handler._patch_save_cal_exc_names(mock_project, xml_path)
+        assert not os.path.exists(sidecar)
+
+    def test_load_missing_sidecar_is_noop(self, tmp_path):
+        """_patch_load_cal_exc_names does nothing when the sidecar is absent."""
+        handler, _ = _handler()
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = []
+
+        # Should not raise even without sidecar
+        handler._patch_load_cal_exc_names(mock_project, str(tmp_path / "proj.xml"))
+        mock_project.getCalendars.assert_not_called()
+
+    def test_load_calls_set_name_on_matching_exception(self, tmp_path):
+        """_patch_load_cal_exc_names calls setName() for matching exceptions."""
+        import json
+        handler, _ = _handler()
+
+        xml_path = str(tmp_path / "proj.xml")
+        sidecar = xml_path + ".cal-exc-names.json"
+        with open(sidecar, "w", encoding="utf-8") as f:
+            json.dump([{"cal": "Standard", "from": "2025-12-25",
+                        "to": "2025-12-25", "name": "Christmas"}], f)
+
+        ex = self._make_exception(name="", from_date="2025-12-25", to_date="2025-12-25")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        handler._patch_load_cal_exc_names(mock_project, xml_path)
+        ex.setName.assert_called_once_with("Christmas")
+
+    def test_load_skips_exceptions_that_already_have_name(self, tmp_path):
+        """_patch_load_cal_exc_names does not overwrite existing names."""
+        import json
+        handler, _ = _handler()
+
+        xml_path = str(tmp_path / "proj.xml")
+        sidecar = xml_path + ".cal-exc-names.json"
+        with open(sidecar, "w", encoding="utf-8") as f:
+            json.dump([{"cal": "Standard", "from": "2025-12-25",
+                        "to": "2025-12-25", "name": "Christmas"}], f)
+
+        ex = self._make_exception(name="Existing Name", from_date="2025-12-25",
+                                  to_date="2025-12-25")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        handler._patch_load_cal_exc_names(mock_project, xml_path)
+        ex.setName.assert_not_called()
+
+    def test_load_ignores_unmatched_entries(self, tmp_path):
+        """Sidecar entries that don't match any exception are silently ignored."""
+        import json
+        handler, _ = _handler()
+
+        xml_path = str(tmp_path / "proj.xml")
+        sidecar = xml_path + ".cal-exc-names.json"
+        with open(sidecar, "w", encoding="utf-8") as f:
+            json.dump([{"cal": "Standard", "from": "2025-01-01",
+                        "to": "2025-01-01", "name": "Holiday"}], f)
+
+        # Calendar has a different date — no match
+        ex = self._make_exception(name="", from_date="2025-06-15", to_date="2025-06-15")
+        cal = self._make_calendar("Standard", [ex])
+        mock_project = MagicMock()
+        mock_project.getCalendars.return_value = [cal]
+
+        handler._patch_load_cal_exc_names(mock_project, xml_path)
+        ex.setName.assert_not_called()

@@ -31,7 +31,7 @@ print("Fetching latest Inno Setup release info from GitHub API ...")
 req = urllib.request.Request(
     API_URL,
     headers={"Accept": "application/vnd.github+json",
-             "User-Agent": "ProjectOffline-build"},
+             "User-Agent": "project-offline-build"},
 )
 with urllib.request.urlopen(req) as resp:
     release = json.load(resp)

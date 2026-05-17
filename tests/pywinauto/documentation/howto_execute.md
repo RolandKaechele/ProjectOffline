@@ -9,7 +9,7 @@ on a Windows machine.
 | Requirement | Version / Notes |
 | ----------- | --------------- |
 | Operating system | **Windows 10 or Windows 11** — pywinauto UIA is Windows-only |
-| Python | 3.9 – 3.12 (match your project Python version) |
+| Python | 3.12 (match your project Python version) |
 | Java / JDK | Required by MPXJ (used by the app at runtime).  Either set `JAVA_HOME` or place a JDK under `tools/java/` in the project root. |
 | Display | A real or virtual display.  The app cannot run headless (unlike the unit tests which use `QT_QPA_PLATFORM=offscreen`). |
 
