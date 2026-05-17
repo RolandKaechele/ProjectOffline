@@ -257,9 +257,11 @@ class TestKeePassManagerCreateDb:
         sm.set_keepass_key_file.assert_called_with("")
 
     def test_create_db_failure_returns_error(self):
+        from unittest.mock import patch
         m, _ = _fresh_manager()
         sys.modules['pykeepass'].create_database.side_effect = Exception("disk full")
-        ok, err = m.create_db("/new/db.kdbx", "pwd", None)
+        with patch("integrations.keepass_integration.os.makedirs"):
+            ok, err = m.create_db("/new/db.kdbx", "pwd", None)
         assert ok is False
         assert "disk full" in err
         assert m._db is None
