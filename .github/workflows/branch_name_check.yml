@@ -1,0 +1,37 @@
+name: Branch Name Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, reopened, synchronize]
+
+jobs:
+  check-branch-name:
+    name: Validate branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name pattern
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          PATTERN="^(feature|bugfix|hotfix|release)/[a-zA-Z0-9-]+_[a-zA-Z0-9_]+"
+
+          echo "Branch: $BRANCH"
+          echo "Required pattern: $PATTERN"
+
+          if [[ "$BRANCH" =~ $PATTERN ]]; then
+            echo "✅ Branch name is valid."
+          else
+            echo "❌ Branch name '$BRANCH' does not match the required pattern."
+            echo ""
+            echo "Valid examples:"
+            echo "  feature/jira-sync_add_oauth_support"
+            echo "  bugfix/gantt-scroll_fix_zoom_jump"
+            echo "  hotfix/crash_on_save"
+            echo "  release/v2026.05.17_prepare_release"
+            echo ""
+            echo "Pattern: <type>/<name>_<comment_with_underscores>"
+            echo "Types: feature, bugfix, hotfix, release"
+            exit 1
+          fi
