@@ -149,9 +149,6 @@ def run_with_progress(
         if _done[0]:
             return
         _done[0] = True
-        # Record elapsed time on the worker object
-        if worker._start_time is not None:
-            worker.elapsed_seconds = time.monotonic() - worker._start_time
         result[0], result[1] = ok, out
         if dlg.maximum() == 0:
             dlg.setMaximum(100)
@@ -184,6 +181,13 @@ def run_with_progress(
     if worker.isRunning():
         worker.cancelled = True
         worker.wait(2000)
+
+    # Record elapsed time here (after exec_ returns) so it is always set,
+    # even on Windows where QProgressDialog may emit canceled() before
+    # _on_finished runs, causing the queued finished signal to be processed
+    # after the local event loop has already exited.
+    if worker._start_time is not None:
+        worker.elapsed_seconds = time.monotonic() - worker._start_time
 
     return result[0], result[1]
 
