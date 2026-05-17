@@ -50,7 +50,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          xvfb-run --auto-servernum python -m pytest tests/ \
+          xvfb-run --auto-servernum python -m pytest tests/pytests \
             --tb=short \
             -v \
             --cov=src \
