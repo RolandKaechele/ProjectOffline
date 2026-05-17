@@ -80,7 +80,33 @@ To make this check **required before merging**, add `"Validate branch name"` to 
 ```
 
 
-## 3. Verify rules are active
+## 3. Protect `develop`
+
+**PowerShell:**
+
+```powershell
+@'
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["Run tests with coverage (3.12)"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+'@ | gh api --method PUT repos/RolandKaechele/ProjectOffline/branches/develop/protection --input -
+```
+
+This enforces:
+
+- CI must pass before merge (`Run tests with coverage (3.12)`)
+- No force push or deletion of `develop`
+- No PR approval required (less strict than `main`)
+
+## 4. Verify rules are active
 
 ```powershell
 # Check branch protection on main
@@ -90,7 +116,7 @@ gh api repos/RolandKaechele/ProjectOffline/branches/main/protection
 gh api repos/RolandKaechele/ProjectOffline/rulesets
 ```
 
-## 4. Remove rules (if needed)
+## 5. Remove rules (if needed)
 
 ```powershell
 # Remove branch protection

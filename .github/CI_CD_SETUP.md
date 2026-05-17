@@ -42,7 +42,23 @@ Created a workflow for automatic draft release creation:
 - **Instructions**: Includes build instructions for signed installer
 - **Manual step**: Upload signed executable built with `scons` before publishing
 
-### 4. Branching Strategy Documentation
+### 4. Develop → Main Merge (`merge_develop_to_main.yml`)
+
+Added a manually triggered workflow to promote `develop` into `main` via a pull request:
+
+- **Trigger**: Manual (`workflow_dispatch`)
+- **Gate**: Runs `tests.yml` first — PR is only opened if all tests pass
+- **Result**: Opens a PR `develop → main` with label `automated`
+
+### 5. Hotfix Back-Sync (`hotfix_sync_to_develop.yml`)
+
+Automatically back-merges a hotfix branch into `develop` after it has been merged into `main`:
+
+- **Trigger**: PR closed (merged) on `main` from a `hotfix/*` branch
+- **Gate**: Runs `tests.yml` first — PR is only opened if all tests pass
+- **Result**: Opens a PR `hotfix/<name> → develop`, referencing the original PR number
+
+### 6. Branching Strategy Documentation
 
 Created comprehensive Git workflow documentation (`.github/BRANCHING_STRATEGY.md`):
 
@@ -60,6 +76,8 @@ Created comprehensive Git workflow documentation (`.github/BRANCHING_STRATEGY.md
 
 - [pyproject.toml](../pyproject.toml) — Package configuration (for manual builds)
 - [.github/workflows/release.yml](workflows/release.yml) — Automated draft release creation
+- [.github/workflows/merge_develop_to_main.yml](workflows/merge_develop_to_main.yml) — Manual develop → main PR
+- [.github/workflows/hotfix_sync_to_develop.yml](workflows/hotfix_sync_to_develop.yml) — Hotfix back-sync to develop
 - [.github/BRANCHING_STRATEGY.md](BRANCHING_STRATEGY.md) — Git workflow guide
 - `.github/CI_CD_SETUP.md` — This file
 

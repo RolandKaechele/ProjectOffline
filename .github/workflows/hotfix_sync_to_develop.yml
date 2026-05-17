@@ -1,0 +1,45 @@
+name: Sync hotfix into develop
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test:
+    name: Run tests
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+    uses: ./.github/workflows/tests.yml
+
+  sync:
+    name: Open PR hotfix → develop
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'hotfix/')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create pull request hotfix → develop
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: ${{ github.event.pull_request.head.ref }}
+          destination_branch: develop
+          pr_title: "chore: sync ${{ github.event.pull_request.head.ref }} into develop"
+          pr_body: |
+            Automated back-merge after hotfix `${{ github.event.pull_request.head.ref }}` was merged into `main`.
+
+            Original PR: #${{ github.event.pull_request.number }}
+
+            > Merge this PR into `develop` to keep both branches in sync.
+          pr_label: "automated,hotfix"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
